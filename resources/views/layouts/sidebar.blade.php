@@ -44,7 +44,7 @@
 
                 <li class="nav-item">
                     <a class="nav-link text-white"
-                       href="#">
+                       href="{{ route('invoices.index') }}">
                         Invoices
                     </a>
                 </li>
