@@ -37,7 +37,7 @@
 
                 <li class="nav-item">
                     <a class="nav-link text-white"
-                       href="#">
+                       href="{{ route('customers.index') }}">
                         Customers
                     </a>
                 </li>
