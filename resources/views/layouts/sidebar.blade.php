@@ -30,7 +30,7 @@
 
                 <li class="nav-item">
                     <a class="nav-link text-white"
-                       href="#">
+                       href="{{ route('products.index') }}">
                         Products
                     </a>
                 </li>
