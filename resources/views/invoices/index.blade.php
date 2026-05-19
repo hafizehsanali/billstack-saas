@@ -27,6 +27,7 @@
                 <th>Customer</th>
                 <th>Total</th>
                 <th>Date</th>
+                <th>Action</th>
             </tr>
             </thead>
 
@@ -50,6 +51,12 @@
 
                     <td>
                         {{ $invoice->created_at->format('Y-m-d') }}
+                    </td>
+                    <td>
+                        <a href="{{ route('invoices.show', $invoice) }}"
+                        class="btn btn-sm btn-primary">
+                            View
+                        </a>
                     </td>
 
                 </tr>

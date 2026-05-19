@@ -8,6 +8,7 @@ use App\Models\Customer;
 use App\Models\InvoiceItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class InvoiceController extends Controller
 {
@@ -77,5 +78,30 @@ class InvoiceController extends Controller
         }
 
         return redirect()->route('invoices.index');
+    }
+    public function show(Invoice $invoice)
+    {
+        $invoice->load([
+            'customer',
+            'items.product'
+        ]);
+
+        return view('invoices.show', compact('invoice'));
+    }
+    public function pdf(Invoice $invoice)
+    {
+        $invoice->load([
+            'customer',
+            'items.product'
+        ]);
+
+        $pdf = Pdf::loadView(
+            'invoices.pdf',
+            compact('invoice')
+        );
+
+        return $pdf->download(
+            $invoice->invoice_number . '.pdf'
+        );
     }
 }
