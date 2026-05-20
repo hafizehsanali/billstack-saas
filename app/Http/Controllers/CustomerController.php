@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreCustomerRequest;
 
 class CustomerController extends Controller
 {
@@ -19,20 +20,20 @@ class CustomerController extends Controller
         return view('customers.create');
     }
 
-    public function store(Request $request)
+    public function store(StoreCustomerRequest $request)
     {
-        $request->validate([
-            'name' => ['required'],
-        ]);
-
+       
+        $data = $request->validated();
         Customer::create([
-            'name' => $request->name,
-            'phone' => $request->phone,
-            'email' => $request->email,
-            'address' => $request->address,
-            'opening_balance' => $request->opening_balance,
+            'tenant_id' => auth()->user()->tenant_id,
+            'name' => $data['name'],
+            'phone' => $data['phone'] ?? null,
+            'email' => $data['email'] ?? null,
+            'address' => $data['address'] ?? null,
+            'opening_balance' => $data['opening_balance'] ?? 0,
         ]);
-
-        return redirect()->route('customers.index');
+        return redirect()
+        ->route('customers.index')
+        ->with('success', 'Customer created successfully.');
     }
 }

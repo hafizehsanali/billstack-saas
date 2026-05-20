@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreProductRequest;
 
 class ProductController extends Controller
 {
@@ -24,24 +25,37 @@ class ProductController extends Controller
         return view('products.create', compact('categories'));
     }
 
-    public function store(Request $request)
+    public function store(StoreProductRequest $request)
     {
-        $request->validate([
-            'name' => ['required'],
-            'selling_price' => ['required'],
-        ]);
+        $data = $request->validated();
 
         Product::create([
-            'category_id' => $request->category_id,
-            'name' => $request->name,
-            'sku' => $request->sku,
-            'barcode' => $request->barcode,
-            'purchase_price' => $request->purchase_price,
-            'selling_price' => $request->selling_price,
-            'stock_quantity' => $request->stock_quantity,
-            'low_stock_alert' => $request->low_stock_alert,
+
+            'tenant_id' => auth()->user()->tenant_id,
+
+            'category_id' => $data['category_id'],
+
+            'name' => $data['name'],
+
+            'sku' => $data['sku'],
+
+            'barcode' => $data['barcode'] ?? null,
+
+            'purchase_price' => $data['purchase_price'],
+
+            'selling_price' => $data['selling_price'],
+
+            'stock_quantity' => $data['stock_quantity'],
+
+            'low_stock_alert' => $data['low_stock_alert'],
+
         ]);
 
-        return redirect()->route('products.index');
+        return redirect()
+            ->route('products.index')
+            ->with(
+                'success',
+                'Product created successfully.'
+            );
     }
 }

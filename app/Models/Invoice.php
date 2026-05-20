@@ -13,6 +13,7 @@ class Invoice extends Model
     use BelongsToTenant, SoftDeletes;
 
     protected $fillable = [
+        'tenant_id',
         'customer_id',
         'invoice_number',
         'subtotal',

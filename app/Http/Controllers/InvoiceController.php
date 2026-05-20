@@ -9,6 +9,7 @@ use App\Models\InvoiceItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Requests\StoreInvoiceRequest;
 
 class InvoiceController extends Controller
 {
@@ -33,53 +34,98 @@ class InvoiceController extends Controller
         ));
     }
 
-    public function store(Request $request)
+    
+    public function store(StoreInvoiceRequest $request)
     {
+        $data = $request->validated();
+
         $subtotal = 0;
 
-        foreach ($request->products as $index => $productId) {
+        // Calculate totals + validate stock
+        foreach ($data['products'] as $productId) {
 
             $product = Product::findOrFail($productId);
-            $quantity = $request->quantities[$productId];
+
+            $quantity = $data['quantities'][$productId];
+
+            // Prevent overselling
             if ($quantity > $product->stock_quantity) {
+
                 return back()->withErrors([
+
                     'stock' => $product->name .
-                    ' does not have enough stock.'
-                ]);
+                        ' does not have enough stock.'
+
+                ])->withInput();
             }
+
             $lineTotal = $product->selling_price * $quantity;
-            
+
             $subtotal += $lineTotal;
         }
 
+        // Create invoice
         $invoice = Invoice::create([
-            'customer_id' => $request->customer_id,
-            'invoice_number' => 'INV-' . str_pad(Invoice::max('id') + 1,6,'0',STR_PAD_LEFT),
+
+            'tenant_id' => auth()->user()->tenant_id,
+
+            'customer_id' => $data['customer_id'],
+
+            'invoice_number' => 'INV-' . str_pad(
+                Invoice::max('id') + 1,
+                6,
+                '0',
+                STR_PAD_LEFT
+            ),
+
+            'status' => 'completed',
+
             'subtotal' => $subtotal,
+
             'tax' => 0,
+
             'discount' => 0,
+
             'total' => $subtotal,
+
         ]);
 
-        foreach ($request->products as $index => $productId) {
+        // Create invoice items
+        foreach ($data['products'] as $productId) {
 
             $product = Product::findOrFail($productId);
-            $quantity = $request->quantities[$productId];
+
+            $quantity = $data['quantities'][$productId];
+
             $lineTotal = $product->selling_price * $quantity;
 
             InvoiceItem::create([
+
                 'invoice_id' => $invoice->id,
+
                 'product_id' => $product->id,
+
                 'quantity' => $quantity,
+
                 'price' => $product->selling_price,
+
                 'total' => $lineTotal,
+
             ]);
 
             // Reduce stock
-            $product->decrement('stock_quantity', $quantity);
+            $product->decrement(
+                'stock_quantity',
+                $quantity
+            );
         }
 
-        return redirect()->route('invoices.index');
+        return redirect()
+            ->route('invoices.index')
+            ->with(
+                'success',
+                'Invoice created successfully.'
+            );
     }
     public function show(Invoice $invoice)
     {

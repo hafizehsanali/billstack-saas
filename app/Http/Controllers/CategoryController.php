@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreCategoryRequest;
 
 class CategoryController extends Controller
 {
@@ -19,16 +20,15 @@ class CategoryController extends Controller
         return view('categories.create');
     }
 
-    public function store(Request $request)
+    public function store(StoreCategoryRequest $request)
     {
-        $request->validate([
-            'name' => ['required'],
-        ]);
-
+       $data = $request->validated();
         Category::create([
-            'name' => $request->name,
+            'tenant_id' => auth()->user()->tenant_id,
+             'name' => $data['name']
         ]);
 
-        return redirect()->route('categories.index');
+        return redirect()->route('categories.index')
+         ->with('success', 'Category created successfully.');
     }
 }
