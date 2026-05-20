@@ -49,11 +49,49 @@
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a class="nav-link text-white"
-                       href="#">
+                
+                <li class="nav-item dropdown">
+
+                    <a class="nav-link dropdown-toggle"
+                    href="#navbar-reports"
+                    data-bs-toggle="dropdown">
+
                         Reports
+
                     </a>
+
+                    <div class="dropdown-menu">
+
+                        <a class="dropdown-item"
+                        href="{{ route('reports.daily-sales') }}">
+
+                            Daily Sales
+
+                        </a>
+
+                        <a class="dropdown-item"
+                        href="{{ route('reports.monthly-sales') }}">
+
+                            Monthly Sales
+
+                        </a>
+
+                        <a class="dropdown-item"
+                        href="{{ route('reports.stock') }}">
+
+                            Stock Report
+
+                        </a>
+
+                        <a class="dropdown-item"
+                        href="{{ route('reports.low-stock') }}">
+
+                            Low Stock
+
+                        </a>
+
+                    </div>
+
                 </li>
 
             </ul>

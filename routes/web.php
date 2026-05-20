@@ -19,5 +19,27 @@ Route::resource('categories', \App\Http\Controllers\CategoryController::class);
 Route::resource('products', \App\Http\Controllers\ProductController::class);
 Route::resource('customers', \App\Http\Controllers\CustomerController::class);
 Route::resource('invoices', \App\Http\Controllers\InvoiceController::class);
+Route::prefix('reports')->group(function () {
 
+    Route::get(
+        '/daily-sales',
+        [\App\Http\Controllers\ReportController::class, 'dailySales']
+    )->name('reports.daily-sales');
+
+    Route::get(
+        '/monthly-sales',
+        [\App\Http\Controllers\ReportController::class, 'monthlySales']
+    )->name('reports.monthly-sales');
+
+    Route::get(
+        '/stock',
+        [\App\Http\Controllers\ReportController::class, 'stock']
+    )->name('reports.stock');
+
+    Route::get(
+        '/low-stock',
+        [\App\Http\Controllers\ReportController::class, 'lowStock']
+    )->name('reports.low-stock');
+
+});
 require __DIR__.'/auth.php';
