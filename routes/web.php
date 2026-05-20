@@ -20,7 +20,8 @@ Route::resource('categories', \App\Http\Controllers\CategoryController::class);
 Route::resource('products', \App\Http\Controllers\ProductController::class);
 Route::resource('customers', \App\Http\Controllers\CustomerController::class);
 Route::resource('invoices', \App\Http\Controllers\InvoiceController::class);
-Route::prefix('reports')->group(function () {
+
+Route::prefix('reports')->middleware(['auth', 'role:owner'])->group(function () {
 
     Route::get(
         '/daily-sales',

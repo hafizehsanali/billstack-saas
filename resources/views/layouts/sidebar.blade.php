@@ -49,51 +49,110 @@
                     </a>
                 </li>
 
-                
+                @role('owner')
                 <li class="nav-item dropdown">
 
-                    <a class="nav-link dropdown-toggle"
-                    href="#navbar-reports"
-                    data-bs-toggle="dropdown">
+    <a
+        class="nav-link dropdown-toggle
 
-                        Reports
+        {{ request()->routeIs('reports.*')
+            ? 'show'
+            : ''
+        }}"
 
-                    </a>
+        href="#navbar-reports"
 
-                    <div class="dropdown-menu">
+        data-bs-toggle="dropdown"
 
-                        <a class="dropdown-item"
-                        href="{{ route('reports.daily-sales') }}">
+        data-bs-auto-close="outside"
 
-                            Daily Sales
+        role="button"
 
-                        </a>
+        aria-expanded="{{ request()->routeIs('reports.*')
+            ? 'true'
+            : 'false'
+        }}"
+    >
 
-                        <a class="dropdown-item"
-                        href="{{ route('reports.monthly-sales') }}">
+        <span class="nav-link-title">
+            Reports
+        </span>
 
-                            Monthly Sales
+    </a>
 
-                        </a>
+    <div
+        class="dropdown-menu
 
-                        <a class="dropdown-item"
-                        href="{{ route('reports.stock') }}">
+        {{ request()->routeIs('reports.*')
+            ? 'show'
+            : ''
+        }}"
+    >
 
-                            Stock Report
+        <a
+            class="dropdown-item
 
-                        </a>
+            {{ request()->routeIs('reports.daily-sales')
+                ? 'active'
+                : ''
+            }}"
 
-                        <a class="dropdown-item"
-                        href="{{ route('reports.low-stock') }}">
+            href="{{ route('reports.daily-sales') }}"
+        >
 
-                            Low Stock
+            Daily Sales
 
-                        </a>
+        </a>
 
-                    </div>
+        <a
+            class="dropdown-item
 
-                </li>
+            {{ request()->routeIs('reports.monthly-sales')
+                ? 'active'
+                : ''
+            }}"
 
+            href="{{ route('reports.monthly-sales') }}"
+        >
+
+            Monthly Sales
+
+        </a>
+
+        <a
+            class="dropdown-item
+
+            {{ request()->routeIs('reports.stock')
+                ? 'active'
+                : ''
+            }}"
+
+            href="{{ route('reports.stock') }}"
+        >
+
+            Stock Report
+
+        </a>
+
+        <a
+            class="dropdown-item
+
+            {{ request()->routeIs('reports.low-stock')
+                ? 'active'
+                : ''
+            }}"
+
+            href="{{ route('reports.low-stock') }}"
+        >
+
+            Low Stock
+
+        </a>
+
+    </div>
+
+</li>
+                @endrole
             </ul>
 
         </div>
