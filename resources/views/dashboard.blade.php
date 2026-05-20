@@ -2,160 +2,60 @@
 
 @section('content')
 
-<div class="row row-deck row-cards">
+<div class="row">
 
-    <!-- Today Sales -->
-
-    <div class="col-sm-6 col-lg-3">
-
+    <div class="col-md-4">
         <div class="card">
-
             <div class="card-body">
-
-                <div class="subheader">
-                    Today Sales
-                </div>
-
-                <div class="h1 mb-3">
-                    Rs. {{ number_format($todaySales, 2) }}
-                </div>
-
+                <h3>Today Sales</h3>
+                <h2>Rs {{ $stats['today_sales'] }}</h2>
             </div>
-
         </div>
-
     </div>
 
-    <!-- Total Products -->
-
-    <div class="col-sm-6 col-lg-3">
-
+    <div class="col-md-4">
         <div class="card">
-
             <div class="card-body">
-
-                <div class="subheader">
-                    Products
-                </div>
-
-                <div class="h1 mb-3">
-                    {{ $totalProducts }}
-                </div>
-
+                <h3>Monthly Sales</h3>
+                <h2>Rs {{ $stats['monthly_sales'] }}</h2>
             </div>
-
         </div>
-
     </div>
 
-    <!-- Total Customers -->
-
-    <div class="col-sm-6 col-lg-3">
-
+    <div class="col-md-4">
         <div class="card">
-
             <div class="card-body">
-
-                <div class="subheader">
-                    Customers
-                </div>
-
-                <div class="h1 mb-3">
-                    {{ $totalCustomers }}
-                </div>
-
+                <h3>Total Products</h3>
+                <h2>{{ $stats['total_products'] }}</h2>
             </div>
-
         </div>
-
     </div>
 
-    <!-- Total Invoices -->
-
-    <div class="col-sm-6 col-lg-3">
-
+    <div class="col-md-4 mt-3">
         <div class="card">
-
             <div class="card-body">
-
-                <div class="subheader">
-                    Invoices
-                </div>
-
-                <div class="h1 mb-3">
-                    {{ $totalInvoices }}
-                </div>
-
+                <h3>Low Stock Items</h3>
+                <h2>{{ $stats['low_stock'] }}</h2>
             </div>
-
         </div>
-
     </div>
 
-</div>
-
-<!-- Low Stock Alerts -->
-
-<div class="card mt-4">
-
-    <div class="card-header">
-
-        <h3 class="card-title">
-            Low Stock Alerts
-        </h3>
-
+    <div class="col-md-4 mt-3">
+        <div class="card">
+            <div class="card-body">
+                <h3>Customers</h3>
+                <h2>{{ $stats['total_customers'] }}</h2>
+            </div>
+        </div>
     </div>
 
-    <div class="table-responsive">
-
-        <table class="table table-vcenter card-table">
-
-            <thead>
-
-            <tr>
-                <th>Product</th>
-                <th>Current Stock</th>
-                <th>Alert Level</th>
-            </tr>
-
-            </thead>
-
-            <tbody>
-
-            @forelse($lowStockProducts as $product)
-
-                <tr>
-
-                    <td>
-                        {{ $product->name }}
-                    </td>
-
-                    <td>
-                        {{ $product->stock_quantity }}
-                    </td>
-
-                    <td>
-                        {{ $product->low_stock_alert }}
-                    </td>
-
-                </tr>
-
-            @empty
-
-                <tr>
-
-                    <td colspan="3">
-                        No low stock products.
-                    </td>
-
-                </tr>
-
-            @endforelse
-
-            </tbody>
-
-        </table>
-
+    <div class="col-md-4 mt-3">
+        <div class="card">
+            <div class="card-body">
+                <h3>Total Invoices</h3>
+                <h2>{{ $stats['total_invoices'] }}</h2>
+            </div>
+        </div>
     </div>
 
 </div>

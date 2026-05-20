@@ -2,89 +2,125 @@
 
 @section('content')
 
-<div class="card">
 
-    <div class="card-header">
+<div class="container mt-4">
+    <style>
+@media print {
+    aside,
+    .navbar,
+    .sidebar,
+    nav {
+        display: none !important;
+    }
 
-        <h3 class="card-title">
-            Invoice {{ $invoice->invoice_number }}
-        </h3>
-        
-        @if($invoice->status === 'completed')
+    body {
+        margin: 0;
+        padding: 0;
+        background: white;
+    }
 
-            <a href="{{ route('invoices.pdf', $invoice) }}"
-            class="btn btn-primary ms-auto">
+    .page-wrapper {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+}
+</style>
+    <div class="card">
 
-                Download PDF
+        <div class="card-body">
 
-            </a>
+            <!-- HEADER -->
+            <div class="d-flex justify-content-between">
 
-        @endif
+                <div>
+                    <h2>BillStack</h2>
+                    <p>Invoice #{{ $invoice->invoice_number }}</p>
+                </div>
 
-    </div>
+                <div class="text-end">
+                    <h3>Invoice</h3>
+                    <p>Date: {{ $invoice->created_at->format('d M Y') }}</p>
+                </div>
 
-    <div class="card-body">
+            </div>
 
-        <div class="mb-4">
+            <hr>
 
-            <strong>Customer:</strong>
+            <!-- CUSTOMER INFO -->
+            <div class="row">
 
-            {{ $invoice->customer?->name ?? 'Walk-in Customer' }}
+                <div class="col-md-6">
+                    <h5>Bill To:</h5>
+                    <p>
+                        {{ $invoice->customer->name }} <br>
+                        {{ $invoice->customer->phone }}
+                    </p>
+                </div>
 
-        </div>
+            </div>
 
-        <table class="table table-bordered">
+            <hr>
 
-            <thead>
-            <tr>
-                <th>Product</th>
-                <th>Qty</th>
-                <th>Price</th>
-                <th>Total</th>
-            </tr>
-            </thead>
+            <!-- ITEMS -->
+            <table class="table table-bordered">
 
-            <tbody>
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Price</th>
+                        <th>Qty</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
 
-            @foreach($invoice->items as $item)
+                <tbody>
 
-                <tr>
+                    @foreach($invoice->items as $item)
 
-                    <td>
-                        {{ $item->product?->name }}
-                    </td>
+                        <tr>
+                            <td>{{ $item->product->name }}</td>
+                            <td>{{ $item->price }}</td>
+                            <td>{{ $item->quantity }}</td>
+                            <td>{{ $item->total }}</td>
+                        </tr>
 
-                    <td>
-                        {{ $item->quantity }}
-                    </td>
+                    @endforeach
 
-                    <td>
-                        {{ $item->price }}
-                    </td>
+                </tbody>
 
-                    <td>
-                        {{ $item->total }}
-                    </td>
+            </table>
 
-                </tr>
+            <!-- TOTALS -->
+            <div class="text-end">
 
-            @endforeach
+                <h4>Subtotal: {{ $invoice->subtotal }}</h4>
+                <h3>Total: {{ $invoice->total }}</h3>
 
-            </tbody>
+            </div>
 
-        </table>
+            <hr>
 
-        <div class="text-end mt-4">
+            <!-- ACTIONS -->
+           <div class="d-flex justify-content-end gap-2">
+                @if($invoice->status === 'completed')
+                    <a href="{{ route('invoices.pdf', $invoice) }}"
+                    class="btn btn-success btn-primary ms-auto">
+                          Download PDF
+                    </a>
 
-            <h3>
-                Total:
-                Rs. {{ $invoice->total }}
-            </h3>
+                @endif
+                <button onclick="window.print()" class="btn btn-primary">
+                    Print Invoice
+                </button>
+
+            </div>
+            
 
         </div>
 
     </div>
 
 </div>
+
 
 @endsection

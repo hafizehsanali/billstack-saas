@@ -52,107 +52,107 @@
                 @role('owner')
                 <li class="nav-item dropdown">
 
-    <a
-        class="nav-link dropdown-toggle
+                    <a
+                        class="nav-link dropdown-toggle
 
-        {{ request()->routeIs('reports.*')
-            ? 'show'
-            : ''
-        }}"
+                        {{ request()->routeIs('reports.*')
+                            ? 'show'
+                            : ''
+                        }}"
 
-        href="#navbar-reports"
+                        href="#navbar-reports"
 
-        data-bs-toggle="dropdown"
+                        data-bs-toggle="dropdown"
 
-        data-bs-auto-close="outside"
+                        data-bs-auto-close="outside"
 
-        role="button"
+                        role="button"
 
-        aria-expanded="{{ request()->routeIs('reports.*')
-            ? 'true'
-            : 'false'
-        }}"
-    >
+                        aria-expanded="{{ request()->routeIs('reports.*')
+                            ? 'true'
+                            : 'false'
+                        }}"
+                    >
 
-        <span class="nav-link-title">
-            Reports
-        </span>
+                        <span class="nav-link-title">
+                            Reports
+                        </span>
 
-    </a>
+                    </a>
 
-    <div
-        class="dropdown-menu
+                    <div
+                        class="dropdown-menu
 
-        {{ request()->routeIs('reports.*')
-            ? 'show'
-            : ''
-        }}"
-    >
+                        {{ request()->routeIs('reports.*')
+                            ? 'show'
+                            : ''
+                        }}"
+                    >
 
-        <a
-            class="dropdown-item
+                        <a
+                            class="dropdown-item
 
-            {{ request()->routeIs('reports.daily-sales')
-                ? 'active'
-                : ''
-            }}"
+                            {{ request()->routeIs('reports.daily-sales')
+                                ? 'active'
+                                : ''
+                            }}"
 
-            href="{{ route('reports.daily-sales') }}"
-        >
+                            href="{{ route('reports.daily-sales') }}"
+                        >
 
-            Daily Sales
+                            Daily Sales
 
-        </a>
+                        </a>
 
-        <a
-            class="dropdown-item
+                        <a
+                            class="dropdown-item
 
-            {{ request()->routeIs('reports.monthly-sales')
-                ? 'active'
-                : ''
-            }}"
+                            {{ request()->routeIs('reports.monthly-sales')
+                                ? 'active'
+                                : ''
+                            }}"
 
-            href="{{ route('reports.monthly-sales') }}"
-        >
+                            href="{{ route('reports.monthly-sales') }}"
+                        >
 
-            Monthly Sales
+                            Monthly Sales
 
-        </a>
+                        </a>
 
-        <a
-            class="dropdown-item
+                        <a
+                            class="dropdown-item
 
-            {{ request()->routeIs('reports.stock')
-                ? 'active'
-                : ''
-            }}"
+                            {{ request()->routeIs('reports.stock')
+                                ? 'active'
+                                : ''
+                            }}"
 
-            href="{{ route('reports.stock') }}"
-        >
+                            href="{{ route('reports.stock') }}"
+                        >
 
-            Stock Report
+                            Stock Report
 
-        </a>
+                        </a>
 
-        <a
-            class="dropdown-item
+                        <a
+                            class="dropdown-item
 
-            {{ request()->routeIs('reports.low-stock')
-                ? 'active'
-                : ''
-            }}"
+                            {{ request()->routeIs('reports.low-stock')
+                                ? 'active'
+                                : ''
+                            }}"
 
-            href="{{ route('reports.low-stock') }}"
-        >
+                            href="{{ route('reports.low-stock') }}"
+                        >
 
-            Low Stock
+                            Low Stock
 
-        </a>
+                        </a>
 
-    </div>
+                    </div>
 
-</li>
-                @endrole
+                </li>
+                                @endrole
             </ul>
 
         </div>
