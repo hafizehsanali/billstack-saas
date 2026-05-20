@@ -9,10 +9,8 @@ class ReportController extends Controller
 {
     public function dailySales()
     {
-        $invoices = Invoice::whereDate(
-            'created_at',
-            today()
-        )->latest()->get();
+        $invoices = Invoice::where('status','completed')
+                     ->whereDate('created_at',today())->latest()->get();
 
         $totalSales = $invoices->sum('total');
 
@@ -24,13 +22,10 @@ class ReportController extends Controller
 
     public function monthlySales()
     {
-        $invoices = Invoice::whereMonth(
-            'created_at',
-            now()->month
-        )->whereYear(
-            'created_at',
-            now()->year
-        )->latest()->get();
+        $invoices = Invoice::where('status','completed')
+            ->whereMonth('created_at', now()->month )
+            ->whereYear('created_at',now()->year)
+            ->latest()->get();
 
         $totalSales = $invoices->sum('total');
 

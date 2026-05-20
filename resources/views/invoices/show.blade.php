@@ -9,11 +9,17 @@
         <h3 class="card-title">
             Invoice {{ $invoice->invoice_number }}
         </h3>
+        
+        @if($invoice->status === 'completed')
 
-        <a href="{{ route('invoices.pdf', $invoice) }}"
-           class="btn btn-primary ms-auto">
-            Download PDF
-        </a>
+            <a href="{{ route('invoices.pdf', $invoice) }}"
+            class="btn btn-primary ms-auto">
+
+                Download PDF
+
+            </a>
+
+        @endif
 
     </div>
 

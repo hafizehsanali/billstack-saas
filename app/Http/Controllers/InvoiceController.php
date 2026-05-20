@@ -92,6 +92,35 @@ class InvoiceController extends Controller
     }
     public function destroy(Invoice $invoice)
     {
+            foreach ($invoice->items as $item) {
+
+                if ($item->product) {
+
+                    $item->product->increment(
+                        'stock_quantity',
+                        $item->quantity
+                    );
+                }
+            }
+
+            $invoice->delete();
+
+            return redirect()
+                ->route('invoices.index')
+                ->with('success', 'Invoice deleted.');
+    }
+
+    public function cancel(Invoice $invoice)
+    {
+        // Prevent double cancellation
+        if ($invoice->status === 'cancelled') {
+
+            return back()->withErrors([
+                'invoice' => 'Invoice already cancelled.'
+            ]);
+        }
+
+        // Restore stock
         foreach ($invoice->items as $item) {
 
             if ($item->product) {
@@ -103,14 +132,25 @@ class InvoiceController extends Controller
             }
         }
 
-        $invoice->delete();
+        // Update status
+        $invoice->update([
+            'status' => 'cancelled'
+        ]);
 
         return redirect()
             ->route('invoices.index')
-            ->with('success', 'Invoice deleted.');
+            ->with(
+                'success',
+                'Invoice cancelled successfully.'
+            );
     }
+
     public function pdf(Invoice $invoice)
     {
+        if ($invoice->status === 'cancelled') {
+
+            abort(403, 'Cancelled invoice cannot be downloaded.');
+        }
         $invoice->load([
             'customer',
             'items.product'

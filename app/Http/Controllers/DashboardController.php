@@ -10,10 +10,8 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $todaySales = Invoice::whereDate(
-            'created_at',
-            today()
-        )->sum('total');
+        $todaySales = Invoice::where('status','completed')
+                      ->whereDate('created_at',today())->sum('total');
 
         $totalProducts = Product::count();
 

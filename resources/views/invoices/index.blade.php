@@ -36,7 +36,7 @@
 
             @foreach($invoices as $invoice)
 
-                <tr>
+                <tr class="{{ $invoice->status === 'cancelled' ? 'table-secondary' : '' }}">
 
                     <td>
                         {{ $invoice->invoice_number }}
@@ -50,9 +50,21 @@
                         {{ $invoice->total }}
                     </td>
                     <td>
-                        <span class="badge bg-green">
-                            {{ $invoice->status }}
-                        </span>
+
+                        @if($invoice->status === 'completed')
+
+                            <span class="badge bg-success">
+                                Completed
+                            </span>
+
+                        @else
+
+                            <span class="badge bg-danger">
+                                Cancelled
+                            </span>
+
+                        @endif
+
                     </td>
                     <td>
                         {{ $invoice->created_at->format('Y-m-d') }}
@@ -62,21 +74,24 @@
                         class="btn btn-sm btn-primary">
                             View
                         </a>
-                        <form method="POST"
-                            action="{{ route('invoices.destroy', $invoice) }}"
-                            style="display:inline;">
+                        @if($invoice->status === 'completed')
 
-                            @csrf
-                            @method('DELETE')
+                            <form method="POST"
+                                action="{{ route('invoices.cancel', $invoice) }}"
+                                style="display:inline;">
 
-                            <button class="btn btn-sm btn-danger"
-                                    onclick="return confirm('Delete invoice?')">
+                                @csrf
 
-                                Delete
+                                <button class="btn btn-sm btn-warning"
+                                        onclick="return confirm('Cancel invoice?')">
 
-                            </button>
+                                    Cancel
 
-                        </form>
+                                </button>
+
+                            </form>
+
+                        @endif
                     </td>
 
                 </tr>
