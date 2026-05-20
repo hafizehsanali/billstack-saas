@@ -41,7 +41,7 @@ return new class extends Migration
 
             $table->integer('low_stock_alert')
                 ->default(5);
-
+            $table->softDeletes();
             $table->timestamps();
         });
     }

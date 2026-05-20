@@ -32,7 +32,7 @@ return new class extends Migration
 
             $table->decimal('opening_balance', 12, 2)
                 ->default(0);
-
+            $table->softDeletes();
             $table->timestamps();
         });
     }

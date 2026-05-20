@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Traits\BelongsToTenant;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Customer extends Model
 {
-    use BelongsToTenant;
+    use BelongsToTenant, SoftDeletes;
 
     protected $fillable = [
         'name',

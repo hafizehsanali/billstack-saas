@@ -27,6 +27,11 @@ return new class extends Migration
             $table->string('invoice_number')
                 ->unique();
 
+            $table->enum('status', [
+                'completed',
+                'cancelled'
+            ])->default('completed');
+            
             $table->decimal('subtotal', 12, 2)
                 ->default(0);
 
@@ -38,8 +43,9 @@ return new class extends Migration
 
             $table->decimal('total', 12, 2)
                 ->default(0);
-
+            $table->softDeletes();
             $table->timestamps();
+            
         });
     }
 

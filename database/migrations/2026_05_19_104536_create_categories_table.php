@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
 
             $table->string('name');
-
+            $table->softDeletes();
             $table->timestamps();
         });
     }

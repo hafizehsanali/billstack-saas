@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Invoice extends Model
 {
-    use BelongsToTenant;
+    use BelongsToTenant, SoftDeletes;
 
     protected $fillable = [
         'customer_id',
@@ -18,6 +19,7 @@ class Invoice extends Model
         'tax',
         'discount',
         'total',
+        'status',
     ];
 
     public function customer(): BelongsTo

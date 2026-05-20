@@ -40,17 +40,21 @@ class InvoiceController extends Controller
         foreach ($request->products as $index => $productId) {
 
             $product = Product::findOrFail($productId);
-
-            $quantity = $request->quantities[$index];
-
+            $quantity = $request->quantities[$productId];
+            if ($quantity > $product->stock_quantity) {
+                return back()->withErrors([
+                    'stock' => $product->name .
+                    ' does not have enough stock.'
+                ]);
+            }
             $lineTotal = $product->selling_price * $quantity;
-
+            
             $subtotal += $lineTotal;
         }
 
         $invoice = Invoice::create([
             'customer_id' => $request->customer_id,
-            'invoice_number' => 'INV-' . strtoupper(Str::random(8)),
+            'invoice_number' => 'INV-' . str_pad(Invoice::max('id') + 1,6,'0',STR_PAD_LEFT),
             'subtotal' => $subtotal,
             'tax' => 0,
             'discount' => 0,
@@ -60,9 +64,7 @@ class InvoiceController extends Controller
         foreach ($request->products as $index => $productId) {
 
             $product = Product::findOrFail($productId);
-
-            $quantity = $request->quantities[$index];
-
+            $quantity = $request->quantities[$productId];
             $lineTotal = $product->selling_price * $quantity;
 
             InvoiceItem::create([
@@ -87,6 +89,25 @@ class InvoiceController extends Controller
         ]);
 
         return view('invoices.show', compact('invoice'));
+    }
+    public function destroy(Invoice $invoice)
+    {
+        foreach ($invoice->items as $item) {
+
+            if ($item->product) {
+
+                $item->product->increment(
+                    'stock_quantity',
+                    $item->quantity
+                );
+            }
+        }
+
+        $invoice->delete();
+
+        return redirect()
+            ->route('invoices.index')
+            ->with('success', 'Invoice deleted.');
     }
     public function pdf(Invoice $invoice)
     {

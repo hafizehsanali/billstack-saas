@@ -26,6 +26,7 @@
                 <th>Invoice #</th>
                 <th>Customer</th>
                 <th>Total</th>
+                <th>Status</th>
                 <th>Date</th>
                 <th>Action</th>
             </tr>
@@ -48,7 +49,11 @@
                     <td>
                         {{ $invoice->total }}
                     </td>
-
+                    <td>
+                        <span class="badge bg-green">
+                            {{ $invoice->status }}
+                        </span>
+                    </td>
                     <td>
                         {{ $invoice->created_at->format('Y-m-d') }}
                     </td>
@@ -57,6 +62,21 @@
                         class="btn btn-sm btn-primary">
                             View
                         </a>
+                        <form method="POST"
+                            action="{{ route('invoices.destroy', $invoice) }}"
+                            style="display:inline;">
+
+                            @csrf
+                            @method('DELETE')
+
+                            <button class="btn btn-sm btn-danger"
+                                    onclick="return confirm('Delete invoice?')">
+
+                                Delete
+
+                            </button>
+
+                        </form>
                     </td>
 
                 </tr>
