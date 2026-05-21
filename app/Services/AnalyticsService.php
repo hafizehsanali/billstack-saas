@@ -65,4 +65,61 @@ class AnalyticsService
             'profits' => $profitData,
         ];
     }
+    public function invoiceStatusData(): array
+    {
+        $tenantId = auth()->user()->tenant_id;
+
+        return [
+
+            'paid' => Invoice::where('tenant_id', $tenantId)
+                ->where('status', 'paid')
+                ->count(),
+
+            'partial' => Invoice::where('tenant_id', $tenantId)
+                ->where('status', 'partial')
+                ->count(),
+
+            'unpaid' => Invoice::where('tenant_id', $tenantId)
+                ->where('status', 'unpaid')
+                ->count(),
+
+            'cancelled' => Invoice::where('tenant_id', $tenantId)
+                ->where('status', 'cancelled')
+                ->count(),
+        ];
+    }
+
+    public function topProducts()
+    {
+        return InvoiceItem::selectRaw('
+                product_id,
+                SUM(quantity) as total_qty,
+                SUM(total) as total_sales
+            ')
+            ->with('product')
+            ->groupBy('product_id')
+            ->orderByDesc('total_qty')
+            ->take(5)
+            ->get();
+    }
+
+    public function recentInvoices()
+    {
+        return Invoice::with('customer')
+            ->latest()
+            ->take(5)
+            ->get();
+    }
+
+    public function lowStockProducts()
+    {
+        return \App\Models\Product::whereColumn(
+                'stock_quantity',
+                '<=',
+                'low_stock_alert'
+            )
+            ->latest()
+            ->take(5)
+            ->get();
+    }
 }

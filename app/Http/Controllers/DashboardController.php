@@ -9,13 +9,29 @@ use App\Services\AnalyticsService;
 class DashboardController extends Controller
 {
     
-    public function index(DashboardService $dashboardService, AnalyticsService $analyticsService) 
-    {
+   public function index(DashboardService $dashboardService,AnalyticsService $analyticsService) 
+   {
         $stats = $dashboardService->stats();
 
-        // Chart analytics
+        // Charts
         $chartData = $analyticsService->monthlyChartData();
 
-        return view('dashboard', compact('stats','chartData'));
+        // Dashboard widgets
+        $invoiceChart = $analyticsService->invoiceStatusData();
+
+        $topProducts = $analyticsService->topProducts();
+
+        $recentInvoices = $analyticsService->recentInvoices();
+
+        $lowStockProducts = $analyticsService->lowStockProducts();
+
+        return view('dashboard', compact(
+            'stats',
+            'chartData',
+            'invoiceChart',
+            'topProducts',
+            'recentInvoices',
+            'lowStockProducts'
+        ));
     }
-}
+    }

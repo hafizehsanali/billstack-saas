@@ -194,7 +194,197 @@
     </div>
 
 </div>
+{{-- Advanced Widgets --}}
+<div class="row mt-4">
 
+    {{-- Invoice Status Chart --}}
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Invoice Status</h3>
+            </div>
+
+            <div class="card-body">
+                <div id="invoiceChart"></div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Top Products --}}
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Top Selling Products</h3>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-vcenter">
+
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Qty</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @forelse($topProducts as $item)
+
+                            <tr>
+                                <td>{{ $item->product?->name }}</td>
+                                <td>{{ $item->total_qty }}</td>
+                            </tr>
+
+                        @empty
+
+                            <tr>
+                                <td colspan="2" class="text-center">
+                                    No data found
+                                </td>
+                            </tr>
+
+                        @endforelse
+
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {{-- Low Stock --}}
+    <div class="col-md-4">
+        <div class="card border-danger">
+            <div class="card-header">
+                <h3 class="card-title text-danger">
+                    Low Stock Alerts
+                </h3>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-vcenter">
+
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Stock</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @forelse($lowStockProducts as $product)
+
+                            <tr>
+                                <td>{{ $product->name }}</td>
+
+                                <td>
+                                    <span class="badge bg-danger">
+                                        {{ $product->stock_quantity }}
+                                    </span>
+                                </td>
+                            </tr>
+
+                        @empty
+
+                            <tr>
+                                <td colspan="2" class="text-center">
+                                    No low stock items
+                                </td>
+                            </tr>
+
+                        @endforelse
+
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{{-- Recent Invoices --}}
+<div class="row mt-4">
+
+    <div class="col-12">
+
+        <div class="card">
+
+            <div class="card-header">
+                <h3 class="card-title">Recent Invoices</h3>
+            </div>
+
+            <div class="table-responsive">
+
+                <table class="table table-vcenter">
+
+                    <thead>
+                        <tr>
+                            <th>Invoice</th>
+                            <th>Customer</th>
+                            <th>Status</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @forelse($recentInvoices as $invoice)
+
+                            <tr>
+
+                                <td>
+                                    {{ $invoice->invoice_number }}
+                                </td>
+
+                                <td>
+                                    {{ $invoice->customer?->name }}
+                                </td>
+
+                                <td>
+
+                                    <span class="badge
+                                        @if($invoice->status === 'paid') bg-success
+                                        @elseif($invoice->status === 'partial') bg-warning
+                                        @elseif($invoice->status === 'cancelled') bg-dark
+                                        @else bg-danger
+                                        @endif">
+
+                                        {{ ucfirst($invoice->status) }}
+
+                                    </span>
+
+                                </td>
+
+                                <td>
+                                    Rs {{ number_format($invoice->total, 2) }}
+                                </td>
+
+                            </tr>
+
+                        @empty
+
+                            <tr>
+                                <td colspan="4" class="text-center">
+                                    No invoices found
+                                </td>
+                            </tr>
+
+                        @endforelse
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 {{-- ApexCharts --}}
 <script>
 
@@ -244,6 +434,37 @@ document.addEventListener('DOMContentLoaded', function () {
     );
 
     chart.render();
+
+    // Invoice status donut chart
+    let invoiceOptions = {
+
+        chart: {
+            type: 'donut',
+            height: 320
+        },
+
+        series: [
+            {{ $invoiceChart['paid'] }},
+            {{ $invoiceChart['partial'] }},
+            {{ $invoiceChart['unpaid'] }},
+            {{ $invoiceChart['cancelled'] }}
+        ],
+
+        labels: [
+            'Paid',
+            'Partial',
+            'Unpaid',
+            'Cancelled'
+        ]
+
+    };
+
+    let invoiceChart = new ApexCharts(
+        document.querySelector("#invoiceChart"),
+        invoiceOptions
+    );
+
+    invoiceChart.render();
 
 });
 
