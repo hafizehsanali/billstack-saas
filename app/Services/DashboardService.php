@@ -13,26 +13,56 @@ class DashboardService
     {
         $tenantId = auth()->user()->tenant_id;
 
-        return [
+       return [
 
-            'today_sales' => Invoice::where('tenant_id', $tenantId)
-                ->whereDate('created_at', Carbon::today())
-                ->sum('total'),
+                    // Realized revenue only
+                    'today_sales' => Invoice::where('tenant_id', $tenantId)
+                        ->whereDate('created_at', Carbon::today())
+                        ->whereIn('status', ['paid', 'partial'])
+                        ->sum('total'),
 
-            'monthly_sales' => Invoice::where('tenant_id', $tenantId)
-                ->whereMonth('created_at', Carbon::now()->month)
-                ->sum('total'),
+                    // Current month revenue
+                    'monthly_sales' => Invoice::where('tenant_id', $tenantId)
+                        ->whereMonth('created_at', Carbon::now()->month)
+                        ->whereIn('status', ['paid', 'partial'])
+                        ->sum('total'),
 
-            'total_products' => Product::where('tenant_id', $tenantId)->count(),
+                    // Lifetime revenue
+                    'total_sales' => Invoice::where('tenant_id', $tenantId)
+                        ->whereIn('status', ['paid', 'partial'])
+                        ->sum('total'),
 
-            'low_stock' => Product::where('tenant_id', $tenantId)
-                ->whereColumn('stock_quantity', '<=', 'low_stock_alert')
-                ->count(),
+                    // Inventory stats
+                    'total_products' => Product::where('tenant_id', $tenantId)->count(),
 
-            'total_customers' => Customer::where('tenant_id', $tenantId)->count(),
+                    'low_stock' => Product::where('tenant_id', $tenantId)
+                        ->whereColumn('stock_quantity', '<=', 'low_stock_alert')
+                        ->count(),
 
-            'total_invoices' => Invoice::where('tenant_id', $tenantId)->count(),
+                    // CRM stats
+                    'total_customers' => Customer::where('tenant_id', $tenantId)->count(),
 
-        ];
+                    // Ignore cancelled invoices
+                    'total_invoices' => Invoice::where('tenant_id', $tenantId)
+                        ->where('status', '!=', 'cancelled')
+                        ->count(),
+
+                    // Invoice status analytics
+                    'paid_invoices' => Invoice::where('tenant_id', $tenantId)
+                        ->where('status', 'paid')
+                        ->count(),
+
+                    'partial_invoices' => Invoice::where('tenant_id', $tenantId)
+                        ->where('status', 'partial')
+                        ->count(),
+
+                    'unpaid_invoices' => Invoice::where('tenant_id', $tenantId)
+                        ->where('status', 'unpaid')
+                        ->count(),
+
+                    'cancelled_invoices' => Invoice::where('tenant_id', $tenantId)
+                        ->where('status', 'cancelled')
+                        ->count(),
+                ];
     }
 }

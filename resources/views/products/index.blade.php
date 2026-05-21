@@ -25,7 +25,8 @@
                 <tr>
                     <th>Name</th>
                     <th>Category</th>
-                    <th>Price</th>
+                    <th>Purchase Price</th>
+                    <th>Selling Price</th>
                     <th>Stock</th>
                 </tr>
             </thead>
@@ -44,9 +45,9 @@
                         {{ $product->category?->name }}
                     </td>
 
-                    <td>
-                        {{ $product->selling_price }}
-                    </td>
+                    
+                    <td>{{ $product->purchase_price }}</td>
+                    <td>{{ $product->selling_price }}</td>
 
                     <td>
                         {{ $product->stock_quantity }}

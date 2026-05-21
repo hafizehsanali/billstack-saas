@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Invoice;
 use App\Models\Product;
+use App\Models\Expense;
 
 class ReportController extends Controller
 {
@@ -56,6 +57,71 @@ class ReportController extends Controller
         return view(
             'reports.low-stock',
             compact('products')
+        );
+    }
+    public function profitLoss()
+    {
+        $tenantId = auth()->user()->tenant_id;
+
+        // Paid + partial invoices only
+        $sales = Invoice::where(
+                'tenant_id',
+                $tenantId
+            )
+            ->whereIn('status', [
+                'paid',
+                'partial'
+            ])
+            ->sum('total');
+
+        // Total expenses
+        $expenses = Expense::where(
+                'tenant_id',
+                $tenantId
+            )
+            ->sum('amount');
+
+        // Net profit
+        $profit = $sales - $expenses;
+
+        // Monthly analytics
+        $monthlySales = Invoice::where(
+                'tenant_id',
+                $tenantId
+            )
+            ->whereMonth(
+                'created_at',
+                now()->month
+            )
+            ->whereIn('status', [
+                'paid',
+                'partial'
+            ])
+            ->sum('total');
+
+        $monthlyExpenses = Expense::where(
+                'tenant_id',
+                $tenantId
+            )
+            ->whereMonth(
+                'expense_date',
+                now()->month
+            )
+            ->sum('amount');
+
+        $monthlyProfit =
+            $monthlySales - $monthlyExpenses;
+
+        return view(
+            'reports.profit-loss',
+            compact(
+                'sales',
+                'expenses',
+                'profit',
+                'monthlySales',
+                'monthlyExpenses',
+                'monthlyProfit'
+            )
         );
     }
 }

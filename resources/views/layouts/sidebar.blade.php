@@ -134,18 +134,17 @@
 
                         </a>
 
+                        <a class="dropdown-item
+                           {{ request()->routeIs('reports.low-stock')? 'active': ''}}"
+                           href="{{ route('reports.low-stock') }}" 
+                           >Low Stock</a>
                         <a
                             class="dropdown-item
-
-                            {{ request()->routeIs('reports.low-stock')
-                                ? 'active'
-                                : ''
-                            }}"
-
-                            href="{{ route('reports.low-stock') }}"
+                            {{ request()->routeIs('reports.profit-loss')? 'active': ''}}"
+                            href="{{ route('reports.profit-loss') }}"
                         >
 
-                            Low Stock
+                            Profit & Loss
 
                         </a>
 

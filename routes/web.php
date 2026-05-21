@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ExpenseController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -28,10 +29,14 @@ Route::patch('/invoices/{invoice}/paid', [InvoiceController::class, 'markPaid'])
 Route::patch('/invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])->name('invoices.cancel');
 Route::post( '/invoices/{invoice}/payments',[PaymentController::class, 'store'])->name('payments.store');
 
-Route::prefix('reports')->middleware(['auth', 'role:owner'])->group(function () {
+Route::resource('expenses', ExpenseController::class)->middleware(['auth','role:owner|accountant']);
+
+Route::prefix('reports')->middleware(['auth', 'role:owner|accountant'])->group(function () {
     Route::get('/daily-sales',[ReportController::class, 'dailySales'])->name('reports.daily-sales');
     Route::get('/monthly-sales',[ReportController::class, 'monthlySales'])->name('reports.monthly-sales');
     Route::get('/stock',[ReportController::class, 'stock'])->name('reports.stock');
     Route::get('/low-stock',[ReportController::class, 'lowStock'])->name('reports.low-stock');
+    Route::get('/profit-loss',[ReportController::class, 'profitLoss'])->name('reports.profit-loss');
 });
+Route::get('/reports/profit-loss',[ReportController::class, 'profitLoss'])->middleware(['auth','role:owner|accountant'])->name('reports.profit-loss');
 require __DIR__.'/auth.php';
