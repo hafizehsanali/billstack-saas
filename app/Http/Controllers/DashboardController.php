@@ -4,13 +4,18 @@ namespace App\Http\Controllers;
 
 
 use \App\Services\DashboardService;
+use App\Services\AnalyticsService;
 
 class DashboardController extends Controller
 {
-    public function index(DashboardService $dashboardService)
+    
+    public function index(DashboardService $dashboardService, AnalyticsService $analyticsService) 
     {
         $stats = $dashboardService->stats();
 
-        return view('dashboard', compact('stats'));
+        // Chart analytics
+        $chartData = $analyticsService->monthlyChartData();
+
+        return view('dashboard', compact('stats','chartData'));
     }
 }

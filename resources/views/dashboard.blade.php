@@ -144,5 +144,108 @@
     </div>
 
 </div>
+{{-- Charts --}}
+<div class="row mt-4">
 
+    {{-- Sales Chart --}}
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Sales & Profit Analytics</h3>
+            </div>
+
+            <div class="card-body">
+                <div id="salesChart"></div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Invoice Summary --}}
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Invoice Summary</h3>
+            </div>
+
+            <div class="card-body">
+
+                <div class="mb-3">
+                    <strong>Paid:</strong>
+                    {{ $stats['paid_invoices'] }}
+                </div>
+
+                <div class="mb-3">
+                    <strong>Partial:</strong>
+                    {{ $stats['partial_invoices'] }}
+                </div>
+
+                <div class="mb-3">
+                    <strong>Unpaid:</strong>
+                    {{ $stats['unpaid_invoices'] }}
+                </div>
+
+                <div>
+                    <strong>Cancelled:</strong>
+                    {{ $stats['cancelled_invoices'] }}
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{{-- ApexCharts --}}
+<script>
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    let options = {
+
+        chart: {
+            type: 'line',
+            height: 350,
+            toolbar: {
+                show: true
+            }
+        },
+
+        series: [
+
+            {
+                name: 'Sales',
+                data: @json($chartData['sales'])
+            },
+
+            {
+                name: 'Profit',
+                data: @json($chartData['profits'])
+            }
+
+        ],
+
+        xaxis: {
+            categories: @json($chartData['months'])
+        },
+
+        stroke: {
+            curve: 'smooth'
+        },
+
+        dataLabels: {
+            enabled: false
+        }
+
+    };
+
+    let chart = new ApexCharts(
+        document.querySelector("#salesChart"),
+        options
+    );
+
+    chart.render();
+
+});
+
+</script>
 @endsection
