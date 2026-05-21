@@ -33,14 +33,36 @@
             <div class="d-flex justify-content-between">
 
                 <div>
-                    <h2>BillStack</h2>
-                    <p>Invoice #{{ $invoice->invoice_number }}</p>
+                    <h3>Invoice</h3>
+
+                <p>
+                    Date: {{ $invoice->created_at->format('d M Y') }}
+                </p>
+
+                <h5>
+                    Status:
+
+                    <span class="badge
+                        @if($invoice->status == 'paid')
+                            bg-success
+                        @elseif($invoice->status == 'cancelled')
+                            bg-danger
+                        @else
+                            bg-warning
+                        @endif
+                    ">
+
+                        {{ ucfirst($invoice->status) }}
+
+                    </span>
+                </h5>
                 </div>
 
                 <div class="text-end">
                     <h3>Invoice</h3>
                     <p>Date: {{ $invoice->created_at->format('d M Y') }}</p>
                 </div>
+                
 
             </div>
 
@@ -101,20 +123,44 @@
             <hr>
 
             <!-- ACTIONS -->
-           <div class="d-flex justify-content-end gap-2">
-                @if($invoice->status === 'completed')
-                    <a href="{{ route('invoices.pdf', $invoice) }}"
-                    class="btn btn-success btn-primary ms-auto">
-                          Download PDF
-                    </a>
+           
+            <div class="d-flex gap-2">
+
+                @if($invoice->status != 'paid')
+
+                    <form method="POST" action="{{ route('invoices.markPaid', $invoice->id) }}">
+                        @csrf
+                        @method('PATCH')
+
+                        <button class="btn btn-success">
+                            Mark as Paid
+                        </button>
+
+                    </form>
+
+                @endif
+
+                @if($invoice->status != 'cancelled')
+
+                    <form method="POST" action="{{ route('invoices.cancel', $invoice->id) }}">
+                        @csrf
+                        @method('PATCH')
+
+                        <button class="btn btn-danger">
+                            Cancel Invoice
+                        </button>
+
+                    </form>
 
                 @endif
                 <button onclick="window.print()" class="btn btn-primary">
                     Print Invoice
                 </button>
+                 <a href="{{ route('invoices.pdf', $invoice) }}"  class="btn btn-primary">
+                          Download PDF
+                 </a>
 
             </div>
-            
 
         </div>
 

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\InvoiceController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -19,7 +20,12 @@ Route::middleware('auth')->group(function () {
 Route::resource('categories', \App\Http\Controllers\CategoryController::class);
 Route::resource('products', \App\Http\Controllers\ProductController::class);
 Route::resource('customers', \App\Http\Controllers\CustomerController::class);
-Route::resource('invoices', \App\Http\Controllers\InvoiceController::class);
+Route::resource('invoices', InvoiceController::class);
+Route::patch('/invoices/{invoice}/paid', [InvoiceController::class, 'markPaid'])
+    ->name('invoices.markPaid');
+
+Route::patch('/invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])
+    ->name('invoices.cancel');
 
 Route::prefix('reports')->middleware(['auth', 'role:owner'])->group(function () {
 

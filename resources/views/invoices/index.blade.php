@@ -50,21 +50,13 @@
                         {{ $invoice->total }}
                     </td>
                     <td>
-
-                        @if($invoice->status === 'completed')
-
-                            <span class="badge bg-success">
-                                Completed
-                            </span>
-
-                        @else
-
-                            <span class="badge bg-danger">
-                                Cancelled
-                            </span>
-
-                        @endif
-
+                       <span class="badge
+                            @if($invoice->status == 'paid') bg-success
+                            @elseif($invoice->status == 'cancelled') bg-danger
+                            @else bg-warning
+                            @endif ">
+                            {{ ucfirst($invoice->status) }}
+                        </span>
                     </td>
                     <td>
                         {{ $invoice->created_at->format('Y-m-d') }}
@@ -74,23 +66,13 @@
                         class="btn btn-sm btn-primary">
                             View
                         </a>
-                        @if($invoice->status === 'completed')
-
-                            <form method="POST"
-                                action="{{ route('invoices.cancel', $invoice) }}"
-                                style="display:inline;">
-
-                                @csrf
-
-                                <button class="btn btn-sm btn-warning"
-                                        onclick="return confirm('Cancel invoice?')">
-
+                         @if($invoice->status != 'cancelled')
+                            <form method="POST" action="{{ route('invoices.cancel', $invoice) }}" style="display:inline;">
+                               @csrf
+                                <button class="btn btn-sm btn-warning" onclick="return confirm('Cancel invoice?')">
                                     Cancel
-
                                 </button>
-
                             </form>
-
                         @endif
                     </td>
 

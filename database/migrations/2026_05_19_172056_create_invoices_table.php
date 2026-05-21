@@ -27,10 +27,7 @@ return new class extends Migration
             $table->string('invoice_number')
                 ->unique();
 
-            $table->enum('status', [
-                'completed',
-                'cancelled'
-            ])->default('completed');
+            $table->string('status')->default('unpaid');
             
             $table->decimal('subtotal', 12, 2)
                 ->default(0);

@@ -71,14 +71,9 @@ class InvoiceController extends Controller
 
             'customer_id' => $data['customer_id'],
 
-            'invoice_number' => 'INV-' . str_pad(
-                Invoice::max('id') + 1,
-                6,
-                '0',
-                STR_PAD_LEFT
-            ),
+            'invoice_number' => 'INV-' . str_pad(Invoice::max('id') + 1,6,'0',STR_PAD_LEFT),
 
-            'status' => 'completed',
+            'status' => 'unpaid',
 
             'subtotal' => $subtotal,
 
@@ -155,7 +150,23 @@ class InvoiceController extends Controller
                 ->route('invoices.index')
                 ->with('success', 'Invoice deleted.');
     }
+    public function markPaid(Invoice $invoice)
+    {
+        $invoice->update([
+            'status' => 'paid'
+        ]);
 
+        return back()->with('success', 'Invoice marked as paid.');
+    }
+
+    // public function cancel(Invoice $invoice)
+    // {
+    //     $invoice->update([
+    //         'status' => 'cancelled'
+    //     ]);
+
+    //     return back()->with('success', 'Invoice cancelled.');
+    // }
     public function cancel(Invoice $invoice)
     {
         // Prevent double cancellation
