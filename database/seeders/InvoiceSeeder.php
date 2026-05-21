@@ -18,6 +18,7 @@ class InvoiceSeeder extends Seeder
     {
         $statuses = [
             'unpaid',
+            'partial',
             'paid',
             'cancelled',
         ];
@@ -89,8 +90,8 @@ class InvoiceSeeder extends Seeder
                     Reduce stock ONLY if invoice
                     is not cancelled
                     */
-
-                    if ($status !== 'cancelled') {
+                    if ($status === 'paid' || $status === 'partial' || $status === 'unpaid')
+                    {
 
                         $product->decrement(
                             'stock_quantity',

@@ -41,16 +41,12 @@
 
                 <h5>
                     Status:
-
                     <span class="badge
-                        @if($invoice->status == 'paid')
-                            bg-success
-                        @elseif($invoice->status == 'cancelled')
-                            bg-danger
-                        @else
-                            bg-warning
-                        @endif
-                    ">
+                            @if($invoice->status == 'paid') bg-success
+                            @elseif($invoice->status == 'partial') bg-info
+                            @elseif($invoice->status == 'cancelled') bg-danger
+                            @else bg-warning
+                            @endif">
 
                         {{ ucfirst($invoice->status) }}
 
@@ -122,6 +118,118 @@
 
             <hr>
 
+            <h4>Record Payment</h4>
+
+            @php
+
+                $paid = $invoice->payments->sum('amount');
+
+                $remaining = $invoice->total - $paid;
+
+            @endphp
+
+            <div class="alert alert-info">
+
+                <strong>Paid:</strong>
+                {{ $paid }}
+
+                <br>
+
+                <strong>Remaining:</strong>
+                {{ $remaining }}
+
+            </div>
+            <form action="{{ route('payments.store', $invoice->id) }}"method="POST">
+
+                @csrf
+
+                <div class="row">
+
+                    <div class="col-md-4">
+
+                        <input
+                            type="number"
+                            step="0.01"
+                            name="amount"
+                            class="form-control"
+                            placeholder="Amount"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <select name="method" class="form-control">
+
+                            <option value="cash">
+                                Cash
+                            </option>
+
+                            <option value="bank">
+                                Bank
+                            </option>
+
+                            <option value="card">
+                                Card
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <button class="btn btn-success">
+                            Save Payment
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+            <hr>
+
+            <h4>Payment History</h4>
+
+            <table class="table table-bordered">
+
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Method</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @foreach($invoice->payments as $payment)
+
+                        <tr>
+
+                            <td>
+                                {{ $payment->created_at->format('d M Y') }}
+                            </td>
+
+                            <td>
+                                {{ ucfirst($payment->method) }}
+                            </td>
+
+                            <td>
+                                {{ $payment->amount }}
+                            </td>
+
+                        </tr>
+
+                    @endforeach
+
+                </tbody>
+
+            </table>
+
             <!-- ACTIONS -->
            
             <div class="d-flex gap-2">
@@ -140,7 +248,7 @@
 
                 @endif
 
-                @if($invoice->status != 'cancelled')
+                @if($invoice->status != 'cancelled' && $invoice->status != 'paid' && $invoice->status != 'partial')
 
                     <form method="POST" action="{{ route('invoices.cancel', $invoice->id) }}">
                         @csrf

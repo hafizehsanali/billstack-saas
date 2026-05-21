@@ -52,9 +52,11 @@
                     <td>
                        <span class="badge
                             @if($invoice->status == 'paid') bg-success
+                            @elseif($invoice->status == 'partial') bg-info
                             @elseif($invoice->status == 'cancelled') bg-danger
                             @else bg-warning
                             @endif ">
+                            
                             {{ ucfirst($invoice->status) }}
                         </span>
                     </td>
@@ -66,7 +68,7 @@
                         class="btn btn-sm btn-primary">
                             View
                         </a>
-                         @if($invoice->status != 'cancelled')
+                         @if($invoice->status != 'cancelled' && $invoice->status != 'paid' && $invoice->status != 'partial')
                             <form method="POST" action="{{ route('invoices.cancel', $invoice) }}" style="display:inline;">
                                @csrf
                                 <button class="btn btn-sm btn-warning" onclick="return confirm('Cancel invoice?')">

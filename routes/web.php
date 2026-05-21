@@ -3,6 +3,8 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ReportController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -20,34 +22,16 @@ Route::middleware('auth')->group(function () {
 Route::resource('categories', \App\Http\Controllers\CategoryController::class);
 Route::resource('products', \App\Http\Controllers\ProductController::class);
 Route::resource('customers', \App\Http\Controllers\CustomerController::class);
-Route::resource('invoices', InvoiceController::class);
-Route::patch('/invoices/{invoice}/paid', [InvoiceController::class, 'markPaid'])
-    ->name('invoices.markPaid');
 
-Route::patch('/invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])
-    ->name('invoices.cancel');
+Route::resource('invoices', InvoiceController::class);
+Route::patch('/invoices/{invoice}/paid', [InvoiceController::class, 'markPaid'])->name('invoices.markPaid');
+Route::patch('/invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])->name('invoices.cancel');
+Route::post( '/invoices/{invoice}/payments',[PaymentController::class, 'store'])->name('payments.store');
 
 Route::prefix('reports')->middleware(['auth', 'role:owner'])->group(function () {
-
-    Route::get(
-        '/daily-sales',
-        [\App\Http\Controllers\ReportController::class, 'dailySales']
-    )->name('reports.daily-sales');
-
-    Route::get(
-        '/monthly-sales',
-        [\App\Http\Controllers\ReportController::class, 'monthlySales']
-    )->name('reports.monthly-sales');
-
-    Route::get(
-        '/stock',
-        [\App\Http\Controllers\ReportController::class, 'stock']
-    )->name('reports.stock');
-
-    Route::get(
-        '/low-stock',
-        [\App\Http\Controllers\ReportController::class, 'lowStock']
-    )->name('reports.low-stock');
-
+    Route::get('/daily-sales',[ReportController::class, 'dailySales'])->name('reports.daily-sales');
+    Route::get('/monthly-sales',[ReportController::class, 'monthlySales'])->name('reports.monthly-sales');
+    Route::get('/stock',[ReportController::class, 'stock'])->name('reports.stock');
+    Route::get('/low-stock',[ReportController::class, 'lowStock'])->name('reports.low-stock');
 });
 require __DIR__.'/auth.php';

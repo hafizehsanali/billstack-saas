@@ -17,4 +17,8 @@ class Customer extends Model
         'address',
         'opening_balance',
     ];
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
 }
