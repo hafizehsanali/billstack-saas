@@ -26,6 +26,8 @@
                 <th>Name</th>
                 <th>Phone</th>
                 <th>Email</th>
+                <th>Total Sales</th>
+                <th>Paid</th>
                 <th>Balance</th>
             </tr>
             </thead>
@@ -42,7 +44,15 @@
 
                     <td>{{ $customer->email }}</td>
 
-                    <td>{{ $customer->opening_balance }}</td>
+                    <td>Rs {{ number_format($customer->totalSales(), 2) }}</td>
+
+                    <td>Rs {{ number_format($customer->totalPaid(), 2) }}</td>
+
+                    <td>
+                        <span class="badge bg-{{ $customer->balance() > 0 ? 'danger' : 'success' }}">
+                            Rs {{ number_format($customer->balance(), 2) }}
+                        </span>
+                    </td>
 
                 </tr>
 

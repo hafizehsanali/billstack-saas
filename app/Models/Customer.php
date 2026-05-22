@@ -17,8 +17,36 @@ class Customer extends Model
         'address',
         'opening_balance',
     ];
+   
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
     public function payments()
     {
-        return $this->hasMany(Payment::class);
+        return $this->hasManyThrough(
+            Payment::class,
+            Invoice::class
+        );
+    }
+    // Total invoice amount
+    public function totalSales(): float
+    {
+        return $this->invoices()
+            ->whereIn('status', ['paid', 'partial', 'unpaid'])
+            ->sum('total');
+    }
+
+    // Total received payments
+    public function totalPaid(): float
+    {
+        return $this->payments()->sum('amount');
+    }
+
+    // Remaining balance
+    public function balance(): float
+    {
+        return $this->totalSales() - $this->totalPaid();
     }
 }

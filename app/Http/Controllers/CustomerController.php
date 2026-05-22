@@ -10,7 +10,10 @@ class CustomerController extends Controller
 {
     public function index()
     {
-        $customers = Customer::latest()->get();
+        $customers = Customer::where('tenant_id', auth()->user()->tenant_id)
+                    ->withCount('invoices')
+                    ->latest()
+                    ->paginate(10);
 
         return view('customers.index', compact('customers'));
     }
