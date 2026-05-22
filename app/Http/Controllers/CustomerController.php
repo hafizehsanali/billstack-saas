@@ -39,4 +39,74 @@ class CustomerController extends Controller
         ->route('customers.index')
         ->with('success', 'Customer created successfully.');
     }
+    public function statement(Customer $customer)
+    {
+        abort_if(
+            $customer->tenant_id !== auth()->user()->tenant_id,
+            403
+        );
+
+        // Date filters
+        $startDate = request('start_date')
+            ? \Carbon\Carbon::parse(request('start_date'))->startOfDay()
+            : null;
+
+        $endDate = request('end_date')
+            ? \Carbon\Carbon::parse(request('end_date'))->endOfDay()
+            : null;
+
+        // Customer invoices
+        $invoices = $customer->invoices()
+            ->when($startDate, fn ($q) => $q->where('created_at', '>=', $startDate))
+            ->when($endDate, fn ($q) => $q->where('created_at', '<=', $endDate))
+            ->get()
+            ->map(function ($invoice) {
+                return [
+                    'date' => $invoice->created_at,
+                    'type' => 'Invoice',
+                    'reference' => $invoice->invoice_number,
+                    'debit' => $invoice->total,
+                    'credit' => 0,
+                ];
+            });
+
+        // Customer payments
+        $payments = $customer->payments()
+            ->when($startDate, fn ($q) => $q->where('payments.created_at', '>=', $startDate))
+            ->when($endDate, fn ($q) => $q->where('payments.created_at', '<=', $endDate))
+            ->get()
+            ->map(function ($payment) {
+                return [
+                    'date' => $payment->created_at,
+                    'type' => 'Payment',
+                    'reference' => $payment->reference_no ?? 'PAY-' . $payment->id,
+                    'debit' => 0,
+                    'credit' => $payment->amount,
+                ];
+            });
+
+        // Merge + sort ledger entries
+        $entries = $invoices
+            ->concat($payments)
+            ->sortBy('date')
+            ->values();
+
+        // Running Amount
+        $remainingAmount = 0;
+
+        $entries = $entries->map(function ($entry) use (&$remainingAmount) {
+
+            $remainingAmount += $entry['debit'];
+            $remainingAmount -= $entry['credit'];
+
+            $entry['remaining_amount'] = $remainingAmount;
+
+            return $entry;
+        });
+
+        return view('customers.statement', compact(
+            'customer',
+            'entries'
+        ));
+    }
 }

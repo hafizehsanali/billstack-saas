@@ -6,6 +6,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\SupplierController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -23,6 +24,7 @@ Route::middleware('auth')->group(function () {
 Route::resource('categories', \App\Http\Controllers\CategoryController::class);
 Route::resource('products', \App\Http\Controllers\ProductController::class);
 Route::resource('customers', \App\Http\Controllers\CustomerController::class);
+Route::get('/customers/{customer}/statement',[\App\Http\Controllers\CustomerController::class, 'statement'])->name('customers.statement');
 
 Route::resource('invoices', InvoiceController::class);
 Route::patch('/invoices/{invoice}/paid', [InvoiceController::class, 'markPaid'])->name('invoices.markPaid');
@@ -30,6 +32,12 @@ Route::patch('/invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])
 Route::post( '/invoices/{invoice}/payments',[PaymentController::class, 'store'])->name('payments.store');
 
 Route::resource('expenses', ExpenseController::class)->middleware(['auth','role:owner|accountant']);
+
+
+Route::middleware(['auth', 'role:owner|accountant'])->group(function () {
+    Route::resource('suppliers', SupplierController::class);
+    Route::get('/suppliers/{supplier}/account',[SupplierController::class, 'account'])->name('suppliers.account');
+});
 
 Route::prefix('reports')->middleware(['auth', 'role:owner|accountant'])->group(function () {
     Route::get('/daily-sales',[ReportController::class, 'dailySales'])->name('reports.daily-sales');

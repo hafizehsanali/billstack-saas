@@ -28,7 +28,8 @@
                 <th>Email</th>
                 <th>Total Sales</th>
                 <th>Paid</th>
-                <th>Balance</th>
+                <th>Remaining Amount</th>
+                <th>Actions</th>
             </tr>
             </thead>
 
@@ -49,9 +50,17 @@
                     <td>Rs {{ number_format($customer->totalPaid(), 2) }}</td>
 
                     <td>
-                        <span class="badge bg-{{ $customer->balance() > 0 ? 'danger' : 'success' }}">
-                            Rs {{ number_format($customer->balance(), 2) }}
+                        <span class="badge bg-{{ $customer->remainingAmount() > 0 ? 'danger' : 'success' }}">
+                            Rs {{ number_format($customer->remainingAmount(), 2) }}
                         </span>
+                    </td>
+                    <td>
+                       <a href="{{ route('customers.statement', $customer) }}"
+                        class="btn btn-sm btn-dark">
+
+                            Account Detail
+
+                        </a>
                     </td>
 
                 </tr>

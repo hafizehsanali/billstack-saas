@@ -48,7 +48,11 @@
                         Invoices
                     </a>
                 </li>
-
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('suppliers.index') }}">
+                        Suppliers
+                    </a>
+                </li>
                 @role('owner')
                 <li class="nav-item dropdown">
 
