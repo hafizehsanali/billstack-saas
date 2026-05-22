@@ -1,7 +1,58 @@
 @extends('layouts.app')
 
 @section('content')
+{{-- Dashboard Filters --}}
+<div class="card mb-4">
 
+    <div class="card-body">
+
+        <form method="GET" action="{{ route('dashboard') }}">
+
+            <div class="row align-items-end">
+
+                <div class="col-md-4">
+                    <label class="form-label">Start Date</label>
+
+                    <input type="date"
+                        name="start_date"
+                        class="form-control"
+                        value="{{ request('start_date') }}">
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">End Date</label>
+
+                    <input type="date"
+                        name="end_date"
+                        class="form-control"
+                        value="{{ request('end_date') }}">
+                </div>
+
+                <div class="col-md-4">
+
+                    <button class="btn btn-primary">
+                        Filter Analytics
+                    </button>
+
+                    <a href="{{ route('dashboard') }}"
+                        class="btn btn-secondary">
+
+                        Reset
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+@php
+    $isFiltered = request()->start_date || request()->end_date;
+@endphp
 <div class="row g-3">
 
     {{-- Sales --}}
@@ -73,7 +124,7 @@
     <div class="col-md-3">
         <div class="card">
             <div class="card-body">
-                <small>Total Products</small>
+                <small>{{ $isFiltered ? 'Products Added' : 'Total Products' }}</small>
                 <h2>{{ $stats['total_products'] }}</h2>
             </div>
         </div>
@@ -91,7 +142,7 @@
     <div class="col-md-3">
         <div class="card">
             <div class="card-body">
-                <small>Customers</small>
+                <small> {{ $isFiltered ? 'New Customers' : 'Total Customers' }}</small>
                 <h2>{{ $stats['total_customers'] }}</h2>
             </div>
         </div>
@@ -100,7 +151,7 @@
     <div class="col-md-3">
         <div class="card">
             <div class="card-body">
-                <small>Total Invoices</small>
+                <small>{{ $isFiltered ? 'Invoices Created' : 'Total Invoices' }}</small>
                 <h2>{{ $stats['total_invoices'] }}</h2>
             </div>
         </div>
@@ -313,7 +364,12 @@
         <div class="card">
 
             <div class="card-header">
-                <h3 class="card-title">Recent Invoices</h3>
+                <h3 class="card-title">
+                    {{ request()->start_date || request()->end_date
+                        ? 'Filtered Recent Invoices'
+                        : 'Recent Invoices'
+                    }}
+                </h3>
             </div>
 
             <div class="table-responsive">

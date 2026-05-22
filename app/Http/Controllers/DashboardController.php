@@ -5,23 +5,24 @@ namespace App\Http\Controllers;
 
 use \App\Services\DashboardService;
 use App\Services\AnalyticsService;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
     
-   public function index(DashboardService $dashboardService,AnalyticsService $analyticsService) 
+   public function index( Request $request,DashboardService $dashboardService,AnalyticsService $analyticsService) 
    {
-        $stats = $dashboardService->stats();
+        $stats = $dashboardService->stats($request);
 
-        // Charts
-        $chartData = $analyticsService->monthlyChartData();
+        // Analytics
+        $chartData = $analyticsService->monthlyChartData($request);
 
-        // Dashboard widgets
-        $invoiceChart = $analyticsService->invoiceStatusData();
+        // Widgets
+        $invoiceChart = $analyticsService->invoiceStatusData($request);
 
-        $topProducts = $analyticsService->topProducts();
+        $topProducts = $analyticsService->topProducts($request);
 
-        $recentInvoices = $analyticsService->recentInvoices();
+        $recentInvoices = $analyticsService->recentInvoices($request);
 
         $lowStockProducts = $analyticsService->lowStockProducts();
 
