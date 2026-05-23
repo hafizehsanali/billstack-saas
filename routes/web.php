@@ -7,6 +7,8 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\SupplierAccountController;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -37,6 +39,7 @@ Route::resource('expenses', ExpenseController::class)->middleware(['auth','role:
 Route::middleware(['auth', 'role:owner|accountant'])->group(function () {
     Route::resource('suppliers', SupplierController::class);
     Route::get('/suppliers/{supplier}/account',[SupplierController::class, 'account'])->name('suppliers.account');
+    Route::get('/suppliers/{supplier}/account', [SupplierAccountController::class, 'show'])->name('supplier.account');
 });
 
 Route::prefix('reports')->middleware(['auth', 'role:owner|accountant'])->group(function () {
