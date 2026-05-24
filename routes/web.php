@@ -8,6 +8,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SupplierAccountController;
+use App\Http\Controllers\SupplierPaymentController;
 
 
 Route::get('/', function () {
@@ -38,8 +39,13 @@ Route::resource('expenses', ExpenseController::class)->middleware(['auth','role:
 
 Route::middleware(['auth', 'role:owner|accountant'])->group(function () {
     Route::resource('suppliers', SupplierController::class);
-    Route::get('/suppliers/{supplier}/account',[SupplierController::class, 'account'])->name('suppliers.account');
-    Route::get('/suppliers/{supplier}/account', [SupplierAccountController::class, 'show'])->name('supplier.account');
+    //Route::get('/suppliers/{supplier}/account',[SupplierController::class, 'show'])->name('suppliers.account');
+   // Route::get('/suppliers/{supplier}/account', [SupplierAccountController::class, 'show'])->name('supplier.account');
+    
+    Route::get('/suppliers/{supplier}/payments', [SupplierPaymentController::class, 'index'])->name('supplier-payments.index');
+    Route::get('/suppliers/{supplier}/payments/create', [SupplierPaymentController::class, 'create'])->name('supplier-payments.create');
+    Route::post('/supplier-payments', [SupplierPaymentController::class, 'store'])->name('supplier-payments.store');
+    Route::delete('/supplier-payments/{payment}', [SupplierPaymentController::class, 'destroy'])->name('supplier-payments.destroy');
 });
 
 Route::prefix('reports')->middleware(['auth', 'role:owner|accountant'])->group(function () {

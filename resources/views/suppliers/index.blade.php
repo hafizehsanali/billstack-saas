@@ -53,7 +53,9 @@
                                class="btn btn-sm btn-warning">
                                 Edit
                             </a>
-
+                            <a href="{{ route('supplier-payments.create', $supplier->id) }}" class="btn btn-sm btn-primary">
+                                Add Payment
+                            </a>
                             <form action="{{ route('suppliers.destroy', $supplier->id) }}"
                                   method="POST"
                                   onsubmit="return confirm('Delete this supplier?')">

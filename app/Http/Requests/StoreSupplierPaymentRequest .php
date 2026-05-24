@@ -8,7 +8,7 @@ class StoreSupplierPaymentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->check();
+        return true;
     }
 
     public function rules(): array
@@ -16,8 +16,8 @@ class StoreSupplierPaymentRequest extends FormRequest
         return [
             'supplier_id' => ['required', 'exists:suppliers,id'],
             'amount' => ['required', 'numeric', 'min:1'],
-            'payment_method' => ['nullable', 'string'],
-            'reference' => ['nullable', 'string'],
+            'payment_method' => ['nullable', 'string', 'max:50'],
+            'reference' => ['nullable', 'string', 'max:100'],
             'note' => ['nullable', 'string'],
         ];
     }

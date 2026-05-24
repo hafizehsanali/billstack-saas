@@ -45,6 +45,41 @@ class SupplierController extends Controller
         return view('suppliers.edit', compact('supplier'));
     }
 
+    public function show(Supplier $supplier)
+    {
+        // // Total purchases
+        // $totalPurchases = Purchase::where('supplier_id', $supplier->id)
+        //     ->sum('total');
+
+        // // Total paid amount
+        // $totalPayments = SupplierPayment::where('supplier_id', $supplier->id)
+        //     ->sum('amount');
+
+        // // Remaining payable amount
+        // $remainingAmount = $totalPurchases - $totalPayments;
+        // // Purchase history
+        // $purchases = Purchase::where('supplier_id', $supplier->id)
+        //     ->latest()
+        //     ->get();
+
+        // // Payment history
+        // $payments = SupplierPayment::where('supplier_id', $supplier->id)
+        //     ->latest()
+        //     ->get();
+
+        return view('supplier-account.index', 
+        //compact(
+           // 'supplier',
+            // 'totalPurchases',
+            // 'totalPayments',
+            // 'remainingAmount',
+            // 'purchases',
+            // 'payments'
+       // )
+        );
+
+    }
+
     public function update(StoreSupplierRequest $request, Supplier $supplier)
     {
         $data = $request->validated();
