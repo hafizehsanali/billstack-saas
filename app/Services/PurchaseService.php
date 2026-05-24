@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Product;
 use App\Models\Purchase;
-use App\Models\PurchaseItem;
 use Illuminate\Support\Facades\DB;
 
 class PurchaseService
@@ -13,63 +12,42 @@ class PurchaseService
     {
         return DB::transaction(function () use ($data) {
 
-            $subtotal = 0;
+            $subtotal = $data['subtotal'];
 
-            /*
-            |--------------------------------------------------------------------------
-            | Calculate subtotal
-            |--------------------------------------------------------------------------
-            */
-
-            foreach ($data['products'] as $item) {
-
-                $subtotal += (
-                    $item['quantity'] *
-                    $item['purchase_price']
-                );
-            }
+            $extraExpense = $data['extra_expense'] ?? 0;
 
             $discount = $data['discount'] ?? 0;
-            $extraExpense = $data['extra_expense'] ?? 0;
+
             $paidAmount = $data['paid_amount'] ?? 0;
 
-            $total = ($subtotal - $discount) + $extraExpense;
+            $total = ($subtotal + $extraExpense) - $discount;
 
             $remainingAmount = $total - $paidAmount;
 
-            /*
-            |--------------------------------------------------------------------------
-            | Determine payment status
-            |--------------------------------------------------------------------------
-            */
-
+            // Purchase status
             $status = 'unpaid';
 
-            if ($paidAmount >= $total) {
+            if ($remainingAmount <= 0) {
                 $status = 'paid';
             } elseif ($paidAmount > 0) {
                 $status = 'partial';
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | Create purchase
-            |--------------------------------------------------------------------------
-            */
-
+            // Create purchase
             $purchase = Purchase::create([
-
                 'tenant_id' => auth()->user()->tenant_id,
 
                 'supplier_id' => $data['supplier_id'],
 
-                'purchase_no' => 'PUR-' . now()->timestamp,
+                'purchase_no' => $data['purchase_no'],
+
+                'purchase_date' => $data['purchase_date'],
 
                 'subtotal' => $subtotal,
 
-                'discount' => $discount,
-
                 'extra_expense' => $extraExpense,
+
+                'discount' => $discount,
 
                 'total' => $total,
 
@@ -77,96 +55,71 @@ class PurchaseService
 
                 'remaining_amount' => $remainingAmount,
 
-                'purchase_date' => $data['purchase_date'],
-
-                'note' => $data['note'] ?? null,
-
                 'status' => $status,
+
+                'notes' => $data['notes'] ?? null,
+
+                'created_by' => auth()->id(),
             ]);
 
-            /*
-            |--------------------------------------------------------------------------
-            | Save items + update inventory
-            |--------------------------------------------------------------------------
-            */
-
+            // Save items + inventory update
             foreach ($data['products'] as $item) {
 
-                $product = Product::findOrFail(
-                    $item['product_id']
+                $lineTotal = (
+                    $item['quantity']
+                    * $item['purchase_price']
                 );
 
-                $quantity = $item['quantity'];
-                $purchasePrice = $item['purchase_price'];
+                $purchase->items()->create([
+                    'product_id' => $item['product_id'],
 
-                /*
-                |--------------------------------------------------------------------------
-                | Save purchase item
-                |--------------------------------------------------------------------------
-                */
+                    'quantity' => $item['quantity'],
 
-                PurchaseItem::create([
+                    'purchase_price' => $item['purchase_price'],
 
-                    'purchase_id' => $purchase->id,
-
-                    'product_id' => $product->id,
-
-                    'quantity' => $quantity,
-
-                    'purchase_price' => $purchasePrice,
-
-                    'total' => (
-                        $quantity * $purchasePrice
-                    ),
+                    'line_total' => $lineTotal,
                 ]);
 
-                /*
-                |--------------------------------------------------------------------------
-                | Average Cost Calculation
-                |--------------------------------------------------------------------------
-                */
-
-                $oldStock = $product->stock_quantity;
-
-                $oldCost = $product->purchase_price;
-
-                $oldStockValue = (
-                    $oldStock * $oldCost
+                $this->updateInventory(
+                    $item['product_id'],
+                    $item['quantity'],
+                    $item['purchase_price']
                 );
-
-                $newStockValue = (
-                    $quantity * $purchasePrice
-                );
-
-                $totalQuantity = (
-                    $oldStock + $quantity
-                );
-
-                $newAverageCost = 0;
-
-                if ($totalQuantity > 0) {
-
-                    $newAverageCost = (
-                        ($oldStockValue + $newStockValue)
-                        / $totalQuantity
-                    );
-                }
-
-                /*
-                |--------------------------------------------------------------------------
-                | Update inventory
-                |--------------------------------------------------------------------------
-                */
-
-                $product->update([
-
-                    'stock_quantity' => $totalQuantity,
-
-                    'purchase_price' => $newAverageCost,
-                ]);
             }
 
             return $purchase;
         });
+    }
+
+    private function updateInventory(
+        int $productId,
+        int $newQuantity,
+        float $newPrice
+    ): void {
+
+        $product = Product::findOrFail($productId);
+
+        $oldStock = $product->stock_quantity;
+
+        $oldAveragePrice = $product->purchase_price;
+
+        // New stock
+        $newStock = $oldStock + $newQuantity;
+
+        // Weighted average
+        $newAveragePrice = (
+            ($oldStock * $oldAveragePrice)
+            +
+            ($newQuantity * $newPrice)
+        ) / max($newStock, 1);
+
+        $product->update([
+            'stock_quantity' => $newStock,
+
+            'purchase_price' => round(
+                $newAveragePrice,
+                2
+            ),
+        ]);
     }
 }

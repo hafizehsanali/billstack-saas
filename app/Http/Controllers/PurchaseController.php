@@ -4,30 +4,30 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Supplier;
+use App\Models\Purchase;
 use App\Services\PurchaseService;
 use App\Http\Requests\StorePurchaseRequest;
 
 class PurchaseController extends Controller
 {
     public function __construct(
-        protected PurchaseService $purchaseService
-    ) {
-    }
+        private PurchaseService $purchaseService
+    ) {}
 
     public function index()
     {
-        $purchases = \App\Models\Purchase::with('supplier')
+        $purchases = Purchase::with('supplier')
             ->latest()
-            ->paginate(15);
+            ->paginate(20);
 
         return view('purchases.index', compact('purchases'));
     }
 
     public function create()
     {
-        $suppliers = Supplier::latest()->get();
+        $suppliers = Supplier::orderBy('name')->get();
 
-        $products = Product::latest()->get();
+        $products = Product::orderBy('name')->get();
 
         return view('purchases.create', compact(
             'suppliers',
@@ -43,6 +43,9 @@ class PurchaseController extends Controller
 
         return redirect()
             ->route('purchases.index')
-            ->with('success', 'Purchase created successfully.');
+            ->with(
+                'success',
+                'Purchase created successfully.'
+            );
     }
 }

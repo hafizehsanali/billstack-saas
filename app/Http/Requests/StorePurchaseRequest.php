@@ -18,30 +18,16 @@ class StorePurchaseRequest extends FormRequest
 
             'supplier_id' => ['required', 'exists:suppliers,id'],
             'purchase_date' => ['required', 'date'],
-
-            'products' => ['required', 'array', 'min:1'],
-
-            'products.*.product_id' => [
-                'required',
-                'exists:products,id'
-            ],
-
-            'products.*.quantity' => [
-                'required',
-                'numeric',
-                'min:1'
-            ],
-
-            'products.*.purchase_price' => [
-                'required',
-                'numeric',
-                'min:0'
-            ],
-
-            'discount' => ['nullable', 'numeric', 'min:0'],
+            'purchase_no' => ['required', 'string', 'max:255'],
+            'subtotal' => ['required', 'numeric', 'min:0'],
             'extra_expense' => ['nullable', 'numeric', 'min:0'],
+            'discount' => ['nullable', 'numeric', 'min:0'],
             'paid_amount' => ['nullable', 'numeric', 'min:0'],
-            'note' => ['nullable', 'string'],
+            'notes' => ['nullable', 'string'],
+            'products' => ['required', 'array', 'min:1'],
+            'products.*.product_id' => ['required','exists:products,id',],
+            'products.*.quantity' => ['required','integer','min:1',],
+            'products.*.purchase_price' => ['required','numeric','min:0'],
         ];
     }
 }
