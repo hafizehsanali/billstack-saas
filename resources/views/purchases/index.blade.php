@@ -31,6 +31,7 @@
                         <th>Paid</th>
                         <th>Remaining</th>
                         <th>Status</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
 
@@ -87,6 +88,15 @@
                                     </span>
 
                                 @endif
+
+                            </td>
+                            <td>
+
+                                <a href="{{ route('purchases.show', $purchase) }}"
+                                class="btn btn-sm btn-primary">
+
+                                    View
+                                </a>
 
                             </td>
 

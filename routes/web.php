@@ -48,8 +48,12 @@ Route::middleware(['auth', 'role:owner|accountant'])->group(function () {
     Route::delete('/supplier-payments/{payment}', [SupplierPaymentController::class, 'destroy'])->name('supplier-payments.destroy');
 });
 
-
+Route::get(
+    'purchases/{purchase}/print',
+    [PurchaseController::class, 'print']
+)->name('purchases.print');
 Route::resource('purchases', PurchaseController::class)->middleware(['auth', 'role:owner|accountant']);
+
 
 Route::prefix('reports')->middleware(['auth', 'role:owner|accountant'])->group(function () {
     Route::get('/daily-sales',[ReportController::class, 'dailySales'])->name('reports.daily-sales');

@@ -48,4 +48,29 @@ class PurchaseController extends Controller
                 'Purchase created successfully.'
             );
     }
+    public function show(Purchase $purchase)
+    {
+        $purchase->load([
+            'supplier',
+            'items.product',
+            'creator',
+        ]);
+
+        return view('purchases.show', compact(
+            'purchase'
+        ));
+    }
+
+    public function print(Purchase $purchase)
+    {
+        $purchase->load([
+            'supplier',
+            'items.product',
+            'creator',
+        ]);
+
+        return view('purchases.print', compact(
+            'purchase'
+        ));
+    }
 }
