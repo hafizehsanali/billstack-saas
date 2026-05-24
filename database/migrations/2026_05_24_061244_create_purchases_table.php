@@ -22,6 +22,8 @@ return new class extends Migration
 
             // Purchase invoice/reference number
             $table->string('purchase_no')->unique();
+             // Purchase date
+            $table->date('purchase_date');
 
             // Financials
             $table->decimal('subtotal', 15, 2)->default(0);
@@ -30,15 +32,15 @@ return new class extends Migration
             $table->decimal('total', 15, 2)->default(0);
             $table->decimal('paid_amount', 15, 2)->default(0);
             $table->decimal('remaining_amount', 15, 2)->default(0);
-
-            // Purchase date
-            $table->date('purchase_date');
+            
+             // Status
+            $table->string('status')->default('unpaid');
+           
 
             // Notes
             $table->text('note')->nullable();
 
-            // Status
-            $table->string('status')->default('unpaid');
+           
 
             $table->timestamps();
 

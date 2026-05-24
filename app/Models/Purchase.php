@@ -13,15 +13,16 @@ class Purchase extends Model
         'tenant_id',
         'supplier_id',
         'purchase_no',
+        'purchase_date',
         'subtotal',
         'discount',
         'extra_expense',
         'total',
         'paid_amount',
         'remaining_amount',
-        'purchase_date',
-        'note',
         'status',
+        'notes',
+        
     ];
 
     protected $casts = [
