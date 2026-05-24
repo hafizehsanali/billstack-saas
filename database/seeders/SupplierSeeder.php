@@ -14,14 +14,19 @@ class SupplierSeeder extends Seeder
      */
    public function run(): void
     {
-        foreach (Tenant::all() as $tenant) {
+        foreach (Tenant::all() as $index => $tenant) {
 
+            
             Supplier::create([
                 'tenant_id' => $tenant->id,
-                'name' => 'Default Supplier',
-                'phone' => '000000000',
-                'email' => 'supplier@test.com',
-                'address' => 'N/A',
+
+                'name' => 'Supplier '.$index.' of store '. $tenant->id,
+
+                'phone' => '03000000000',
+
+                'email' => 'supplier'.$index.'@test.com',
+
+                'address' => 'Demo Address of '.$tenant->name.' Supplier',
             ]);
         }
     }

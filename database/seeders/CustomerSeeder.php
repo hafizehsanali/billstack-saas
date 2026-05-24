@@ -33,6 +33,26 @@ class CustomerSeeder extends Seeder
                 'address' => 'Lahore',
                 'opening_balance' => 5000,
             ]);
+            
+            Customer::create([
+                'tenant_id' => $tenant->id,
+                'name' => 'Cutomer Mushtaq',
+                'phone' => '03001234567',
+                'email' => 'mushtaq@example.com',
+                'address' => 'Talagang',
+                'opening_balance' => 0,
+            ]);
+
+            Customer::create([
+                'tenant_id' => $tenant->id,
+                'name' => 'HafizBrothers Trading Company',
+                'phone' => '03111234567',
+                'email' => 'hafizbrothers@example.com',
+                'address' => 'Islamabad',
+                'opening_balance' => 5000,
+            ]);
+
+            
         }
     }
 }

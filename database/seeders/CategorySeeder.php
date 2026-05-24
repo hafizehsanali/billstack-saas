@@ -30,6 +30,12 @@ class CategorySeeder extends Seeder
                 'tenant_id' => $tenant->id,
                 'name' => 'Office Items',
             ]);
+
+            Category::create([
+                'tenant_id' => $tenant->id,
+                'name' => 'General',
+            ]);
+
         }
     }
 }

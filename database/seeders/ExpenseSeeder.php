@@ -16,15 +16,13 @@ class ExpenseSeeder extends Seeder
     {
         $categories = [
 
-            'Rent',
+            'Shop Rent',
 
             'Electricity',
 
             'Internet',
 
             'Salary',
-
-            'Supplies',
         ];
 
         foreach (Tenant::all() as $tenant) {

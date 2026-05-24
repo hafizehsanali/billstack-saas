@@ -17,10 +17,7 @@ class ProductSeeder extends Seeder
     {
         foreach (Tenant::all() as $tenant) {
 
-            $categories = Category::where(
-                'tenant_id',
-                $tenant->id
-            )->get();
+            $categories = Category::where('tenant_id',$tenant->id)->get();
 
             Product::create([
                 'tenant_id' => $tenant->id,
@@ -52,6 +49,18 @@ class ProductSeeder extends Seeder
                 'selling_price' => 180,
                 'stock_quantity' => 50,
                 'low_stock_alert' => 15,
+            ]);
+
+             Product::create([
+                'tenant_id' =>  $tenant->id,
+                'category_id' => $categories[3]->id,
+                'name' => 'Demo Product',
+                'sku' => 'demo-001',
+                'barcode' => '123456',
+                'purchase_price' => 100,
+                'selling_price' => 150,
+                'stock_quantity' => 10,
+                'low_stock_alert' => 10,
             ]);
         }
     }
