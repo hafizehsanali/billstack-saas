@@ -9,7 +9,7 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SupplierAccountController;
 use App\Http\Controllers\SupplierPaymentController;
-
+use App\Http\Controllers\PurchaseController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -47,6 +47,9 @@ Route::middleware(['auth', 'role:owner|accountant'])->group(function () {
     Route::post('/supplier-payments', [SupplierPaymentController::class, 'store'])->name('supplier-payments.store');
     Route::delete('/supplier-payments/{payment}', [SupplierPaymentController::class, 'destroy'])->name('supplier-payments.destroy');
 });
+
+
+Route::resource('purchases', PurchaseController::class)->middleware(['auth', 'role:owner|accountant']);
 
 Route::prefix('reports')->middleware(['auth', 'role:owner|accountant'])->group(function () {
     Route::get('/daily-sales',[ReportController::class, 'dailySales'])->name('reports.daily-sales');
