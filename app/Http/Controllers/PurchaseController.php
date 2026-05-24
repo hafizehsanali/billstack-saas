@@ -34,7 +34,38 @@ class PurchaseController extends Controller
             'products'
         ));
     }
+    public function edit(Purchase $purchase)
+    {
+        $purchase->load('items');
 
+        $suppliers = Supplier::all();
+
+        $products = Product::all();
+
+        return view('purchases.edit', compact(
+            'purchase',
+            'suppliers',
+            'products'
+        ));
+    }
+
+    public function update(
+        StorePurchaseRequest $request,
+        Purchase $purchase,
+        PurchaseService $purchaseService
+    ) {
+        $purchaseService->update(
+            $purchase,
+            $request->validated()
+        );
+
+        return redirect()
+            ->route('purchases.index')
+            ->with(
+                'success',
+                'Purchase updated successfully.'
+            );
+    }
     public function store(StorePurchaseRequest $request)
     {
         $this->purchaseService->store(
@@ -59,6 +90,30 @@ class PurchaseController extends Controller
         return view('purchases.show', compact(
             'purchase'
         ));
+    }
+
+    public function cancel(Purchase $purchase,PurchaseService $purchaseService) 
+    {
+        try {
+
+            $purchaseService->cancel($purchase);
+
+            return redirect()
+                ->route('purchases.index')
+                ->with(
+                    'success',
+                    'Purchase cancelled successfully.'
+                );
+
+        } catch (\Exception $e) {
+
+            return redirect()
+                ->back()
+                ->with(
+                    'error',
+                    $e->getMessage()
+                );
+        }
     }
 
     public function print(Purchase $purchase)

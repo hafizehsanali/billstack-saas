@@ -53,7 +53,7 @@ Route::get(
     [PurchaseController::class, 'print']
 )->name('purchases.print');
 Route::resource('purchases', PurchaseController::class)->middleware(['auth', 'role:owner|accountant']);
-
+Route::post('/purchases/{purchase}/cancel',[PurchaseController::class, 'cancel'])->name('purchases.cancel');
 
 Route::prefix('reports')->middleware(['auth', 'role:owner|accountant'])->group(function () {
     Route::get('/daily-sales',[ReportController::class, 'dailySales'])->name('reports.daily-sales');

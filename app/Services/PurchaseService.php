@@ -91,11 +91,8 @@ class PurchaseService
         });
     }
 
-    private function updateInventory(
-        int $productId,
-        int $newQuantity,
-        float $newPrice
-    ): void {
+    private function updateInventory(int $productId,int $newQuantity,float $newPrice): void 
+    {
 
         $product = Product::findOrFail($productId);
 
@@ -121,5 +118,215 @@ class PurchaseService
                 2
             ),
         ]);
+    }
+
+    public function update( Purchase $purchase,array $data): void 
+    {
+
+        DB::transaction(function () use ($purchase,$data) 
+        {
+
+            /*
+            |--------------------------------------------------------------------------
+            | STEP 1:
+            | REVERSE OLD STOCK
+            |--------------------------------------------------------------------------
+            */
+
+            foreach ($purchase->items as $oldItem) {
+
+                $product = Product::find($oldItem->product_id);
+
+                if ($product) {
+
+                    $product->decrement(
+                        'stock_quantity',
+                        $oldItem->quantity
+                    );
+                }
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | STEP 2:
+            | DELETE OLD ITEMS
+            |--------------------------------------------------------------------------
+            */
+
+            $purchase->items()->delete();
+
+            /*
+            |--------------------------------------------------------------------------
+            | STEP 3:
+            | UPDATE PURCHASE
+            |--------------------------------------------------------------------------
+            */
+
+            $purchase->update([
+
+                'supplier_id' => $data['supplier_id'],
+
+                'purchase_date' => $data['purchase_date'],
+
+                'subtotal' => $data['subtotal'],
+
+                'extra_expense' => $data['extra_expense'] ?? 0,
+
+                'discount' => $data['discount'] ?? 0,
+
+                'total' => $data['total'],
+
+                'paid_amount' => $data['paid_amount'] ?? 0,
+
+                'remaining_amount' => $data['remaining_amount'] ?? 0,
+
+                'status' => $data['status'],
+
+                'notes' => $data['notes'] ?? null,
+            ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | STEP 4:
+            | ADD NEW ITEMS + STOCK
+            |--------------------------------------------------------------------------
+            */
+
+            foreach ($data['items'] as $item) {
+
+                $lineTotal =
+                    $item['quantity']
+                    * $item['purchase_price'];
+
+                PurchaseItem::create([
+
+                    'purchase_id' => $purchase->id,
+
+                    'product_id' => $item['product_id'],
+
+                    'quantity' => $item['quantity'],
+
+                    'purchase_price' => $item['purchase_price'],
+
+                    'line_total' => $lineTotal,
+                ]);
+
+                $product = Product::find(
+                    $item['product_id']
+                );
+
+                if ($product) {
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | WEIGHTED AVERAGE COST
+                    |--------------------------------------------------------------------------
+                    */
+
+                    $oldStock =
+                        $product->stock_quantity;
+
+                    $oldCost =
+                        $product->purchase_price;
+
+                    $newQty =
+                        $item['quantity'];
+
+                    $newCost =
+                        $item['purchase_price'];
+
+                    $totalOldValue =
+                        $oldStock * $oldCost;
+
+                    $totalNewValue =
+                        $newQty * $newCost;
+
+                    $finalQty =
+                        $oldStock + $newQty;
+
+                    $averageCost =
+                        $finalQty > 0
+                        ? (
+                            (
+                                $totalOldValue
+                                + $totalNewValue
+                            ) / $finalQty
+                        )
+                        : $newCost;
+
+                    $product->update([
+
+                        'purchase_price' =>
+                            round($averageCost, 2),
+
+                        'stock_quantity' =>
+                            $finalQty,
+                    ]);
+                }
+            }
+        });
+    }
+
+    public function cancel(Purchase $purchase): void 
+    {
+
+        DB::transaction(function () use ($purchase) {
+
+            if ($purchase->status === 'cancelled') {
+
+                throw new \Exception(
+                    'Purchase already cancelled.'
+                );
+            }
+
+            foreach ($purchase->items as $item) {
+
+                $product = Product::find(
+                    $item->product_id
+                );
+
+                if (!$product) {
+                    continue;
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | SAFETY CHECK
+                |--------------------------------------------------------------------------
+                */
+
+                if (
+                    $product->stock_quantity
+                    < $item->quantity
+                ) {
+
+                    throw new \Exception(
+                        'Cannot cancel purchase because stock was already sold.'
+                    );
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | REVERSE STOCK
+                |--------------------------------------------------------------------------
+                */
+
+                $product->decrement(
+                    'stock_quantity',
+                    $item->quantity
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | UPDATE STATUS
+            |--------------------------------------------------------------------------
+            */
+
+            $purchase->update([
+
+                'status' => 'cancelled',
+            ]);
+        });
     }
 }

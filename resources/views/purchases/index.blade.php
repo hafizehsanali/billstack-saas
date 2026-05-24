@@ -99,6 +99,21 @@
                                 </a>
 
                             </td>
+                            <form action="{{ route('purchases.cancel', $purchase) }}"
+                                method="POST"
+                                class="d-inline">
+
+                                @csrf
+
+                                <button type="submit"
+                                        class="btn btn-warning btn-sm"
+                                        onclick="return confirm('Cancel this purchase?')">
+
+                                    Cancel
+
+                                </button>
+
+                            </form>
 
                         </tr>
 
