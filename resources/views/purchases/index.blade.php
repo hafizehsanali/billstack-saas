@@ -4,55 +4,48 @@
 
 <div class="container">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
 
-        <div>
-            <h2 class="mb-0">Purchases</h2>
-            <small class="text-muted">
-                Manage supplier purchases
-            </small>
-        </div>
+        <h3>Purchases</h3>
 
         <a href="{{ route('purchases.create') }}"
            class="btn btn-primary">
 
-            Add Purchase
+            Create Purchase
         </a>
+
     </div>
 
-    <div class="card border-0 shadow-sm">
+    <div class="card">
 
-        <div class="card-body p-0">
+        <div class="card-body table-responsive">
 
-            <div class="table-responsive">
+            <table class="table table-bordered">
 
-                <table class="table table-hover align-middle mb-0">
-
-                    <thead class="table-light">
-
+                <thead>
                     <tr>
-                        <th>#</th>
                         <th>Purchase No</th>
+                        <th>Date</th>
                         <th>Supplier</th>
                         <th>Total</th>
                         <th>Paid</th>
                         <th>Remaining</th>
                         <th>Status</th>
-                        <th>Date</th>
                     </tr>
+                </thead>
 
-                    </thead>
-
-                    <tbody>
+                <tbody>
 
                     @forelse($purchases as $purchase)
 
                         <tr>
 
-                            <td>{{ $loop->iteration }}</td>
-
                             <td>
                                 {{ $purchase->purchase_no }}
+                            </td>
+
+                            <td>
+                                {{ $purchase->purchase_date->format('d M Y') }}
                             </td>
 
                             <td>
@@ -67,21 +60,23 @@
                                 Rs {{ number_format($purchase->paid_amount, 2) }}
                             </td>
 
-                            <td class="fw-bold text-danger">
-                                Rs {{ number_format($purchase->remaining_amount, 2) }}
+                            <td>
+                                <strong class="text-danger">
+                                    Rs {{ number_format($purchase->remaining_amount, 2) }}
+                                </strong>
                             </td>
 
                             <td>
 
-                                @if($purchase->status === 'paid')
+                                @if($purchase->status == 'paid')
 
                                     <span class="badge bg-success">
                                         Paid
                                     </span>
 
-                                @elseif($purchase->status === 'partial')
+                                @elseif($purchase->status == 'partial')
 
-                                    <span class="badge bg-warning text-dark">
+                                    <span class="badge bg-warning">
                                         Partial
                                     </span>
 
@@ -95,35 +90,27 @@
 
                             </td>
 
-                            <td>
-                                {{ $purchase->purchase_date->format('d M Y') }}
-                            </td>
-
                         </tr>
 
                     @empty
 
                         <tr>
-                            <td colspan="8" class="text-center py-4">
+                            <td colspan="7"
+                                class="text-center">
+
                                 No purchases found.
                             </td>
                         </tr>
 
                     @endforelse
 
-                    </tbody>
+                </tbody>
 
-                </table>
+            </table>
 
-            </div>
+            {{ $purchases->links() }}
 
         </div>
-
-    </div>
-
-    <div class="mt-3">
-
-        {{ $purchases->links() }}
 
     </div>
 
