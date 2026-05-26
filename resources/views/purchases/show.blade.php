@@ -19,7 +19,7 @@
 
             @endif
 
-            <a href="{{ url()->previous() }}"
+            <a href="{{ url()->previous() !== url()->current() ? url()->previous(): route('dashboard') }}"
                class="btn btn-secondary">
                 Back
             </a>
