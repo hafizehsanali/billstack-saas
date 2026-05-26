@@ -2,62 +2,65 @@
 
 namespace Database\Seeders;
 
+use Illuminate\Database\Seeder;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
-use Illuminate\Database\Seeder;
+use App\Models\Product;
+use App\Models\Supplier;
 
 class PurchaseSeeder extends Seeder
 {
     public function run(): void
     {
-         foreach (Tenant::all() as $tenant) {
+        $supplier = Supplier::first();
+        $products = Product::take(3)->get();
+
+        if (!$supplier || $products->count() == 0) {
+            return;
+        }
+
+        for ($i = 1; $i <= 5; $i++) {
+
+            $subtotal = 0;
+
             $purchase = Purchase::create([
-                'tenant_id' => $tenant->id,
-                'supplier_id' => 1,
-                'purchase_no' => 'PUR-1001',
-                'purchase_date' => now(),
-                'subtotal' => 1000,
-                'extra_expense' => 100,
-                'discount' => 50,
-                'total' => 1050,
-                'paid_amount' => 500,
-                'remaining_amount' => 550,
-                'status' => 'partial',
-                'notes' => 'Demo purchase',
-                'created_by' => 1,
-            ]);
-
-            PurchaseItem::create([
-                'purchase_id' => $purchase->id,
-                'product_id' => 1,
-                'quantity' => 10,
-                'purchase_price' => 980,
-                'line_total' => 9800,
-            ]);
-
-            $purchase2 = Purchase::create([
-                'tenant_id' => $tenant->id,
-                'supplier_id' => 2,
-                'purchase_no' => 'PUR-1002',
-                'purchase_date' => now(),
-                'subtotal' => 10000,
-                'extra_expense' => 500,
+                'tenant_id' => 1,
+                'supplier_id' => $supplier->id,
+                'purchase_no' => 'PUR-DEMO-' . $i,
+                'purchase_date' => now()->subDays($i),
+                'subtotal' => 0,
+                'extra_expense' => 0,
                 'discount' => 0,
-                'total' => 10500,
+                'total' => 0,
                 'paid_amount' => 0,
-                'remaining_amount' => 10500,
-                'status' => 'pending',
-                'notes' => 'Demo purchase ',
-                'created_by' => 2,
+                'remaining_amount' => 0,
+                'status' => 'unpaid',
             ]);
 
-            PurchaseItem::create([
-                'purchase_id' => $purchase2->id,
-                'product_id' => 2,
-                'quantity' => 10,
-                'purchase_price' => 1500,
-                'line_total' => 15000,
+            foreach ($products as $product) {
+
+                $qty = rand(5, 20);
+                $price = rand(100, 500);
+                $lineTotal = $qty * $price;
+
+                PurchaseItem::create([
+                    'purchase_id' => $purchase->id,
+                    'product_id' => $product->id,
+                    'quantity' => $qty,
+                    'purchase_price' => $price,
+                    'line_total' => $lineTotal,
+                ]);
+
+                $product->increment('stock_quantity', $qty);
+
+                $subtotal += $lineTotal;
+            }
+
+            $purchase->update([
+                'subtotal' => $subtotal,
+                'total' => $subtotal,
+                'remaining_amount' => $subtotal,
             ]);
-         }
+        }
     }
 }

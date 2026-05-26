@@ -84,12 +84,10 @@ class PurchaseController extends Controller
         $purchase->load([
             'supplier',
             'items.product',
+             'payments',
             'creator',
         ]);
-
-        return view('purchases.show', compact(
-            'purchase'
-        ));
+        return view('purchases.show', compact('purchase'));
     }
 
     public function cancel(Purchase $purchase,PurchaseService $purchaseService) 

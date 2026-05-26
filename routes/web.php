@@ -40,20 +40,20 @@ Route::resource('expenses', ExpenseController::class)->middleware(['auth','role:
 Route::middleware(['auth', 'role:owner|accountant'])->group(function () {
     Route::resource('suppliers', SupplierController::class);
     //Route::get('/suppliers/{supplier}/account',[SupplierController::class, 'show'])->name('suppliers.account');
-   // Route::get('/suppliers/{supplier}/account', [SupplierAccountController::class, 'show'])->name('supplier.account');
+    Route::get('/suppliers/{supplier}/account', [SupplierAccountController::class, 'show'])->name('supplier.account');
     
     Route::get('/suppliers/{supplier}/payments', [SupplierPaymentController::class, 'index'])->name('supplier-payments.index');
-    Route::get('/suppliers/{supplier}/payments/create', [SupplierPaymentController::class, 'create'])->name('supplier-payments.create');
-    Route::post('/supplier-payments', [SupplierPaymentController::class, 'store'])->name('supplier-payments.store');
-    Route::delete('/supplier-payments/{payment}', [SupplierPaymentController::class, 'destroy'])->name('supplier-payments.destroy');
+    Route::get('/suppliers/{supplier}/payments/create/{purchase?}', [SupplierPaymentController::class, 'create'])->name('supplier-payments.create');
+    Route::post('/supplier', [SupplierPaymentController::class, 'store'])->name('supplier-payments.store');
+    Route::delete('/supplier/{payment}', [SupplierPaymentController::class, 'destroy'])->name('supplier-payments.destroy');
+   // Route::get('/suppliers/create/{supplier}/{purchase?}',[SupplierPaymentController::class,'create'])->name('supplier-payments.create');
 });
 
-Route::get(
-    'purchases/{purchase}/print',
-    [PurchaseController::class, 'print']
-)->name('purchases.print');
 Route::resource('purchases', PurchaseController::class)->middleware(['auth', 'role:owner|accountant']);
 Route::post('/purchases/{purchase}/cancel',[PurchaseController::class, 'cancel'])->name('purchases.cancel');
+//Route::get('/purchases/{purchase}',[PurchaseController::class, 'show'])->name('purchases.show');
+Route::get('/purchases/{purchase}/print',[PurchaseController::class, 'print'])->name('purchases.print');
+//Route::post('/purchases/{purchase}/payments',[PurchasePaymentController::class, 'store'])->name('purchases.payments.store');
 
 Route::prefix('reports')->middleware(['auth', 'role:owner|accountant'])->group(function () {
     Route::get('/daily-sales',[ReportController::class, 'dailySales'])->name('reports.daily-sales');

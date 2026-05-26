@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Product;
 use App\Models\Purchase;
+use App\Models\PurchaseItem;
 use Illuminate\Support\Facades\DB;
 
 class PurchaseService
@@ -65,10 +66,7 @@ class PurchaseService
             // Save items + inventory update
             foreach ($data['products'] as $item) {
 
-                $lineTotal = (
-                    $item['quantity']
-                    * $item['purchase_price']
-                );
+                $lineTotal = ($item['quantity'] * $item['purchase_price']);
 
                 $purchase->items()->create([
                     'product_id' => $item['product_id'],
@@ -125,25 +123,10 @@ class PurchaseService
 
         DB::transaction(function () use ($purchase,$data) 
         {
-
-            /*
-            |--------------------------------------------------------------------------
-            | STEP 1:
-            | REVERSE OLD STOCK
-            |--------------------------------------------------------------------------
-            */
-
-            foreach ($purchase->items as $oldItem) {
-
-                $product = Product::find($oldItem->product_id);
-
-                if ($product) {
-
-                    $product->decrement(
-                        'stock_quantity',
-                        $oldItem->quantity
-                    );
-                }
+            // STEP 1:
+            foreach ($purchase->items as $oldItem) 
+            {
+                 $this->reverseInventory($oldItem->product_id,$oldItem->quantity);
             }
 
             /*
@@ -192,7 +175,7 @@ class PurchaseService
             |--------------------------------------------------------------------------
             */
 
-            foreach ($data['items'] as $item) {
+            foreach ($data['products'] as $item) {
 
                 $lineTotal =
                     $item['quantity']
@@ -210,61 +193,33 @@ class PurchaseService
 
                     'line_total' => $lineTotal,
                 ]);
-
-                $product = Product::find(
-                    $item['product_id']
-                );
-
-                if ($product) {
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | WEIGHTED AVERAGE COST
-                    |--------------------------------------------------------------------------
-                    */
-
-                    $oldStock =
-                        $product->stock_quantity;
-
-                    $oldCost =
-                        $product->purchase_price;
-
-                    $newQty =
-                        $item['quantity'];
-
-                    $newCost =
-                        $item['purchase_price'];
-
-                    $totalOldValue =
-                        $oldStock * $oldCost;
-
-                    $totalNewValue =
-                        $newQty * $newCost;
-
-                    $finalQty =
-                        $oldStock + $newQty;
-
-                    $averageCost =
-                        $finalQty > 0
-                        ? (
-                            (
-                                $totalOldValue
-                                + $totalNewValue
-                            ) / $finalQty
-                        )
-                        : $newCost;
-
-                    $product->update([
-
-                        'purchase_price' =>
-                            round($averageCost, 2),
-
-                        'stock_quantity' =>
-                            $finalQty,
-                    ]);
-                }
+                
+                $this->updateInventory($item['product_id'], $item['quantity'],$item['purchase_price']);
+                // $product = Product::find($item['product_id']);
+                // if ($product) 
+                // {   
+                //     // WEIGHTED AVERAGE COST
+                //     $oldStock = $product->stock_quantity;
+                //     $oldCost = $product->purchase_price;
+                //     $newQty = $item['quantity'];
+                //     $newCost = $item['purchase_price'];
+                //     $totalOldValue = $oldStock * $oldCost;
+                //     $totalNewValue = $newQty * $newCost;
+                //     $finalQty = $oldStock + $newQty;
+                //     $averageCost =$finalQty > 0 ? (($totalOldValue + $totalNewValue) / $finalQty) : $newCost;
+                //     $product->update([
+                //         'purchase_price' => round($averageCost, 2),
+                //         'stock_quantity' => $finalQty,
+                //     ]);
+                // }
             }
         });
+    }
+     
+    private function reverseInventory(int $productId,int $quantity): void 
+    {
+        $product = Product::findOrFail($productId);
+        $product->decrement('stock_quantity',$quantity);
     }
 
     public function cancel(Purchase $purchase): void 

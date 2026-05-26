@@ -32,7 +32,7 @@
                         <th>Amount</th>
                         <th>Method</th>
                         <th>Reference</th>
-                        <th>Note</th>
+                        <th>Notes</th>
                         <th width="100">Action</th>
                     </tr>
                 </thead>
@@ -50,9 +50,9 @@
 
                             <td>{{ ucfirst($payment->payment_method) }}</td>
 
-                            <td>{{ $payment->reference }}</td>
+                            <td>{{ $payment->reference_no }}</td>
 
-                            <td>{{ $payment->note }}</td>
+                            <td>{{ $payment->notes }}</td>
 
                             <td>
 

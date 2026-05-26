@@ -16,12 +16,14 @@ return new class extends Migration
 
             $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
             $table->foreignId('supplier_id')->constrained()->cascadeOnDelete();
-
+            $table->foreignId('purchase_id')->nullable()->constrained()->nullOnDelete();
             // Payment details
             $table->decimal('amount', 12, 2);
             $table->string('payment_method')->default('cash'); // cash, bank, etc
-            $table->string('reference')->nullable();
-            $table->text('note')->nullable();
+            $table->date('payment_date')->nullable(); 
+            
+            $table->string('reference_no')->nullable();
+            $table->text('notes')->nullable();
             
             $table->softDeletes();
             $table->timestamps();

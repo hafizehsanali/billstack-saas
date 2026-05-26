@@ -3,47 +3,92 @@
 namespace App\Http\Controllers;
 
 use App\Models\Supplier;
+use App\Models\Purchase;
 use App\Models\SupplierPayment;
+use App\Services\SupplierAccountService;
 use App\Http\Requests\StoreSupplierPaymentRequest;
 
 class SupplierPaymentController extends Controller
 {
+    protected SupplierAccountService $supplierAccountService;
+
+    public function __construct(SupplierAccountService $supplierAccountService) 
+    {
+        $this->supplierAccountService =
+            $supplierAccountService;
+    }
+
+    /**
+     * Supplier payment list
+     */
     public function index(Supplier $supplier)
     {
-        $payments = SupplierPayment::where('tenant_id', auth()->user()->tenant_id)
-            ->where('supplier_id', $supplier->id)
+        $payments = SupplierPayment::query()
+
+            ->where(
+                'tenant_id',
+                auth()->user()->tenant_id
+            )
+
+            ->where(
+                'supplier_id',
+                $supplier->id
+            )
+
             ->latest()
+
             ->get();
 
-        return view('supplier-payments.index', compact('supplier', 'payments'));
+        return view(
+            'supplier-payments.index',
+            compact('supplier', 'payments')
+        );
     }
 
-    public function create(Supplier $supplier)
+    /**
+     * Create payment form
+     */
+    public function create(Supplier $supplier, ?Purchase $purchase = null)
     {
-        return view('supplier-payments.create', compact('supplier'));
-    }
-
-    public function store(StoreSupplierPaymentRequest $request)
-    {
-        $data = $request->validated();
-
-        SupplierPayment::create([
-            'tenant_id' => auth()->user()->tenant_id,
-            'supplier_id' => $data['supplier_id'],
-            'amount' => $data['amount'],
-            'payment_method' => $data['payment_method'] ?? null,
-            'reference' => $data['reference'] ?? null,
-            'note' => $data['note'] ?? null,
+        $purchases = Purchase::where('supplier_id', $supplier->id)
+            ->where('remaining_amount', '>', 0)
+            ->where('status', '!=', 'cancelled')
+            ->latest()
+            ->get();
+        return view('supplier-payments.create', [
+            'supplier' => $supplier,
+            'purchases' => $purchases,
+            'selectedPurchase' => $purchase,
         ]);
-
-        return redirect()->route('suppliers.index')
-            ->with('success', 'Payment added successfully.');
     }
 
-    public function destroy(SupplierPayment $payment)
+    /**
+     * Store supplier payment
+     */
+    public function store(StoreSupplierPaymentRequest $request) 
     {
-        $payment->delete();
+       
+        $validated = $request->validated();
+         //dd($validated);
+        $validated['tenant_id'] = auth()->user()->tenant_id;
+        $this->supplierAccountService->storePayment($validated);
+        return redirect()->route('supplier-payments.index',$validated['supplier_id'])
+               ->with('success','Payment added successfully.' );
+    }
 
-        return back()->with('success', 'Payment deleted successfully.');
+    /**
+     * Delete supplier payment
+     */
+    public function destroy(
+        SupplierPayment $payment
+    ) {
+
+        $this->supplierAccountService
+            ->deletePayment($payment);
+
+        return back()->with(
+            'success',
+            'Payment deleted successfully.'
+        );
     }
 }

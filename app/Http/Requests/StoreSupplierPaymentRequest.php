@@ -15,10 +15,12 @@ class StoreSupplierPaymentRequest extends FormRequest
     {
         return [
             'supplier_id' => ['required', 'exists:suppliers,id'],
+            'purchase_id' => 'nullable|exists:purchases,id',
+            'payment_date' => 'required|date',
             'amount' => ['required', 'numeric', 'min:1'],
             'payment_method' => ['nullable', 'string', 'max:50'],
-            'reference' => ['nullable', 'string', 'max:100'],
-            'note' => ['nullable', 'string'],
+            'reference_no' => ['nullable', 'string', 'max:100'],
+            'notes' => ['nullable', 'string'],
         ];
     }
 }

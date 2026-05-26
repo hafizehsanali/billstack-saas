@@ -38,7 +38,7 @@ return new class extends Migration
            
 
             // Notes
-            $table->text('note')->nullable();
+            $table->text('notes')->nullable();
 
            
 

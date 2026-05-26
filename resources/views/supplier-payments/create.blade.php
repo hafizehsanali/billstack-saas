@@ -7,7 +7,7 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h3>Add Supplier Payment</h3>
 
-        <a href="{{ route('suppliers-account.show', $supplier->id) }}" class="btn btn-secondary">
+        <a href="{{ route('suppliers.show', $supplier->id) }}" class="btn btn-secondary">
             Back
         </a>
     </div>
@@ -36,7 +36,22 @@
                     <label class="form-label">Supplier</label>
                     <input type="text" class="form-control" value="{{ $supplier->name }}" disabled>
                 </div>
-
+                
+                <div class="mb-3">
+                    <label class="form-label">Purchase Invoice</label>
+                    <select name="purchase_id" class="form-select">
+                        <option value="">Select Purchase</option>
+                        @foreach($purchases as $purchase)
+                            <option value="{{ $purchase->id }}" {{ isset($selectedPurchase) && $selectedPurchase->id == $purchase->id ? 'selected' : '' }}>
+                               {{ $purchase->purchase_no }} - Remaining: Rs {{ number_format($purchase->remaining_amount,2) }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Payment Date</label>
+                    <input type="date" name="payment_date" value="{{ old('payment_date', now()->format('Y-m-d')) }}" class="form-control" required>
+                </div>
                 <div class="mb-3">
                     <label class="form-label">Payment Amount</label>
                     <input type="number" step="0.01" name="amount" class="form-control" required>
@@ -56,13 +71,13 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Reference</label>
-                    <input type="text" name="reference" class="form-control">
+                    <label class="form-label">Reference No</label>
+                    <input type="text" name="reference_no" class="form-control">
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Note</label>
-                    <textarea name="note" rows="3" class="form-control"></textarea>
+                    <textarea name="notes" rows="3" class="form-control"></textarea>
                 </div>
 
                 <button type="submit" class="btn btn-primary">

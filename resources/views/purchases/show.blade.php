@@ -6,22 +6,21 @@
 
     <div class="d-flex justify-content-between align-items-center mb-3">
 
-        <h3>
-            Purchase Details
-        </h3>
+        <h3>Purchase Details</h3>
 
-        <div>
+        <div class="d-flex gap-2">
 
-            <a href="{{ route('purchases.print', $purchase) }}"
-               target="_blank"
-               class="btn btn-dark">
+            @if($purchase->remaining_amount > 0)
 
-                Print Invoice
-            </a>
+                <a href="{{ route('supplier-payments.create',[$purchase->supplier_id,$purchase->id]) }}"
+                   class="btn btn-success">
+                    Add Payment
+                </a>
+
+            @endif
 
             <a href="{{ route('purchases.index') }}"
                class="btn btn-secondary">
-
                 Back
             </a>
 
@@ -30,78 +29,59 @@
     </div>
 
     <div class="card mb-3">
-
         <div class="card-body">
 
             <div class="row">
 
-                <div class="col-md-4 mb-3">
-                    <strong>Purchase No:</strong><br>
+                <div class="col-md-6">
+                    <strong>Invoice No:</strong>
                     {{ $purchase->purchase_no }}
                 </div>
 
-                <div class="col-md-4 mb-3">
-                    <strong>Purchase Date:</strong><br>
-                    {{ $purchase->purchase_date->format('d M Y') }}
+                <div class="col-md-6">
+                    <strong>Date:</strong>
+                    {{ $purchase->purchase_date }}
                 </div>
 
-                <div class="col-md-4 mb-3">
-                    <strong>Supplier:</strong><br>
+                <div class="col-md-6 mt-2">
+                    <strong>Supplier:</strong>
                     {{ $purchase->supplier->name }}
                 </div>
 
-                <div class="col-md-4 mb-3">
-                    <strong>Status:</strong><br>
+                <div class="col-md-6 mt-2">
+                    <strong>Status:</strong>
 
-                    @if($purchase->status == 'paid')
-
-                        <span class="badge bg-success">
-                            Paid
-                        </span>
-
-                    @elseif($purchase->status == 'partial')
-
-                        <span class="badge bg-warning">
-                            Partial
-                        </span>
-
+                    @if($purchase->status=='paid')
+                        <span class="badge bg-success">Paid</span>
+                    @elseif($purchase->status=='partial')
+                        <span class="badge bg-warning">Partial</span>
                     @else
-
-                        <span class="badge bg-danger">
-                            Unpaid
-                        </span>
-
+                        <span class="badge bg-danger">Unpaid</span>
                     @endif
-                </div>
 
-                <div class="col-md-4 mb-3">
-                    <strong>Created By:</strong><br>
-                    {{ $purchase->creator->name ?? 'N/A' }}
                 </div>
 
             </div>
 
         </div>
-
     </div>
 
-    {{-- Items --}}
     <div class="card mb-3">
 
         <div class="card-header">
             Purchase Items
         </div>
 
-        <div class="card-body table-responsive">
+        <div class="table-responsive">
 
-            <table class="table table-bordered">
+            <table class="table table-bordered mb-0">
 
                 <thead>
                     <tr>
                         <th>Product</th>
-                        <th>Qty</th>
-                        <th>Purchase Price</th>
-                        <th>Total</th>
+                        <th width="120">Qty</th>
+                        <th width="150">Price</th>
+                        <th width="150">Total</th>
                     </tr>
                 </thead>
 
@@ -111,21 +91,13 @@
 
                         <tr>
 
-                            <td>
-                                {{ $item->product->name }}
-                            </td>
+                            <td>{{ $item->product->name }}</td>
 
-                            <td>
-                                {{ $item->quantity }}
-                            </td>
+                            <td>{{ $item->quantity }}</td>
 
-                            <td>
-                                Rs {{ number_format($item->purchase_price, 2) }}
-                            </td>
+                            <td>{{ number_format($item->purchase_price,2) }}</td>
 
-                            <td>
-                                Rs {{ number_format($item->line_total, 2) }}
-                            </td>
+                            <td>{{ number_format($item->line_total,2) }}</td>
 
                         </tr>
 
@@ -139,54 +111,91 @@
 
     </div>
 
-    {{-- Totals --}}
-    <div class="card">
+    <div class="row">
 
-        <div class="card-body">
+        <div class="col-md-6">
 
-            <div class="row text-end">
+            <div class="card">
 
-                <div class="col-md-12 mb-2">
-                    <strong>
-                        Subtotal:
-                    </strong>
-
-                    Rs {{ number_format($purchase->subtotal, 2) }}
+                <div class="card-header">
+                    Payment History
                 </div>
 
-                <div class="col-md-12 mb-2">
-                    <strong>
-                        Extra Expense:
-                    </strong>
+                <div class="table-responsive">
 
-                    Rs {{ number_format($purchase->extra_expense, 2) }}
+                    <table class="table table-bordered mb-0">
+
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Method</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @forelse($purchase->payments as $payment)
+
+                                <tr>
+
+                                    <td>{{ $payment->payment_date }}</td>
+
+                                    <td>{{ $payment->payment_method }}</td>
+
+                                    <td>
+                                        {{ number_format($payment->amount,2) }}
+                                    </td>
+
+                                </tr>
+
+                            @empty
+
+                                <tr>
+                                    <td colspan="3" class="text-center">
+                                        No payments found
+                                    </td>
+                                </tr>
+
+                            @endforelse
+
+                        </tbody>
+
+                    </table>
+
                 </div>
 
-                <div class="col-md-12 mb-2">
-                    <strong>
-                        Discount:
-                    </strong>
+            </div>
 
-                    Rs {{ number_format($purchase->discount, 2) }}
+        </div>
+
+        <div class="col-md-6">
+
+            <div class="card">
+
+                <div class="card-header">
+                    Purchase Summary
                 </div>
 
-                <div class="col-md-12 mb-2">
-                    <strong>
-                        Paid Amount:
-                    </strong>
+                <div class="card-body">
 
-                    Rs {{ number_format($purchase->paid_amount, 2) }}
-                </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <strong>Total:</strong>
+                        <span>{{ number_format($purchase->total,2) }}</span>
+                    </div>
 
-                <div class="col-md-12 mb-2">
-                    <h5>
-                        Remaining Amount:
-                        <span class="text-danger">
+                    <div class="d-flex justify-content-between mb-2">
+                        <strong>Paid:</strong>
+                        <span>{{ number_format($purchase->paid_amount,2) }}</span>
+                    </div>
 
-                            Rs {{ number_format($purchase->remaining_amount, 2) }}
+                    <div class="d-flex justify-content-between">
+                        <strong>Remaining:</strong>
+                        <strong class="text-danger">
+                            {{ number_format($purchase->remaining_amount,2) }}
+                        </strong>
+                    </div>
 
-                        </span>
-                    </h5>
                 </div>
 
             </div>

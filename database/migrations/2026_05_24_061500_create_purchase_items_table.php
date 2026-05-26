@@ -27,7 +27,7 @@ return new class extends Migration
             $table->decimal('purchase_price', 15, 2);
 
             // Line total
-            $table->decimal('total', 15, 2);
+            $table->decimal('line_total', 15, 2);
 
             $table->timestamps();
         });
