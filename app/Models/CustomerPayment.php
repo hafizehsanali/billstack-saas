@@ -7,30 +7,32 @@ use App\Models\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class SupplierPayment extends Model
+class CustomerPayment extends Model
 {
     use BelongsToTenant, SoftDeletes;
     protected $fillable = [
         'tenant_id',
-        'supplier_id',
-        'purchase_id',
+        'customer_id',
+        'invoice_id',
         'amount',
         'payment_method',
         'payment_date',
-        'reference_no',
         'notes',
+        'reference_no',
     ];
 
-    public function supplier()
+    public function invoice()
     {
-        return $this->belongsTo(Supplier::class);
+        return $this->belongsTo(Invoice::class);
     }
-    public function purchase()
+
+    public function customer()
     {
-        return $this->belongsTo(Purchase::class);
+        return $this->belongsTo(Customer::class);
     }
     public function tenant()
     {
         return $this->belongsTo(Tenant::class);
     }
+
 }

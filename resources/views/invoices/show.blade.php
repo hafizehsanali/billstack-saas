@@ -30,35 +30,61 @@
         <div class="card-body">
 
             <!-- HEADER -->
-            <div class="d-flex justify-content-between">
+            <div class="d-flex justify-content-between align-items-start">
 
                 <div>
-                    <h3>Invoice</h3>
 
-                <p>
-                    Date: {{ $invoice->created_at->format('d M Y') }}
-                </p>
+                    <h2 class="mb-1">
+                        Invoice #{{ $invoice->invoice_no }}
+                    </h2>
 
-                <h5>
-                    Status:
-                    <span class="badge
+                    <p class="text-muted mb-2">
+
+                        Sale Date:
+                        {{ \Carbon\Carbon::parse($invoice->sale_date)->format('d M Y') }}
+
+                    </p>
+
+                    <h5>
+
+                        <span class="badge
                             @if($invoice->status == 'paid') bg-success
                             @elseif($invoice->status == 'partial') bg-info
                             @elseif($invoice->status == 'cancelled') bg-danger
                             @else bg-warning
                             @endif">
 
-                        {{ ucfirst($invoice->status) }}
+                            {{ ucfirst($invoice->status) }}
 
-                    </span>
-                </h5>
+                        </span>
+
+                    </h5>
+
                 </div>
 
-                <div class="text-end">
-                    <h3>Invoice</h3>
-                    <p>Date: {{ $invoice->created_at->format('d M Y') }}</p>
+                <div class="d-flex gap-2">
+
+                    <a href="{{ route('customer.account', $invoice->customer_id) }}"
+                    class="btn btn-dark">
+                        Customer Ledger
+                    </a>
+
+                    <button onclick="window.print()"
+                            class="btn btn-primary">
+                        Print
+                    </button>
+
+                    <a href="{{ route('invoices.pdf', $invoice) }}"
+                    class="btn btn-outline-primary">
+                        PDF
+                    </a>
+
+                    <a href="{{ url()->previous() }}"
+                    class="btn btn-secondary">
+                        Back
+                    </a>
+
                 </div>
-                
 
             </div>
 
@@ -108,11 +134,79 @@
 
             </table>
 
-            <!-- TOTALS -->
-            <div class="text-end">
+             @php
 
-                <h4>Subtotal: {{ $invoice->subtotal }}</h4>
-                <h3>Total: {{ $invoice->total }}</h3>
+                $paid = $invoice->payments->sum('amount');
+
+                $remaining = $invoice->total - $paid;
+
+            @endphp
+            <!-- ACCOUNTING SUMMARY -->
+            <div class="row text-center mb-3">
+
+                <div class="col-md-3">
+
+                    <div class="border rounded p-3">
+
+                        <small class="text-muted">
+                            Subtotal
+                        </small>
+
+                        <h5 class="mt-2">
+                            Rs {{ number_format($invoice->subtotal, 2) }}
+                        </h5>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <div class="border rounded p-3">
+
+                        <small class="text-muted">
+                            Invoice Total
+                        </small>
+
+                        <h5 class="mt-2">
+                            Rs {{ number_format($invoice->total, 2) }}
+                        </h5>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <div class="border rounded p-3">
+
+                        <small class="text-muted">
+                            Paid Amount
+                        </small>
+
+                        <h5 class="mt-2 text-success">
+                            Rs {{ number_format($paid, 2) }}
+                        </h5>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <div class="border rounded p-3">
+
+                        <small class="text-muted">
+                            Remaining Amount
+                        </small>
+
+                        <h5 class="mt-2 text-danger">
+                            Rs {{ number_format($remaining, 2) }}
+                        </h5>
+
+                    </div>
+
+                </div>
 
             </div>
 
@@ -120,13 +214,7 @@
 
             <h4>Record Payment</h4>
 
-            @php
-
-                $paid = $invoice->payments->sum('amount');
-
-                $remaining = $invoice->total - $paid;
-
-            @endphp
+           
 
             <div class="alert alert-info">
 
@@ -192,26 +280,31 @@
 
             <hr>
 
-            <h4>Payment History</h4>
+             <h4 class="mt-4">
+                Payment History
+            </h4>
 
-            <table class="table table-bordered">
+            <table class="table table-bordered align-middle">
 
-                <thead>
+                <thead class="table-light">
+
                     <tr>
                         <th>Date</th>
                         <th>Method</th>
-                        <th>Amount</th>
+                        <th>Reference</th>
+                        <th class="text-end">Amount</th>
                     </tr>
+
                 </thead>
 
                 <tbody>
 
-                    @foreach($invoice->payments as $payment)
+                    @forelse($invoice->payments as $payment)
 
                         <tr>
 
                             <td>
-                                {{ $payment->created_at->format('d M Y') }}
+                                {{ $payment->sale_date->format('d M Y') }}
                             </td>
 
                             <td>
@@ -219,12 +312,26 @@
                             </td>
 
                             <td>
-                                {{ $payment->amount }}
+                                {{ $payment->reference_no ?? '-' }}
+                            </td>
+
+                            <td class="text-end text-success fw-bold">
+                                Rs {{ number_format($payment->amount, 2) }}
                             </td>
 
                         </tr>
 
-                    @endforeach
+                    @empty
+
+                        <tr>
+
+                            <td colspan="4" class="text-center text-muted py-4">
+                                No payments recorded
+                            </td>
+
+                        </tr>
+
+                    @endforelse
 
                 </tbody>
 
@@ -261,9 +368,6 @@
                     </form>
 
                 @endif
-                <button onclick="window.print()" class="btn btn-primary">
-                    Print Invoice
-                </button>
                  <a href="{{ route('invoices.pdf', $invoice) }}"  class="btn btn-primary">
                           Download PDF
                  </a>

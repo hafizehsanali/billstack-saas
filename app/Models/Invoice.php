@@ -15,12 +15,17 @@ class Invoice extends Model
     protected $fillable = [
         'tenant_id',
         'customer_id',
-        'invoice_number',
+        'invoice_no',
+        'sale_date',
         'subtotal',
         'tax',
         'discount',
+        'extra_expense',
         'total',
+        'paid_amount',
+        'remaining_amount',
         'status',
+        'notes',
     ];
 
     public function customer(): BelongsTo
@@ -34,6 +39,6 @@ class Invoice extends Model
     }
     public function payments()
     {
-        return $this->hasMany(Payment::class);
+        return $this->hasMany(CustomerPayment::class);
     }
 }

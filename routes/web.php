@@ -29,6 +29,9 @@ Route::resource('products', \App\Http\Controllers\ProductController::class);
 Route::resource('customers', \App\Http\Controllers\CustomerController::class);
 Route::get('/customers/{customer}/statement',[\App\Http\Controllers\CustomerController::class, 'statement'])->name('customers.statement');
 
+Route::get('/customers/{customer}/account',[CustomerAccountController::class, 'show'])->name('customer.account');
+Route::get('/customers/{customer}/payments/create/{invoice?}',[CustomerPaymentController::class, 'create'])->name('customer-payments.create');
+
 Route::resource('invoices', InvoiceController::class);
 Route::patch('/invoices/{invoice}/paid', [InvoiceController::class, 'markPaid'])->name('invoices.markPaid');
 Route::patch('/invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])->name('invoices.cancel');

@@ -26,7 +26,7 @@ class Customer extends Model
     public function payments()
     {
         return $this->hasManyThrough(
-            Payment::class,
+            CustomerPayment::class,
             Invoice::class
         );
     }
