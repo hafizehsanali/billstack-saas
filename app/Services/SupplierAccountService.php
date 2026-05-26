@@ -11,17 +11,20 @@ use Illuminate\Support\Facades\DB;
 class SupplierAccountService
 {
     // Complete supplier account summary
-    public function getAccount(int $supplierId): array
+    public function getAccount(int $supplierId,$from,$to): array
     {
         $supplier = Supplier::findOrFail($supplierId);
-
+       
         $purchases = Purchase::where('supplier_id', $supplierId)
-            ->where('status', '!=', 'cancelled')
-            ->orderBy('purchase_date')
+            ->when($from, fn($q) => $q->whereDate('purchase_date', '>=', $from))
+            ->when($to, fn($q) => $q->whereDate('purchase_date', '<=', $to))
+            ->latest()
             ->get();
 
         $payments = SupplierPayment::where('supplier_id', $supplierId)
-            ->orderBy('payment_date')
+            ->when($from, fn($q) => $q->whereDate('payment_date', '>=', $from))
+            ->when($to, fn($q) => $q->whereDate('payment_date', '<=', $to))
+            ->latest()
             ->get();
 
         $totalPurchases = $purchases->sum('total');
@@ -41,35 +44,84 @@ class SupplierAccountService
         ];
     }
 
-    protected function buildLedger(Collection $purchases, Collection $payments): Collection
+   
+    protected function buildLedger($purchases, $payments):Collection
     {
         $ledger = collect();
         // Purchases = Debit
-        foreach ($purchases as $p) {
+        foreach ($purchases as $purchase) {
             $ledger->push([
-                'date' => $p->purchase_date,
-                'type' => 'purchase',
-                'ref' => $p->purchase_no,
-                'debit' => $p->total,
+                'date' => $purchase->purchase_date,
+                'type' => 'Purchase',
+                'reference' => $purchase->purchase_no,
+                'reference_id' => $purchase->id,
+                'debit' => $purchase->total,
                 'credit' => 0,
-                'notes' => $p->notes ?? '',
+                'description' => 'Purchase Invoice',
+                 'notes' => $pay->note ?? '',
             ]);
         }
-        // Payments = Credit
-        foreach ($payments as $pay) {
+         // Payments = Credit
+        foreach ($payments as $payment) {
             $ledger->push([
-                'date' => $pay->payment_date,
-                'type' => 'payment',
-                'ref' => $pay->reference ?? $pay->id,
+                'date' => $payment->payment_date,
+                'type' => 'Payment',
+                'reference' => $payment->reference_no,
+                'reference_id' => $payment->id,
                 'debit' => 0,
-                'credit' => $pay->amount,
-                'notes' => $pay->note ?? '',
+                'credit' => $payment->amount,
+                'description' => 'Supplier Payment',
+                 'notes' => $pay->note ?? '',
             ]);
         }
 
         return $ledger->sortBy('date')->values();
     }
+    
+    public function getLedgerWithBalance(int $supplierId, $from = null, $to = null): array
+    {
+        $data = $this->getAccount($supplierId,$from,$to );
 
+        $openingBalance = $data['supplier']->opening_balance ?? 0;
+
+        $balance = $openingBalance;
+
+        $ledger = collect();
+
+        // Opening row (Tally style)
+        $ledger->push([
+            'date' => null,
+            'type' => 'Opening',
+            'reference' => '-',
+            'reference_id' => '-1',
+            'description' => 'Opening Balance',
+            'debit' => 0,
+            'credit' => 0,
+            'balance' => $balance,
+        ]);
+
+        foreach ($data['ledger'] as $row) {
+
+            $balance += $row['debit'] - $row['credit'];
+
+            $ledger->push([
+                'date' => $row['date'],
+                'type' => $row['type'],
+                'reference' => $row['reference'],
+                'reference_id' => $row['reference_id'],
+                'description' => $row['description'],
+                'debit' => $row['debit'],
+                'credit' => $row['credit'],
+                'balance' => $balance,
+            ]);
+        }
+
+        return array_merge($data, [
+            'ledger' => $ledger,
+            'closing_balance' => $balance,
+            'opening_balance' => $openingBalance,
+        ]);
+    }
 
 
     /**
@@ -192,4 +244,5 @@ class SupplierAccountService
                 $status,
         ]);
     }
+
 }

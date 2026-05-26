@@ -18,10 +18,18 @@ class SupplierAccountController extends Controller
     /**
      * Supplier account statement
      */
-    public function show(Supplier $supplier)
+    public function show1(Supplier $supplier)
     {
         $account = $this->service->getAccount($supplier->id);
 
+        return view('supplier-account.account', $account);
+    }
+    
+    public function show(Supplier $supplier)
+    {
+        $from = request('from');
+        $to = request('to');
+        $account = $this->service->getLedgerWithBalance($supplier->id,$from, $to);
         return view('supplier-account.account', $account);
     }
 }

@@ -45,6 +45,7 @@ Route::middleware(['auth', 'role:owner|accountant'])->group(function () {
     Route::get('/suppliers/{supplier}/payments', [SupplierPaymentController::class, 'index'])->name('supplier-payments.index');
     Route::get('/suppliers/{supplier}/payments/create/{purchase?}', [SupplierPaymentController::class, 'create'])->name('supplier-payments.create');
     Route::post('/supplier', [SupplierPaymentController::class, 'store'])->name('supplier-payments.store');
+    Route::get('/supplier/payments/{supplierPayment}',[SupplierPaymentController::class, 'show'])->name('supplier-payments.show');
     Route::delete('/supplier/{payment}', [SupplierPaymentController::class, 'destroy'])->name('supplier-payments.destroy');
    // Route::get('/suppliers/create/{supplier}/{purchase?}',[SupplierPaymentController::class,'create'])->name('supplier-payments.create');
 });

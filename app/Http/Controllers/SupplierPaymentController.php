@@ -76,6 +76,11 @@ class SupplierPaymentController extends Controller
                ->with('success','Payment added successfully.' );
     }
 
+    public function show(SupplierPayment $supplierPayment)
+    {
+        return view('supplier-payments.show', compact('supplierPayment'));
+    }
+
     /**
      * Delete supplier payment
      */
