@@ -28,6 +28,7 @@
                     <th>Purchase Price</th>
                     <th>Selling Price</th>
                     <th>Stock</th>
+                    <th class="text-end">Actions</th>
                 </tr>
             </thead>
 
@@ -51,6 +52,13 @@
 
                     <td>
                         {{ $product->stock_quantity }}
+                    </td>
+
+                    <td class="text-end">
+                        <a href="{{ route('products.stock-ledger', $product) }}"
+                           class="btn btn-sm btn-outline-primary">
+                            Stock Ledger
+                        </a>
                     </td>
 
                 </tr>

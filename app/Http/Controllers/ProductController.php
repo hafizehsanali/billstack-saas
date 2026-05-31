@@ -25,6 +25,21 @@ class ProductController extends Controller
         return view('products.create', compact('categories'));
     }
 
+    public function stockLedger(Product $product)
+    {
+        $product->load('category');
+
+        $movements = $product->stockMovements()
+            ->latest('movement_date')
+            ->latest()
+            ->paginate(25);
+
+        return view('products.stock-ledger', compact(
+            'product',
+            'movements'
+        ));
+    }
+
     public function store(StoreProductRequest $request)
     {
         $data = $request->validated();

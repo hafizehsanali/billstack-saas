@@ -26,6 +26,10 @@ class StockMovement extends Model
         'notes',
     ];
 
+    protected $casts = [
+        'movement_date' => 'date',
+    ];
+
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
