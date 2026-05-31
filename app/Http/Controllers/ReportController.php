@@ -2,16 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\Product;
-use App\Models\Expense;
 
 class ReportController extends Controller
 {
     public function dailySales()
     {
-        $invoices = Invoice::where('status','completed')
-                     ->whereDate('created_at',today())->latest()->get();
+        $invoices = Invoice::whereIn('status', ['paid', 'partial'])
+            ->whereDate('sale_date', today())
+            ->latest()
+            ->get();
 
         $totalSales = $invoices->sum('total');
 
@@ -23,10 +25,11 @@ class ReportController extends Controller
 
     public function monthlySales()
     {
-        $invoices = Invoice::where('status','completed')
-            ->whereMonth('created_at', now()->month )
-            ->whereYear('created_at',now()->year)
-            ->latest()->get();
+        $invoices = Invoice::whereIn('status', ['paid', 'partial'])
+            ->whereMonth('sale_date', now()->month)
+            ->whereYear('sale_date', now()->year)
+            ->latest()
+            ->get();
 
         $totalSales = $invoices->sum('total');
 
@@ -59,26 +62,27 @@ class ReportController extends Controller
             compact('products')
         );
     }
+
     public function profitLoss()
     {
         $tenantId = auth()->user()->tenant_id;
 
         // Paid + partial invoices only
         $sales = Invoice::where(
-                'tenant_id',
-                $tenantId
-            )
+            'tenant_id',
+            $tenantId
+        )
             ->whereIn('status', [
-                'paid',
-                'partial'
-            ])
+            'paid',
+            'partial',
+        ])
             ->sum('total');
 
         // Total expenses
         $expenses = Expense::where(
-                'tenant_id',
-                $tenantId
-            )
+            'tenant_id',
+            $tenantId
+        )
             ->sum('amount');
 
         // Net profit
@@ -86,23 +90,23 @@ class ReportController extends Controller
 
         // Monthly analytics
         $monthlySales = Invoice::where(
-                'tenant_id',
-                $tenantId
-            )
+            'tenant_id',
+            $tenantId
+        )
             ->whereMonth(
                 'created_at',
                 now()->month
             )
             ->whereIn('status', [
                 'paid',
-                'partial'
+                'partial',
             ])
             ->sum('total');
 
         $monthlyExpenses = Expense::where(
-                'tenant_id',
-                $tenantId
-            )
+            'tenant_id',
+            $tenantId
+        )
             ->whereMonth(
                 'expense_date',
                 now()->month

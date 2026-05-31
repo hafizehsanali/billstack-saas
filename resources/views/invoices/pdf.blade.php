@@ -35,7 +35,7 @@
     <h2>BillStack Invoice</h2>
 
     <p>
-        Invoice #: {{ $invoice->invoice_number }} <br>
+        Invoice #: {{ $invoice->invoice_no }} <br>
         Date: {{ $invoice->created_at->format('d M Y') }}
     </p>
 

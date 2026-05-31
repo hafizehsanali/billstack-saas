@@ -11,6 +11,7 @@ class CustomerAccountService
     public function getLedger(Customer $customer): array
     {
         $invoices = Invoice::where('customer_id', $customer->id)
+            ->where('status', '!=', 'cancelled')
             ->latest('sale_date')
             ->get();
 
@@ -26,7 +27,7 @@ class CustomerAccountService
                 'date' => $invoice->sale_date,
                 'type' => 'invoice',
                 'reference' => $invoice->invoice_no,
-                'debit' => $invoice->total_amount,
+                'debit' => $invoice->total,
                 'credit' => 0,
                 'model' => $invoice,
             ]);
@@ -61,17 +62,15 @@ class CustomerAccountService
         return [
             'ledger' => $ledger,
 
-            'totalSales' => $invoices->sum('total_amount'),
+            'totalSales' => $invoices->sum('total'),
 
             'totalReceived' => $payments->sum('amount'),
 
-            'receivable' =>
-                $invoices->sum('remaining_amount'),
+            'receivable' => $invoices->sum('remaining_amount'),
 
-            'advance' =>
-                $payments->sum('amount') >
-                $invoices->sum('total_amount')
-                    ? $payments->sum('amount') - $invoices->sum('total_amount')
+            'advance' => $payments->sum('amount') >
+                $invoices->sum('total')
+                    ? $payments->sum('amount') - $invoices->sum('total')
                     : 0,
         ];
     }

@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Invoice;
 use App\Models\CustomerPayment;
+use App\Models\Invoice;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class PaymentController extends Controller
@@ -15,56 +16,74 @@ class PaymentController extends Controller
             'amount' => [
                 'required',
                 'numeric',
-                'min:1'
+                'min:1',
             ],
 
-            'method' => [
-                'required'
+            'payment_method' => [
+                'required',
+                'string',
+                'max:50',
+            ],
+
+            'payment_date' => [
+                'nullable',
+                'date',
+            ],
+
+            'reference_no' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+
+            'notes' => [
+                'nullable',
+                'string',
             ],
 
         ]);
-        if ($invoice->status === 'cancelled')
-        {
-            return back()->with( 'error','Cannot record payment against a cancelled invoice.');
+        if ($invoice->status === 'cancelled') {
+            return back()->with('error', 'Cannot record payment against a cancelled invoice.');
         }
-        // Prevent overpayment
         $paidAmount = $invoice->payments()->sum('amount');
         $remaining = $invoice->total - $paidAmount;
-        if ($request->amount > $remaining)
-        {
+        if ($request->amount > $remaining) {
 
             return back()->withErrors([
-                'amount' => 'Payment exceeds remaining balance.'
+                'amount' => 'Payment exceeds remaining balance.',
             ]);
         }
 
-        // Save payment
         CustomerPayment::create([
 
             'tenant_id' => auth()->user()->tenant_id,
             'customer_id' => $invoice->customer_id,
             'invoice_id' => $invoice->id,
             'amount' => $request->amount,
-            'payment_date'=> $request->payment_date,
+            'payment_date' => $request->payment_date
+                ? Carbon::parse($request->payment_date)->toDateString()
+                : now()->toDateString(),
             'reference_no' => $request->reference_no,
-            'payment_method' => $request->method,
+            'payment_method' => $request->payment_method,
             'notes' => $request->notes,
         ]);
 
-        // Calculate updated total paid
         $newPaidAmount = $invoice->payments()->sum('amount');
 
-        // Auto update status
         if ($newPaidAmount >= $invoice->total) {
 
             $invoice->update([
-                'status' => 'paid'
+                'paid_amount' => $newPaidAmount,
+                'remaining_amount' => 0,
+                'status' => 'paid',
             ]);
 
         } else {
 
             $invoice->update([
-                'status' => 'partial'
+                'paid_amount' => $newPaidAmount,
+                'remaining_amount' => $invoice->total - $newPaidAmount,
+                'status' => 'partial',
             ]);
         }
 

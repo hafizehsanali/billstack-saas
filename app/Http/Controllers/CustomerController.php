@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Customer;
-use Illuminate\Http\Request;
 use App\Http\Requests\StoreCustomerRequest;
+use App\Models\Customer;
+use Carbon\Carbon;
 
 class CustomerController extends Controller
 {
     public function index()
     {
         $customers = Customer::where('tenant_id', auth()->user()->tenant_id)
-                    ->withCount('invoices')
-                    ->latest()
-                    ->paginate(10);
+            ->withCount('invoices')
+            ->latest()
+            ->paginate(10);
 
         return view('customers.index', compact('customers'));
     }
@@ -25,7 +25,7 @@ class CustomerController extends Controller
 
     public function store(StoreCustomerRequest $request)
     {
-       
+
         $data = $request->validated();
         Customer::create([
             'tenant_id' => auth()->user()->tenant_id,
@@ -35,10 +35,12 @@ class CustomerController extends Controller
             'address' => $data['address'] ?? null,
             'opening_balance' => $data['opening_balance'] ?? 0,
         ]);
+
         return redirect()
-        ->route('customers.index')
-        ->with('success', 'Customer created successfully.');
+            ->route('customers.index')
+            ->with('success', 'Customer created successfully.');
     }
+
     public function statement(Customer $customer)
     {
         abort_if(
@@ -48,15 +50,16 @@ class CustomerController extends Controller
 
         // Date filters
         $startDate = request('start_date')
-            ? \Carbon\Carbon::parse(request('start_date'))->startOfDay()
+            ? Carbon::parse(request('start_date'))->startOfDay()
             : null;
 
         $endDate = request('end_date')
-            ? \Carbon\Carbon::parse(request('end_date'))->endOfDay()
+            ? Carbon::parse(request('end_date'))->endOfDay()
             : null;
 
         // Customer invoices
         $invoices = $customer->invoices()
+            ->where('status', '!=', 'cancelled')
             ->when($startDate, fn ($q) => $q->where('created_at', '>=', $startDate))
             ->when($endDate, fn ($q) => $q->where('created_at', '<=', $endDate))
             ->get()
@@ -64,7 +67,7 @@ class CustomerController extends Controller
                 return [
                     'date' => $invoice->created_at,
                     'type' => 'Invoice',
-                    'reference' => $invoice->invoice_number,
+                    'reference' => $invoice->invoice_no,
                     'debit' => $invoice->total,
                     'credit' => 0,
                 ];
@@ -72,14 +75,14 @@ class CustomerController extends Controller
 
         // Customer payments
         $payments = $customer->payments()
-            ->when($startDate, fn ($q) => $q->where('payments.created_at', '>=', $startDate))
-            ->when($endDate, fn ($q) => $q->where('payments.created_at', '<=', $endDate))
+            ->when($startDate, fn ($q) => $q->where('customer_payments.created_at', '>=', $startDate))
+            ->when($endDate, fn ($q) => $q->where('customer_payments.created_at', '<=', $endDate))
             ->get()
             ->map(function ($payment) {
                 return [
                     'date' => $payment->created_at,
                     'type' => 'Payment',
-                    'reference' => $payment->reference_no ?? 'PAY-' . $payment->id,
+                    'reference' => $payment->reference_no ?? 'PAY-'.$payment->id,
                     'debit' => 0,
                     'credit' => $payment->amount,
                 ];

@@ -1,69 +1,67 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CustomerAccountController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\ReportController;
-use App\Http\Controllers\ExpenseController;
-use App\Http\Controllers\SupplierController;
-use App\Http\Controllers\SupplierAccountController;
-use App\Http\Controllers\SupplierPaymentController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SupplierAccountController;
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\SupplierPaymentController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->middleware(['auth'])->name('dashboard');
-
 Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::get('invoices/{invoice}/pdf', [\App\Http\Controllers\InvoiceController::class, 'pdf'])->name('invoices.pdf');
-    Route::post('invoices/{invoice}/cancel', [\App\Http\Controllers\InvoiceController::class, 'cancel'])->name('invoices.cancel');
+
+    Route::resource('categories', CategoryController::class)->only(['index', 'create', 'store']);
+    Route::resource('products', ProductController::class)->only(['index', 'create', 'store']);
+    Route::resource('customers', CustomerController::class)->only(['index', 'create', 'store']);
+    Route::get('/customers/{customer}/statement', [CustomerController::class, 'statement'])->name('customers.statement');
+    Route::get('/customers/{customer}/account', [CustomerAccountController::class, 'show'])->name('customer.account');
+
+    Route::resource('invoices', InvoiceController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
+    Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');
+    Route::patch('/invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])->name('invoices.cancel');
+    Route::post('/invoices/{invoice}/payments', [PaymentController::class, 'store'])->name('payments.store');
 });
-Route::resource('categories', \App\Http\Controllers\CategoryController::class);
-Route::resource('products', \App\Http\Controllers\ProductController::class);
-Route::resource('customers', \App\Http\Controllers\CustomerController::class);
-Route::get('/customers/{customer}/statement',[\App\Http\Controllers\CustomerController::class, 'statement'])->name('customers.statement');
-
-Route::get('/customers/{customer}/account',[CustomerAccountController::class, 'show'])->name('customer.account');
-Route::get('/customers/{customer}/payments/create/{invoice?}',[CustomerPaymentController::class, 'create'])->name('customer-payments.create');
-
-Route::resource('invoices', InvoiceController::class);
-Route::patch('/invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])->name('invoices.cancel');
-Route::post( '/invoices/{invoice}/payments',[PaymentController::class, 'store'])->name('payments.store');
-
-Route::resource('expenses', ExpenseController::class)->middleware(['auth','role:owner|accountant']);
-
 
 Route::middleware(['auth', 'role:owner|accountant'])->group(function () {
+    Route::resource('expenses', ExpenseController::class)->except(['show']);
+
     Route::resource('suppliers', SupplierController::class);
-    //Route::get('/suppliers/{supplier}/account',[SupplierController::class, 'show'])->name('suppliers.account');
     Route::get('/suppliers/{supplier}/account', [SupplierAccountController::class, 'show'])->name('supplier.account');
-    
+
     Route::get('/suppliers/{supplier}/payments', [SupplierPaymentController::class, 'index'])->name('supplier-payments.index');
     Route::get('/suppliers/{supplier}/payments/create/{purchase?}', [SupplierPaymentController::class, 'create'])->name('supplier-payments.create');
     Route::post('/supplier', [SupplierPaymentController::class, 'store'])->name('supplier-payments.store');
-    Route::get('/supplier/payments/{supplierPayment}',[SupplierPaymentController::class, 'show'])->name('supplier-payments.show');
+    Route::get('/supplier/payments/{supplierPayment}', [SupplierPaymentController::class, 'show'])->name('supplier-payments.show');
     Route::delete('/supplier/{payment}', [SupplierPaymentController::class, 'destroy'])->name('supplier-payments.destroy');
-   // Route::get('/suppliers/create/{supplier}/{purchase?}',[SupplierPaymentController::class,'create'])->name('supplier-payments.create');
+
+    Route::resource('purchases', PurchaseController::class)->except(['destroy']);
+    Route::post('/purchases/{purchase}/cancel', [PurchaseController::class, 'cancel'])->name('purchases.cancel');
+    Route::get('/purchases/{purchase}/print', [PurchaseController::class, 'print'])->name('purchases.print');
+
+    Route::prefix('reports')->group(function () {
+        Route::get('/daily-sales', [ReportController::class, 'dailySales'])->name('reports.daily-sales');
+        Route::get('/monthly-sales', [ReportController::class, 'monthlySales'])->name('reports.monthly-sales');
+        Route::get('/stock', [ReportController::class, 'stock'])->name('reports.stock');
+        Route::get('/low-stock', [ReportController::class, 'lowStock'])->name('reports.low-stock');
+        Route::get('/profit-loss', [ReportController::class, 'profitLoss'])->name('reports.profit-loss');
+    });
 });
 
-Route::resource('purchases', PurchaseController::class)->middleware(['auth', 'role:owner|accountant']);
-Route::post('/purchases/{purchase}/cancel',[PurchaseController::class, 'cancel'])->name('purchases.cancel');
-//Route::get('/purchases/{purchase}',[PurchaseController::class, 'show'])->name('purchases.show');
-Route::get('/purchases/{purchase}/print',[PurchaseController::class, 'print'])->name('purchases.print');
-//Route::post('/purchases/{purchase}/payments',[PurchasePaymentController::class, 'store'])->name('purchases.payments.store');
-
-Route::prefix('reports')->middleware(['auth', 'role:owner|accountant'])->group(function () {
-    Route::get('/daily-sales',[ReportController::class, 'dailySales'])->name('reports.daily-sales');
-    Route::get('/monthly-sales',[ReportController::class, 'monthlySales'])->name('reports.monthly-sales');
-    Route::get('/stock',[ReportController::class, 'stock'])->name('reports.stock');
-    Route::get('/low-stock',[ReportController::class, 'lowStock'])->name('reports.low-stock');
-    Route::get('/profit-loss',[ReportController::class, 'profitLoss'])->name('reports.profit-loss');
-});
-Route::get('/reports/profit-loss',[ReportController::class, 'profitLoss'])->middleware(['auth','role:owner|accountant'])->name('reports.profit-loss');
 require __DIR__.'/auth.php';

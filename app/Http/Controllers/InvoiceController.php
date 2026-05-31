@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
-use App\Models\Invoice;
-use App\Models\Customer;
-use App\Models\InvoiceItem;
-use App\Models\CustomerPayment;
-use Carbon\Carbon;
-use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Requests\StoreInvoiceRequest;
+use App\Models\Customer;
+use App\Models\CustomerPayment;
+use App\Models\Invoice;
+use App\Models\InvoiceItem;
+use App\Models\Product;
+use App\Services\StockLedgerService;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class InvoiceController extends Controller
 {
@@ -35,12 +37,12 @@ class InvoiceController extends Controller
         ));
     }
 
-    
     public function store(StoreInvoiceRequest $request)
     {
         $data = $request->validated();
 
         DB::transaction(function () use ($data) {
+            $stockLedger = app(StockLedgerService::class);
 
             $subtotal = 0;
             $requestedQuantities = [];
@@ -65,8 +67,8 @@ class InvoiceController extends Controller
                 $product = $products[$productId];
 
                 if ($quantity > $product->stock_quantity) {
-                    throw \Illuminate\Validation\ValidationException::withMessages([
-                        'stock' => $product->name . ' does not have enough stock.',
+                    throw ValidationException::withMessages([
+                        'stock' => $product->name.' does not have enough stock.',
                     ]);
                 }
             }
@@ -78,7 +80,7 @@ class InvoiceController extends Controller
             $total = max(($subtotal + $tax + $extraExpense) - $discount, 0);
 
             if ($paidAmount > $total) {
-                throw \Illuminate\Validation\ValidationException::withMessages([
+                throw ValidationException::withMessages([
                     'paid_amount' => 'Paid amount cannot be greater than invoice total.',
                 ]);
             }
@@ -114,7 +116,7 @@ class InvoiceController extends Controller
                 $price = (float) $item['price'];
                 $lineTotal = $quantity * $price;
 
-                InvoiceItem::create([
+                $invoiceItem = InvoiceItem::create([
                     'invoice_id' => $invoice->id,
                     'product_id' => $product->id,
                     'quantity' => $quantity,
@@ -123,6 +125,18 @@ class InvoiceController extends Controller
                 ]);
 
                 $product->decrement('stock_quantity', $quantity);
+                $product->refresh();
+
+                $stockLedger->record($product, 'sale', $quantity, [
+                    'direction' => 'out',
+                    'unit_cost' => $product->purchase_price,
+                    'unit_price' => $price,
+                    'stock_after' => $product->stock_quantity,
+                    'source_type' => InvoiceItem::class,
+                    'source_id' => $invoiceItem->id,
+                    'reference_no' => $invoice->invoice_no,
+                    'movement_date' => $invoice->sale_date,
+                ]);
             }
 
             if ($paidAmount > 0) {
@@ -148,55 +162,30 @@ class InvoiceController extends Controller
                 'Invoice created successfully.'
             );
     }
+
     public function show(Invoice $invoice)
     {
         $invoice->load([
             'customer',
             'items.product',
-            'payments'
+            'payments',
         ]);
 
         return view('invoices.show', compact('invoice'));
     }
+
     public function destroy(Invoice $invoice)
     {
-            foreach ($invoice->items as $item) {
-
-                if ($item->product) {
-
-                    $item->product->increment(
-                        'stock_quantity',
-                        $item->quantity
-                    );
-                }
-            }
-
+        if ($invoice->status === 'cancelled') {
             $invoice->delete();
 
             return redirect()
                 ->route('invoices.index')
                 ->with('success', 'Invoice deleted.');
-    }
-
-    // public function cancel(Invoice $invoice)
-    // {
-    //     $invoice->update([
-    //         'status' => 'cancelled'
-    //     ]);
-
-    //     return back()->with('success', 'Invoice cancelled.');
-    // }
-    public function cancel(Invoice $invoice)
-    {
-        // Prevent double cancellation
-        if ($invoice->status === 'cancelled') {
-
-            return back()->withErrors([
-                'invoice' => 'Invoice already cancelled.'
-            ]);
         }
 
-        // Restore stock
+        $stockLedger = app(StockLedgerService::class);
+
         foreach ($invoice->items as $item) {
 
             if ($item->product) {
@@ -205,12 +194,68 @@ class InvoiceController extends Controller
                     'stock_quantity',
                     $item->quantity
                 );
+
+                $item->product->refresh();
+
+                $stockLedger->record($item->product, 'sale_cancel', $item->quantity, [
+                    'direction' => 'in',
+                    'unit_cost' => $item->product->purchase_price,
+                    'unit_price' => $item->price,
+                    'stock_after' => $item->product->stock_quantity,
+                    'source_type' => InvoiceItem::class,
+                    'source_id' => $item->id,
+                    'reference_no' => $invoice->invoice_no,
+                    'movement_date' => now()->toDateString(),
+                    'notes' => 'Invoice deleted.',
+                ]);
             }
         }
 
-        // Update status
+        $invoice->delete();
+
+        return redirect()
+            ->route('invoices.index')
+            ->with('success', 'Invoice deleted.');
+    }
+
+    public function cancel(Invoice $invoice)
+    {
+        if ($invoice->status === 'cancelled') {
+
+            return back()->withErrors([
+                'invoice' => 'Invoice already cancelled.',
+            ]);
+        }
+
+        $stockLedger = app(StockLedgerService::class);
+
+        foreach ($invoice->items as $item) {
+
+            if ($item->product) {
+
+                $item->product->increment(
+                    'stock_quantity',
+                    $item->quantity
+                );
+
+                $item->product->refresh();
+
+                $stockLedger->record($item->product, 'sale_cancel', $item->quantity, [
+                    'direction' => 'in',
+                    'unit_cost' => $item->product->purchase_price,
+                    'unit_price' => $item->price,
+                    'stock_after' => $item->product->stock_quantity,
+                    'source_type' => InvoiceItem::class,
+                    'source_id' => $item->id,
+                    'reference_no' => $invoice->invoice_no,
+                    'movement_date' => now()->toDateString(),
+                    'notes' => 'Invoice cancelled.',
+                ]);
+            }
+        }
+
         $invoice->update([
-            'status' => 'cancelled'
+            'status' => 'cancelled',
         ]);
 
         return redirect()
@@ -229,7 +274,7 @@ class InvoiceController extends Controller
         }
         $invoice->load([
             'customer',
-            'items.product'
+            'items.product',
         ]);
 
         $pdf = Pdf::loadView(
@@ -238,7 +283,7 @@ class InvoiceController extends Controller
         );
 
         return $pdf->download(
-            $invoice->invoice_no . '.pdf'
+            $invoice->invoice_no.'.pdf'
         );
     }
 }

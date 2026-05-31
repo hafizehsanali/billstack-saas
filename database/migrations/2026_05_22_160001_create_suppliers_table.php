@@ -9,28 +9,28 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-   public function up(): void
-{
-    Schema::create('suppliers', function (Blueprint $table) {
+    public function up(): void
+    {
+        Schema::create('suppliers', function (Blueprint $table) {
 
-        $table->id();
+            $table->id();
 
-        $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
 
-        $table->string('name');
+            $table->string('name');
 
-        $table->string('phone')->nullable();
+            $table->string('phone')->nullable();
 
-        $table->string('email')->nullable();
+            $table->string('email')->nullable();
 
-        $table->text('address')->nullable();
-        $table->text('opening_balance')->nullable();
-        
-        $table->softDeletes();
-        $table->timestamps();
+            $table->text('address')->nullable();
+            $table->decimal('opening_balance', 12, 2)->default(0);
 
-    });
-}
+            $table->softDeletes();
+            $table->timestamps();
+
+        });
+    }
 
     /**
      * Reverse the migrations.

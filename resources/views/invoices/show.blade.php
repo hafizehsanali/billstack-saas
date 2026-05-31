@@ -252,7 +252,7 @@
                     {{-- Payment Method --}}
                     <div class="col-md-3">
                         <label class="form-label mb-1">Method</label>
-                        <select name="method" class="form-select" required>
+                        <select name="payment_method" class="form-select" required>
                             <option value="cash">Cash</option>
                             <option value="bank">Bank</option>
                             <option value="card">Card</option>
@@ -285,7 +285,7 @@
                     <div class="col-md-6 mt-2">
                         <label class="form-label mb-1">Note</label>
                         <input type="text"
-                            name="note"
+                            name="notes"
                             class="form-control"
                             placeholder="Optional note">
                     </div>

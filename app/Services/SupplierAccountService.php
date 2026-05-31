@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\Supplier;
 use App\Models\Purchase;
+use App\Models\Supplier;
 use App\Models\SupplierPayment;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -11,19 +11,19 @@ use Illuminate\Support\Facades\DB;
 class SupplierAccountService
 {
     // Complete supplier account summary
-    public function getAccount(int $supplierId,$from,$to): array
+    public function getAccount(int $supplierId, $from, $to): array
     {
         $supplier = Supplier::findOrFail($supplierId);
-       
+
         $purchases = Purchase::where('supplier_id', $supplierId)
-            ->when($from, fn($q) => $q->whereDate('purchase_date', '>=', $from))
-            ->when($to, fn($q) => $q->whereDate('purchase_date', '<=', $to))
+            ->when($from, fn ($q) => $q->whereDate('purchase_date', '>=', $from))
+            ->when($to, fn ($q) => $q->whereDate('purchase_date', '<=', $to))
             ->latest()
             ->get();
 
         $payments = SupplierPayment::where('supplier_id', $supplierId)
-            ->when($from, fn($q) => $q->whereDate('payment_date', '>=', $from))
-            ->when($to, fn($q) => $q->whereDate('payment_date', '<=', $to))
+            ->when($from, fn ($q) => $q->whereDate('payment_date', '>=', $from))
+            ->when($to, fn ($q) => $q->whereDate('payment_date', '<=', $to))
             ->latest()
             ->get();
 
@@ -44,8 +44,7 @@ class SupplierAccountService
         ];
     }
 
-   
-    protected function buildLedger($purchases, $payments):Collection
+    protected function buildLedger($purchases, $payments): Collection
     {
         $ledger = collect();
         // Purchases = Debit
@@ -58,10 +57,10 @@ class SupplierAccountService
                 'debit' => $purchase->total,
                 'credit' => 0,
                 'description' => 'Purchase Invoice',
-                 'notes' => $pay->note ?? '',
+                'notes' => $purchase->notes ?? '',
             ]);
         }
-         // Payments = Credit
+        // Payments = Credit
         foreach ($payments as $payment) {
             $ledger->push([
                 'date' => $payment->payment_date,
@@ -71,16 +70,16 @@ class SupplierAccountService
                 'debit' => 0,
                 'credit' => $payment->amount,
                 'description' => 'Supplier Payment',
-                 'notes' => $pay->note ?? '',
+                'notes' => $payment->notes ?? '',
             ]);
         }
 
         return $ledger->sortBy('date')->values();
     }
-    
+
     public function getLedgerWithBalance(int $supplierId, $from = null, $to = null): array
     {
-        $data = $this->getAccount($supplierId,$from,$to );
+        $data = $this->getAccount($supplierId, $from, $to);
 
         $openingBalance = $data['supplier']->opening_balance ?? 0;
 
@@ -123,44 +122,41 @@ class SupplierAccountService
         ]);
     }
 
-
     /**
      * Store payment
      */
-    public function storePayment(array $validated): SupplierPayment 
+    public function storePayment(array $validated): SupplierPayment
     {
         return DB::transaction(
-            function () use ($validated) 
-            {
-                $payment =  SupplierPayment::create([
-                        'tenant_id' => $validated['tenant_id'],
-                        'supplier_id' => $validated['supplier_id'],
-                        'purchase_id' => $validated['purchase_id'] ?? null,
-                        'amount' => $validated['amount'],
-                        'payment_method' => $validated['payment_method'] ?? null,
-                        'payment_date' => $validated['payment_date'] ?? null,
-                        'reference_no' =>  $validated['reference_no'] ?? null,
-                        'notes' =>  $validated['notes'] ?? null,
-                    ]);
+            function () use ($validated) {
+                $payment = SupplierPayment::create([
+                    'tenant_id' => $validated['tenant_id'],
+                    'supplier_id' => $validated['supplier_id'],
+                    'purchase_id' => $validated['purchase_id'] ?? null,
+                    'amount' => $validated['amount'],
+                    'payment_method' => $validated['payment_method'] ?? null,
+                    'payment_date' => $validated['payment_date'] ?? null,
+                    'reference_no' => $validated['reference_no'] ?? null,
+                    'notes' => $validated['notes'] ?? null,
+                ]);
                 // Refresh Purchase
-                if (!empty($validated['purchase_id'])) 
-                {
+                if (! empty($validated['purchase_id'])) {
                     $this->refreshPurchasePaymentStatus($validated['purchase_id']);
                 }
+
                 return $payment;
             }
         );
     }
+
     // Delete payment
-    public function deletePayment(SupplierPayment $payment): void 
+    public function deletePayment(SupplierPayment $payment): void
     {
-        DB::transaction(function () use ($payment) 
-        {
-            $purchaseId =  $payment->purchase_id;
+        DB::transaction(function () use ($payment) {
+            $purchaseId = $payment->purchase_id;
             $payment->delete();
             // Refresh Purchase
-            if ($purchaseId) 
-            {
+            if ($purchaseId) {
                 $this->refreshPurchasePaymentStatus($purchaseId);
             }
         });
@@ -171,13 +167,13 @@ class SupplierAccountService
      */
     public function refreshPurchasePaymentStatus(
         int $purchaseId
-     ): void {
+    ): void {
 
         $purchase = Purchase::find(
             $purchaseId
         );
 
-        if (!$purchase) {
+        if (! $purchase) {
             return;
         }
 
@@ -234,15 +230,11 @@ class SupplierAccountService
 
         $purchase->update([
 
-            'paid_amount' =>
-                $paidAmount,
+            'paid_amount' => $paidAmount,
 
-            'remaining_amount' =>
-                $remainingAmount,
+            'remaining_amount' => $remainingAmount,
 
-            'status' =>
-                $status,
+            'status' => $status,
         ]);
     }
-
 }

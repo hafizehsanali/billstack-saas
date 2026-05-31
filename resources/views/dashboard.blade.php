@@ -392,7 +392,7 @@
                             <tr>
 
                                 <td>
-                                    {{ $invoice->invoice_number }}
+                                    {{ $invoice->invoice_no }}
                                 </td>
 
                                 <td>

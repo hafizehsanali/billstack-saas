@@ -12,6 +12,7 @@ class PurchaseService
     public function store(array $data): Purchase
     {
         return DB::transaction(function () use ($data) {
+            $stockLedger = app(StockLedgerService::class);
 
             $subtotal = $data['subtotal'];
 
@@ -25,7 +26,6 @@ class PurchaseService
 
             $remainingAmount = $total - $paidAmount;
 
-            // Purchase status
             $status = 'unpaid';
 
             if ($remainingAmount <= 0) {
@@ -34,7 +34,6 @@ class PurchaseService
                 $status = 'partial';
             }
 
-            // Create purchase
             $purchase = Purchase::create([
                 'tenant_id' => auth()->user()->tenant_id,
 
@@ -63,12 +62,11 @@ class PurchaseService
                 'created_by' => auth()->id(),
             ]);
 
-            // Save items + inventory update
             foreach ($data['products'] as $item) {
 
                 $lineTotal = ($item['quantity'] * $item['purchase_price']);
 
-                $purchase->items()->create([
+                $purchaseItem = $purchase->items()->create([
                     'product_id' => $item['product_id'],
 
                     'quantity' => $item['quantity'],
@@ -78,18 +76,28 @@ class PurchaseService
                     'line_total' => $lineTotal,
                 ]);
 
-                $this->updateInventory(
+                $product = $this->updateInventory(
                     $item['product_id'],
                     $item['quantity'],
                     $item['purchase_price']
                 );
+
+                $stockLedger->record($product, 'purchase', $item['quantity'], [
+                    'direction' => 'in',
+                    'unit_cost' => $item['purchase_price'],
+                    'stock_after' => $product->stock_quantity,
+                    'source_type' => PurchaseItem::class,
+                    'source_id' => $purchaseItem->id,
+                    'reference_no' => $purchase->purchase_no,
+                    'movement_date' => $purchase->purchase_date,
+                ]);
             }
 
             return $purchase;
         });
     }
 
-    private function updateInventory(int $productId,int $newQuantity,float $newPrice): void 
+    private function updateInventory(int $productId, int $newQuantity, float $newPrice): Product
     {
 
         $product = Product::findOrFail($productId);
@@ -98,10 +106,9 @@ class PurchaseService
 
         $oldAveragePrice = $product->purchase_price;
 
-        // New stock
         $newStock = $oldStock + $newQuantity;
 
-        // Weighted average
+        // Keep purchase cost aligned with the blended value of existing and new stock.
         $newAveragePrice = (
             ($oldStock * $oldAveragePrice)
             +
@@ -116,34 +123,32 @@ class PurchaseService
                 2
             ),
         ]);
+
+        return $product->refresh();
     }
 
-    public function update( Purchase $purchase,array $data): void 
+    public function update(Purchase $purchase, array $data): void
     {
 
-        DB::transaction(function () use ($purchase,$data) 
-        {
-            // STEP 1:
-            foreach ($purchase->items as $oldItem) 
-            {
-                 $this->reverseInventory($oldItem->product_id,$oldItem->quantity);
+        DB::transaction(function () use ($purchase, $data) {
+            $stockLedger = app(StockLedgerService::class);
+
+            foreach ($purchase->items as $oldItem) {
+                $product = $this->reverseInventory($oldItem->product_id, $oldItem->quantity);
+
+                $stockLedger->record($product, 'purchase_reversal', $oldItem->quantity, [
+                    'direction' => 'out',
+                    'unit_cost' => $oldItem->purchase_price,
+                    'stock_after' => $product->stock_quantity,
+                    'source_type' => PurchaseItem::class,
+                    'source_id' => $oldItem->id,
+                    'reference_no' => $purchase->purchase_no,
+                    'movement_date' => now()->toDateString(),
+                    'notes' => 'Purchase updated: old item reversed.',
+                ]);
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | STEP 2:
-            | DELETE OLD ITEMS
-            |--------------------------------------------------------------------------
-            */
-
             $purchase->items()->delete();
-
-            /*
-            |--------------------------------------------------------------------------
-            | STEP 3:
-            | UPDATE PURCHASE
-            |--------------------------------------------------------------------------
-            */
 
             $purchase->update([
 
@@ -168,20 +173,13 @@ class PurchaseService
                 'notes' => $data['notes'] ?? null,
             ]);
 
-            /*
-            |--------------------------------------------------------------------------
-            | STEP 4:
-            | ADD NEW ITEMS + STOCK
-            |--------------------------------------------------------------------------
-            */
-
             foreach ($data['products'] as $item) {
 
                 $lineTotal =
                     $item['quantity']
                     * $item['purchase_price'];
 
-                PurchaseItem::create([
+                $purchaseItem = PurchaseItem::create([
 
                     'purchase_id' => $purchase->id,
 
@@ -193,39 +191,36 @@ class PurchaseService
 
                     'line_total' => $lineTotal,
                 ]);
-                
-                $this->updateInventory($item['product_id'], $item['quantity'],$item['purchase_price']);
-                // $product = Product::find($item['product_id']);
-                // if ($product) 
-                // {   
-                //     // WEIGHTED AVERAGE COST
-                //     $oldStock = $product->stock_quantity;
-                //     $oldCost = $product->purchase_price;
-                //     $newQty = $item['quantity'];
-                //     $newCost = $item['purchase_price'];
-                //     $totalOldValue = $oldStock * $oldCost;
-                //     $totalNewValue = $newQty * $newCost;
-                //     $finalQty = $oldStock + $newQty;
-                //     $averageCost =$finalQty > 0 ? (($totalOldValue + $totalNewValue) / $finalQty) : $newCost;
-                //     $product->update([
-                //         'purchase_price' => round($averageCost, 2),
-                //         'stock_quantity' => $finalQty,
-                //     ]);
-                // }
+
+                $product = $this->updateInventory($item['product_id'], $item['quantity'], $item['purchase_price']);
+
+                $stockLedger->record($product, 'purchase', $item['quantity'], [
+                    'direction' => 'in',
+                    'unit_cost' => $item['purchase_price'],
+                    'stock_after' => $product->stock_quantity,
+                    'source_type' => PurchaseItem::class,
+                    'source_id' => $purchaseItem->id,
+                    'reference_no' => $purchase->purchase_no,
+                    'movement_date' => $purchase->purchase_date,
+                    'notes' => 'Purchase updated: new item added.',
+                ]);
             }
         });
     }
-     
-    private function reverseInventory(int $productId,int $quantity): void 
+
+    private function reverseInventory(int $productId, int $quantity): Product
     {
         $product = Product::findOrFail($productId);
-        $product->decrement('stock_quantity',$quantity);
+        $product->decrement('stock_quantity', $quantity);
+
+        return $product->refresh();
     }
 
-    public function cancel(Purchase $purchase): void 
+    public function cancel(Purchase $purchase): void
     {
 
         DB::transaction(function () use ($purchase) {
+            $stockLedger = app(StockLedgerService::class);
 
             if ($purchase->status === 'cancelled') {
 
@@ -240,15 +235,9 @@ class PurchaseService
                     $item->product_id
                 );
 
-                if (!$product) {
+                if (! $product) {
                     continue;
                 }
-
-                /*
-                |--------------------------------------------------------------------------
-                | SAFETY CHECK
-                |--------------------------------------------------------------------------
-                */
 
                 if (
                     $product->stock_quantity
@@ -260,23 +249,24 @@ class PurchaseService
                     );
                 }
 
-                /*
-                |--------------------------------------------------------------------------
-                | REVERSE STOCK
-                |--------------------------------------------------------------------------
-                */
-
                 $product->decrement(
                     'stock_quantity',
                     $item->quantity
                 );
-            }
 
-            /*
-            |--------------------------------------------------------------------------
-            | UPDATE STATUS
-            |--------------------------------------------------------------------------
-            */
+                $product->refresh();
+
+                $stockLedger->record($product, 'purchase_cancel', $item->quantity, [
+                    'direction' => 'out',
+                    'unit_cost' => $item->purchase_price,
+                    'stock_after' => $product->stock_quantity,
+                    'source_type' => PurchaseItem::class,
+                    'source_id' => $item->id,
+                    'reference_no' => $purchase->purchase_no,
+                    'movement_date' => now()->toDateString(),
+                    'notes' => 'Purchase cancelled.',
+                ]);
+            }
 
             $purchase->update([
 
