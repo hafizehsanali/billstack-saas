@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('supplier_payments', function (Blueprint $table) {
+        Schema::create('customer_payments', function (Blueprint $table) {
             $table->id();
 
             $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();

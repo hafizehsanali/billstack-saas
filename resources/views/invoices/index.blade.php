@@ -39,7 +39,7 @@
                 <tr class="{{ $invoice->status === 'cancelled' ? 'table-secondary' : '' }}">
 
                     <td>
-                        {{ $invoice->invoice_number }}
+                        {{ $invoice->invoice_no }}
                     </td>
 
                     <td>

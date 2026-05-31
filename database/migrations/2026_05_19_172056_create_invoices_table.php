@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
             $table->foreignId('customer_id')->nullable()->constrained()->nullOnDelete();
 
-            $table->string('invoice_no')->unique();
+            $table->string('invoice_no')->nullable()->unique();
             $table->date('sale_date'); //new column
           
             $table->decimal('subtotal', 12, 2)->default(0);

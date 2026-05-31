@@ -41,7 +41,7 @@
                     <p class="text-muted mb-2">
 
                         Sale Date:
-                        {{ \Carbon\Carbon::parse($invoice->sale_date)->format('d M Y') }}
+                        {{ \Carbon\Carbon::parse($invoice->sale_date)?->format('d M Y') }}
 
                     </p>
 
@@ -175,7 +175,7 @@
                     </div>
 
                 </div>
-
+                @if($invoice->status !== 'cancelled')
                 <div class="col-md-3">
 
                     <div class="border rounded p-3">
@@ -207,15 +207,19 @@
                     </div>
 
                 </div>
-
+                @endif
             </div>
 
             <hr>
+            @if($invoice->status === 'cancelled')
 
+                <div class="alert alert-danger">
+                    This invoice has been cancelled. No further payments can be recorded.
+                </div>
+
+            @endif
+            @if(in_array($invoice->status, ['unpaid', 'partial']))
             <h4>Record Payment</h4>
-
-           
-
             <div class="alert alert-info">
 
                 <strong>Paid:</strong>
@@ -227,57 +231,76 @@
                 {{ $remaining }}
 
             </div>
-            <form action="{{ route('payments.store', $invoice->id) }}"method="POST">
+
+            <form action="{{ route('payments.store', $invoice->id) }}" method="POST">
 
                 @csrf
 
-                <div class="row">
+                <div class="row g-2 align-items-end">
 
-                    <div class="col-md-4">
-
-                        <input
-                            type="number"
+                    {{-- Amount --}}
+                    <div class="col-md-3">
+                        <label class="form-label mb-1">Amount</label>
+                        <input type="number"
                             step="0.01"
                             name="amount"
                             class="form-control"
-                            placeholder="Amount"
-                            required
-                        >
-
+                            placeholder="0.00"
+                            required>
                     </div>
 
-                    <div class="col-md-4">
-
-                        <select name="method" class="form-control">
-
-                            <option value="cash">
-                                Cash
-                            </option>
-
-                            <option value="bank">
-                                Bank
-                            </option>
-
-                            <option value="card">
-                                Card
-                            </option>
-
+                    {{-- Payment Method --}}
+                    <div class="col-md-3">
+                        <label class="form-label mb-1">Method</label>
+                        <select name="method" class="form-select" required>
+                            <option value="cash">Cash</option>
+                            <option value="bank">Bank</option>
+                            <option value="card">Card</option>
+                            <option value="jazzcash">JazzCash</option>
+                            <option value="easypaisa">EasyPaisa</option>
+                            <option value="cheque">Cheque</option>
                         </select>
-
                     </div>
 
-                    <div class="col-md-4">
+                    {{-- Payment Date --}}
+                    <div class="col-md-3">
+                        <label class="form-label mb-1">Payment Date</label>
+                        <input type="datetime-local"
+                            name="payment_date"
+                            class="form-control"
+                            value="{{ now()->format('Y-m-d\TH:i') }}"
+                            required>
+                    </div>
 
-                        <button class="btn btn-success">
+                    {{-- Reference No --}}
+                    <div class="col-md-3">
+                        <label class="form-label mb-1">Reference No</label>
+                        <input type="text"
+                            name="reference_no"
+                            class="form-control"
+                            placeholder="Cheque / Txn / Ref">
+                    </div>
+
+                    {{-- Note --}}
+                    <div class="col-md-6 mt-2">
+                        <label class="form-label mb-1">Note</label>
+                        <input type="text"
+                            name="note"
+                            class="form-control"
+                            placeholder="Optional note">
+                    </div>
+
+                    {{-- Submit --}}
+                    <div class="col-md-6 mt-2">
+                        <button type="submit" class="btn btn-success w-100">
                             Save Payment
                         </button>
-
                     </div>
 
                 </div>
 
             </form>
-
+            @endif
             <hr>
 
              <h4 class="mt-4">
@@ -304,11 +327,11 @@
                         <tr>
 
                             <td>
-                                {{ $payment->sale_date->format('d M Y') }}
+                                {{  \Carbon\Carbon::parse($payment->payment_date)?->format('d M Y') }}
                             </td>
 
                             <td>
-                                {{ ucfirst($payment->method) }}
+                                {{ ucfirst($payment->payment_method) }}
                             </td>
 
                             <td>
@@ -340,21 +363,6 @@
             <!-- ACTIONS -->
            
             <div class="d-flex gap-2">
-
-                @if($invoice->status != 'paid')
-
-                    <form method="POST" action="{{ route('invoices.markPaid', $invoice->id) }}">
-                        @csrf
-                        @method('PATCH')
-
-                        <button class="btn btn-success">
-                            Mark as Paid
-                        </button>
-
-                    </form>
-
-                @endif
-
                 @if($invoice->status != 'cancelled' && $invoice->status != 'paid' && $invoice->status != 'partial')
 
                     <form method="POST" action="{{ route('invoices.cancel', $invoice->id) }}">

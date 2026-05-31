@@ -28,6 +28,16 @@ class Invoice extends Model
         'notes',
     ];
 
+    protected static function booted(): void
+    {
+        static::created(function ($invoice) {
+            if (!$invoice->invoice_no) {
+                $invoice->updateQuietly([
+                    'invoice_no' => 'INV-' . str_pad($invoice->id, 6, '0', STR_PAD_LEFT),
+                ]);
+            }
+        });
+    }
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);

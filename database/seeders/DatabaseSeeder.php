@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
         CustomerSeeder::class,
         ProductSeeder::class,
         InvoiceSeeder::class,
+        CustomerPaymentSeeder::class,
         PurchaseSeeder::class,
         ExpenseSeeder::class,
         SupplierPaymentSeeder::class,

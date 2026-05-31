@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Invoice;
-use App\Models\Payment;
+use App\Models\CustomerPayment;
 use Illuminate\Http\Request;
 
 class PaymentController extends Controller
@@ -23,13 +23,15 @@ class PaymentController extends Controller
             ],
 
         ]);
-
+        if ($invoice->status === 'cancelled')
+        {
+            return back()->with( 'error','Cannot record payment against a cancelled invoice.');
+        }
         // Prevent overpayment
         $paidAmount = $invoice->payments()->sum('amount');
-
         $remaining = $invoice->total - $paidAmount;
-
-        if ($request->amount > $remaining) {
+        if ($request->amount > $remaining)
+        {
 
             return back()->withErrors([
                 'amount' => 'Payment exceeds remaining balance.'
@@ -37,18 +39,15 @@ class PaymentController extends Controller
         }
 
         // Save payment
-        Payment::create([
+        CustomerPayment::create([
 
             'tenant_id' => auth()->user()->tenant_id,
-
-            'invoice_id' => $invoice->id,
-
             'customer_id' => $invoice->customer_id,
-
+            'invoice_id' => $invoice->id,
             'amount' => $request->amount,
-
-            'method' => $request->method,
-
+            'payment_date'=> $request->payment_date,
+            'reference_no' => $request->reference_no,
+            'payment_method' => $request->method,
             'notes' => $request->notes,
         ]);
 

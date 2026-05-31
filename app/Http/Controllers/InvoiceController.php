@@ -6,10 +6,11 @@ use App\Models\Product;
 use App\Models\Invoice;
 use App\Models\Customer;
 use App\Models\InvoiceItem;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use App\Models\CustomerPayment;
+use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Requests\StoreInvoiceRequest;
+use Illuminate\Support\Facades\DB;
 
 class InvoiceController extends Controller
 {
@@ -39,81 +40,106 @@ class InvoiceController extends Controller
     {
         $data = $request->validated();
 
-        $subtotal = 0;
+        DB::transaction(function () use ($data) {
 
-        // Calculate totals + validate stock
-        foreach ($data['products'] as $productId) {
+            $subtotal = 0;
+            $requestedQuantities = [];
 
-            $product = Product::findOrFail($productId);
+            foreach ($data['products'] as $item) {
+                $productId = $item['product_id'];
+                $quantity = (int) $item['quantity'];
+                $price = (float) $item['price'];
 
-            $quantity = $data['quantities'][$productId];
+                $requestedQuantities[$productId] =
+                    ($requestedQuantities[$productId] ?? 0) + $quantity;
 
-            // Prevent overselling
-            if ($quantity > $product->stock_quantity) {
-
-                return back()->withErrors([
-
-                    'stock' => $product->name .
-                        ' does not have enough stock.'
-
-                ])->withInput();
+                $subtotal += $quantity * $price;
             }
 
-            $lineTotal = $product->selling_price * $quantity;
+            $products = Product::whereIn(
+                'id',
+                array_keys($requestedQuantities)
+            )->lockForUpdate()->get()->keyBy('id');
 
-            $subtotal += $lineTotal;
-        }
+            foreach ($requestedQuantities as $productId => $quantity) {
+                $product = $products[$productId];
 
-        // Create invoice
-        $invoice = Invoice::create([
+                if ($quantity > $product->stock_quantity) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'stock' => $product->name . ' does not have enough stock.',
+                    ]);
+                }
+            }
 
-            'tenant_id' => auth()->user()->tenant_id,
+            $tax = (float) ($data['tax'] ?? 0);
+            $discount = (float) ($data['discount'] ?? 0);
+            $extraExpense = (float) ($data['extra_expense'] ?? 0);
+            $paidAmount = (float) ($data['paid_amount'] ?? 0);
+            $total = max(($subtotal + $tax + $extraExpense) - $discount, 0);
 
-            'customer_id' => $data['customer_id'],
+            if ($paidAmount > $total) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'paid_amount' => 'Paid amount cannot be greater than invoice total.',
+                ]);
+            }
 
-            'invoice_number' => 'INV-' . str_pad(Invoice::max('id') + 1,6,'0',STR_PAD_LEFT),
+            $remainingAmount = max($total - $paidAmount, 0);
+            $status = 'unpaid';
 
-            'status' => 'unpaid',
+            if ($paidAmount >= $total && $total > 0) {
+                $status = 'paid';
+            } elseif ($paidAmount > 0) {
+                $status = 'partial';
+            }
 
-            'subtotal' => $subtotal,
-
-            'tax' => 0,
-
-            'discount' => 0,
-
-            'total' => $subtotal,
-
-        ]);
-
-        // Create invoice items
-        foreach ($data['products'] as $productId) {
-
-            $product = Product::findOrFail($productId);
-
-            $quantity = $data['quantities'][$productId];
-
-            $lineTotal = $product->selling_price * $quantity;
-
-            InvoiceItem::create([
-
-                'invoice_id' => $invoice->id,
-
-                'product_id' => $product->id,
-
-                'quantity' => $quantity,
-
-                'price' => $product->selling_price,
-
-                'total' => $lineTotal,
-
+            $invoice = Invoice::create([
+                'tenant_id' => auth()->user()->tenant_id,
+                'customer_id' => $data['customer_id'],
+                'invoice_no' => $data['invoice_no'],
+                'sale_date' => $data['sale_date'],
+                'subtotal' => $subtotal,
+                'tax' => $tax,
+                'discount' => $discount,
+                'extra_expense' => $extraExpense,
+                'total' => $total,
+                'paid_amount' => $paidAmount,
+                'remaining_amount' => $remainingAmount,
+                'status' => $status,
+                'notes' => $data['notes'] ?? null,
             ]);
 
-            // Reduce stock
-            $product->decrement(
-                'stock_quantity',
-                $quantity
-            );
-        }
+            foreach ($data['products'] as $item) {
+                $product = $products[$item['product_id']];
+                $quantity = (int) $item['quantity'];
+                $price = (float) $item['price'];
+                $lineTotal = $quantity * $price;
+
+                InvoiceItem::create([
+                    'invoice_id' => $invoice->id,
+                    'product_id' => $product->id,
+                    'quantity' => $quantity,
+                    'price' => $price,
+                    'total' => $lineTotal,
+                ]);
+
+                $product->decrement('stock_quantity', $quantity);
+            }
+
+            if ($paidAmount > 0) {
+                CustomerPayment::create([
+                    'tenant_id' => auth()->user()->tenant_id,
+                    'customer_id' => $invoice->customer_id,
+                    'invoice_id' => $invoice->id,
+                    'amount' => $paidAmount,
+                    'payment_method' => $data['payment_method'] ?? 'cash',
+                    'payment_date' => isset($data['payment_date'])
+                        ? Carbon::parse($data['payment_date'])->toDateString()
+                        : now()->toDateString(),
+                    'reference_no' => $data['reference_no'] ?? null,
+                    'notes' => $data['payment_notes'] ?? null,
+                ]);
+            }
+        });
 
         return redirect()
             ->route('invoices.index')
@@ -150,14 +176,6 @@ class InvoiceController extends Controller
             return redirect()
                 ->route('invoices.index')
                 ->with('success', 'Invoice deleted.');
-    }
-    public function markPaid(Invoice $invoice)
-    {
-        $invoice->update([
-            'status' => 'paid'
-        ]);
-
-        return back()->with('success', 'Invoice marked as paid.');
     }
 
     // public function cancel(Invoice $invoice)
@@ -220,7 +238,7 @@ class InvoiceController extends Controller
         );
 
         return $pdf->download(
-            $invoice->invoice_number . '.pdf'
+            $invoice->invoice_no . '.pdf'
         );
     }
 }

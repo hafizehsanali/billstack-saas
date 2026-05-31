@@ -23,7 +23,19 @@ class StoreInvoiceRequest extends FormRequest
     public function rules(): array
     {
         return [
-             'customer_id' => [
+            'invoice_no' => [
+                'required',
+                'string',
+                'max:255',
+                'unique:invoices,invoice_no',
+            ],
+
+            'sale_date' => [
+                'required',
+                'date',
+            ],
+
+            'customer_id' => [
                 'required',
                 'exists:customers,id'
             ],
@@ -34,19 +46,72 @@ class StoreInvoiceRequest extends FormRequest
                 'min:1'
             ],
 
-            'products.*' => [
+            'products.*.product_id' => [
+                'required',
                 'exists:products,id'
             ],
 
-            'quantities' => [
-                'required',
-                'array'
-            ],
-
-            'quantities.*' => [
+            'products.*.quantity' => [
                 'required',
                 'integer',
                 'min:1'
+            ],
+
+            'products.*.price' => [
+                'required',
+                'numeric',
+                'min:0'
+            ],
+
+            'tax' => [
+                'nullable',
+                'numeric',
+                'min:0'
+            ],
+
+            'discount' => [
+                'nullable',
+                'numeric',
+                'min:0'
+            ],
+
+            'extra_expense' => [
+                'nullable',
+                'numeric',
+                'min:0'
+            ],
+
+            'paid_amount' => [
+                'nullable',
+                'numeric',
+                'min:0'
+            ],
+
+            'payment_method' => [
+                'nullable',
+                'string',
+                'max:50'
+            ],
+
+            'payment_date' => [
+                'nullable',
+                'date'
+            ],
+
+            'reference_no' => [
+                'nullable',
+                'string',
+                'max:100'
+            ],
+
+            'payment_notes' => [
+                'nullable',
+                'string'
+            ],
+
+            'notes' => [
+                'nullable',
+                'string'
             ],
 
         ];

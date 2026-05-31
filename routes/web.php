@@ -33,7 +33,6 @@ Route::get('/customers/{customer}/account',[CustomerAccountController::class, 's
 Route::get('/customers/{customer}/payments/create/{invoice?}',[CustomerPaymentController::class, 'create'])->name('customer-payments.create');
 
 Route::resource('invoices', InvoiceController::class);
-Route::patch('/invoices/{invoice}/paid', [InvoiceController::class, 'markPaid'])->name('invoices.markPaid');
 Route::patch('/invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])->name('invoices.cancel');
 Route::post( '/invoices/{invoice}/payments',[PaymentController::class, 'store'])->name('payments.store');
 
