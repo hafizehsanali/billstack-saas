@@ -1,94 +1,88 @@
-<aside class="navbar navbar-vertical navbar-expand-lg navbar-dark bg-dark">
-<div class="container-fluid">
+@php
+    $isActive = fn (array $patterns): bool => request()->routeIs(...$patterns);
 
-<h1 class="navbar-brand">
-<a href="{{ route('dashboard') }}" class="text-white text-decoration-none">BillStack</a>
-</h1>
+    $storeLinks = [
+        ['label' => 'Dashboard', 'route' => 'dashboard', 'active' => ['dashboard']],
+        ['label' => 'Products', 'route' => 'products.index', 'active' => ['products.*']],
+        ['label' => 'Categories', 'route' => 'categories.index', 'active' => ['categories.*']],
+        ['label' => 'Invoices', 'route' => 'invoices.index', 'active' => ['invoices.index', 'invoices.show', 'payments.*']],
+        ['label' => 'Create Invoice', 'route' => 'invoices.create', 'active' => ['invoices.create']],
+        ['label' => 'Customers', 'route' => 'customers.index', 'active' => ['customers.*', 'customer.account']],
+    ];
 
-<div class="navbar-collapse">
-<ul class="navbar-nav pt-lg-3">
+    $financeLinks = [
+        ['label' => 'Purchases', 'route' => 'purchases.index', 'active' => ['purchases.index', 'purchases.show', 'purchases.edit']],
+        ['label' => 'Create Purchase', 'route' => 'purchases.create', 'active' => ['purchases.create']],
+        ['label' => 'Suppliers', 'route' => 'suppliers.index', 'active' => ['suppliers.*', 'supplier.*', 'supplier-payments.*']],
+        ['label' => 'Expenses', 'route' => 'expenses.index', 'active' => ['expenses.*']],
+    ];
 
-{{-- Dashboard --}}
-<li class="nav-item">
-<a class="nav-link text-white {{ request()->routeIs('dashboard')?'active':'' }}" href="{{ route('dashboard') }}">Dashboard</a>
-</li>
+    $reportLinks = [
+        ['label' => 'Daily Sales', 'route' => 'reports.daily-sales', 'active' => ['reports.daily-sales']],
+        ['label' => 'Monthly Sales', 'route' => 'reports.monthly-sales', 'active' => ['reports.monthly-sales']],
+        ['label' => 'Stock Report', 'route' => 'reports.stock', 'active' => ['reports.stock']],
+        ['label' => 'Low Stock', 'route' => 'reports.low-stock', 'active' => ['reports.low-stock']],
+        ['label' => 'Profit & Loss', 'route' => 'reports.profit-loss', 'active' => ['reports.profit-loss']],
+    ];
+@endphp
 
-{{-- Inventory --}}
-<li class="nav-item dropdown">
-<a class="nav-link dropdown-toggle {{ request()->routeIs('categories.*','products.*')?'show':'' }}" href="#inv" data-bs-toggle="dropdown">
-<span class="nav-link-title">Inventory</span>
-</a>
-<div class="dropdown-menu {{ request()->routeIs('categories.*','products.*')?'show':'' }}">
-<a class="dropdown-item {{ request()->routeIs('categories.*')?'active':'' }}" href="{{ route('categories.index') }}">Categories</a>
-<a class="dropdown-item {{ request()->routeIs('products.*')?'active':'' }}" href="{{ route('products.index') }}">Products</a>
-</div>
-</li>
+<aside class="navbar navbar-vertical navbar-expand-lg navbar-dark bg-dark d-print-none">
+    <div class="container-fluid">
+        <h1 class="navbar-brand">
+            <a href="{{ route('dashboard') }}" class="text-white text-decoration-none">
+                BillStack
+            </a>
+        </h1>
 
-{{-- Sales --}}
-<li class="nav-item dropdown">
-<a class="nav-link dropdown-toggle {{ request()->routeIs('customers.*','invoices.*')?'show':'' }}" href="#sales" data-bs-toggle="dropdown">
-<span class="nav-link-title">Sales</span>
-</a>
-<div class="dropdown-menu {{ request()->routeIs('customers.*','invoices.*')?'show':'' }}">
-<a class="dropdown-item {{ request()->routeIs('customers.*')?'active':'' }}" href="{{ route('customers.index') }}">Customers</a>
-<a class="dropdown-item {{ request()->routeIs('invoices.*')?'active':'' }}" href="{{ route('invoices.index') }}">Invoices</a>
-</div>
-</li>
+        <div class="navbar-collapse">
+            <ul class="navbar-nav pt-lg-3">
+                <li class="nav-item mb-1">
+                    <span class="nav-link disabled text-uppercase text-white-50 small">
+                        Store Operations
+                    </span>
+                </li>
 
-{{-- Suppliers --}}
-<li class="nav-item dropdown">
-<a class="nav-link dropdown-toggle {{ request()->routeIs('suppliers.*')?'show':'' }}" href="#suppliers" data-bs-toggle="dropdown">
-<span class="nav-link-title">Suppliers</span>
-</a>
-<div class="dropdown-menu {{ request()->routeIs('suppliers.*')?'show':'' }}">
-<a class="dropdown-item {{ request()->routeIs('suppliers.index')?'active':'' }}" href="{{ route('suppliers.index') }}">Supplier List</a>
-<a class="dropdown-item {{ request()->routeIs('suppliers.create')?'active':'' }}" href="{{ route('suppliers.create') }}">Add Supplier</a>
-</div>
-</li>
+                @foreach($storeLinks as $link)
+                    <li class="nav-item">
+                        <a class="nav-link text-white {{ $isActive($link['active']) ? 'active' : '' }}"
+                           href="{{ route($link['route']) }}">
+                            <span class="nav-link-title">{{ $link['label'] }}</span>
+                        </a>
+                    </li>
+                @endforeach
 
-{{-- Purchases --}}
-<li class="nav-item dropdown">
-<a class="nav-link dropdown-toggle {{ request()->routeIs('purchases.*')?'show':'' }}" href="#purchases" data-bs-toggle="dropdown">
-<span class="nav-link-title">Purchases</span>
-</a>
-<div class="dropdown-menu {{ request()->routeIs('purchases.*')?'show':'' }}">
-<a class="dropdown-item {{ request()->routeIs('purchases.index')?'active':'' }}" href="{{ route('purchases.index') }}">Purchase List</a>
-<a class="dropdown-item {{ request()->routeIs('purchases.create')?'active':'' }}" href="{{ route('purchases.create') }}">Add Purchase</a>
-</div>
-</li>
+                @hasanyrole('owner|accountant')
+                    <li class="nav-item mt-3 mb-1">
+                        <span class="nav-link disabled text-uppercase text-white-50 small">
+                            Finance
+                        </span>
+                    </li>
 
-{{-- Payments --}}
-<li class="nav-item dropdown">
-<a class="nav-link dropdown-toggle {{ request()->routeIs('supplier-payments.*')?'show':'' }}" href="#payments" data-bs-toggle="dropdown">
-<span class="nav-link-title">Supplier Payments</span>
-</a>
-<div class="dropdown-menu {{ request()->routeIs('supplier-payments.*')?'show':'' }}">
-<a class="dropdown-item {{ request()->routeIs('supplier-payments.index')?'active':'' }}" href="{{ route('supplier-payments.index', ['supplier' => request()->route('supplier') ?? 1]) }}">Payment List</a>
-</div>
-</li>
+                    @foreach($financeLinks as $link)
+                        <li class="nav-item">
+                            <a class="nav-link text-white {{ $isActive($link['active']) ? 'active' : '' }}"
+                               href="{{ route($link['route']) }}">
+                                <span class="nav-link-title">{{ $link['label'] }}</span>
+                            </a>
+                        </li>
+                    @endforeach
 
-{{-- Expenses --}}
-<li class="nav-item">
-<a class="nav-link text-white {{ request()->routeIs('expenses.*')?'active':'' }}" href="{{ route('expenses.index') }}">Expenses</a>
-</li>
+                    <li class="nav-item mt-3 mb-1">
+                        <span class="nav-link disabled text-uppercase text-white-50 small">
+                            Reports
+                        </span>
+                    </li>
 
-{{-- Reports --}}
-@role('owner')
-<li class="nav-item dropdown">
-<a class="nav-link dropdown-toggle {{ request()->routeIs('reports.*')?'show':'' }}" href="#reports" data-bs-toggle="dropdown">
-<span class="nav-link-title">Reports</span>
-</a>
-<div class="dropdown-menu {{ request()->routeIs('reports.*')?'show':'' }}">
-<a class="dropdown-item {{ request()->routeIs('reports.daily-sales')?'active':'' }}" href="{{ route('reports.daily-sales') }}">Daily Sales</a>
-<a class="dropdown-item {{ request()->routeIs('reports.monthly-sales')?'active':'' }}" href="{{ route('reports.monthly-sales') }}">Monthly Sales</a>
-<a class="dropdown-item {{ request()->routeIs('reports.stock')?'active':'' }}" href="{{ route('reports.stock') }}">Stock Report</a>
-<a class="dropdown-item {{ request()->routeIs('reports.low-stock')?'active':'' }}" href="{{ route('reports.low-stock') }}">Low Stock</a>
-<a class="dropdown-item {{ request()->routeIs('reports.profit-loss')?'active':'' }}" href="{{ route('reports.profit-loss') }}">Profit & Loss</a>
-</div>
-</li>
-@endrole
-
-</ul>
-</div>
-</div>
+                    @foreach($reportLinks as $link)
+                        <li class="nav-item">
+                            <a class="nav-link text-white {{ $isActive($link['active']) ? 'active' : '' }}"
+                               href="{{ route($link['route']) }}">
+                                <span class="nav-link-title">{{ $link['label'] }}</span>
+                            </a>
+                        </li>
+                    @endforeach
+                @endhasanyrole
+            </ul>
+        </div>
+    </div>
 </aside>
