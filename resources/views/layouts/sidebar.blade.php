@@ -3,18 +3,22 @@
 
     $storeLinks = [
         ['label' => 'Dashboard', 'route' => 'dashboard', 'active' => ['dashboard']],
-        ['label' => 'Products', 'route' => 'products.index', 'active' => ['products.*']],
+        ['label' => 'Products', 'route' => 'products.index', 'active' => ['products.index', 'products.stock-ledger']],
+        ['label' => 'Add Product', 'route' => 'products.create', 'active' => ['products.create']],
         ['label' => 'Categories', 'route' => 'categories.index', 'active' => ['categories.*']],
         ['label' => 'Invoices', 'route' => 'invoices.index', 'active' => ['invoices.index', 'invoices.show', 'payments.*']],
         ['label' => 'Create Invoice', 'route' => 'invoices.create', 'active' => ['invoices.create']],
-        ['label' => 'Customers', 'route' => 'customers.index', 'active' => ['customers.*', 'customer.account']],
+        ['label' => 'Customers', 'route' => 'customers.index', 'active' => ['customers.index', 'customers.statement', 'customer.account']],
+        ['label' => 'Add Customer', 'route' => 'customers.create', 'active' => ['customers.create']],
     ];
 
     $financeLinks = [
         ['label' => 'Purchases', 'route' => 'purchases.index', 'active' => ['purchases.index', 'purchases.show', 'purchases.edit']],
         ['label' => 'Create Purchase', 'route' => 'purchases.create', 'active' => ['purchases.create']],
-        ['label' => 'Suppliers', 'route' => 'suppliers.index', 'active' => ['suppliers.*', 'supplier.*', 'supplier-payments.*']],
-        ['label' => 'Expenses', 'route' => 'expenses.index', 'active' => ['expenses.*']],
+        ['label' => 'Suppliers', 'route' => 'suppliers.index', 'active' => ['suppliers.index', 'suppliers.show', 'suppliers.edit', 'supplier.*', 'supplier-payments.*']],
+        ['label' => 'Add Supplier', 'route' => 'suppliers.create', 'active' => ['suppliers.create']],
+        ['label' => 'Expenses', 'route' => 'expenses.index', 'active' => ['expenses.index', 'expenses.edit']],
+        ['label' => 'Create Expense', 'route' => 'expenses.create', 'active' => ['expenses.create']],
     ];
 
     $reportLinks = [

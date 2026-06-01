@@ -98,7 +98,7 @@
                     <th>Entry</th>
                     <th>Invoice / Payment</th>
                     <th>Sale Amount</th>
-                    <th>Payment Received</th>
+                    <th>Payment / Return</th>
                     <th>Remaining Amount</th>
                 </tr>
 

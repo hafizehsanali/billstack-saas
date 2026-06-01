@@ -60,6 +60,7 @@ class CustomerController extends Controller
         // Customer invoices
         $invoices = $customer->invoices()
             ->where('status', '!=', 'cancelled')
+            ->with('returns')
             ->when($startDate, fn ($q) => $q->where('created_at', '>=', $startDate))
             ->when($endDate, fn ($q) => $q->where('created_at', '<=', $endDate))
             ->get()
@@ -68,7 +69,7 @@ class CustomerController extends Controller
                     'date' => $invoice->created_at,
                     'type' => 'Invoice',
                     'reference' => $invoice->invoice_no,
-                    'debit' => $invoice->total,
+                    'debit' => $invoice->total + $invoice->returns->sum('total_amount'),
                     'credit' => 0,
                 ];
             });
@@ -88,9 +89,24 @@ class CustomerController extends Controller
                 ];
             });
 
+        $returns = $customer->returns()
+            ->when($startDate, fn ($q) => $q->where('return_date', '>=', $startDate))
+            ->when($endDate, fn ($q) => $q->where('return_date', '<=', $endDate))
+            ->get()
+            ->map(function ($salesReturn) {
+                return [
+                    'date' => $salesReturn->return_date,
+                    'type' => 'Sales Return',
+                    'reference' => $salesReturn->return_no,
+                    'debit' => 0,
+                    'credit' => $salesReturn->total_amount,
+                ];
+            });
+
         // Merge + sort ledger entries
         $entries = $invoices
             ->concat($payments)
+            ->concat($returns)
             ->sortBy('date')
             ->values();
 

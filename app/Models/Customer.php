@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use App\Models\Traits\BelongsToTenant;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Customer extends Model
@@ -17,7 +17,7 @@ class Customer extends Model
         'address',
         'opening_balance',
     ];
-   
+
     public function invoices()
     {
         return $this->hasMany(Invoice::class);
@@ -25,11 +25,14 @@ class Customer extends Model
 
     public function payments()
     {
-        return $this->hasManyThrough(
-            CustomerPayment::class,
-            Invoice::class
-        );
+        return $this->hasMany(CustomerPayment::class);
     }
+
+    public function returns()
+    {
+        return $this->hasMany(SalesReturn::class);
+    }
+
     // Total invoice amount
     public function totalSales(): float
     {

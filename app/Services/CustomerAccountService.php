@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Customer;
 use App\Models\CustomerPayment;
 use App\Models\Invoice;
+use App\Models\SalesReturn;
 
 class CustomerAccountService
 {
@@ -12,11 +13,16 @@ class CustomerAccountService
     {
         $invoices = Invoice::where('customer_id', $customer->id)
             ->where('status', '!=', 'cancelled')
+            ->with('returns')
             ->latest('sale_date')
             ->get();
 
         $payments = CustomerPayment::where('customer_id', $customer->id)
             ->latest('payment_date')
+            ->get();
+
+        $returns = SalesReturn::where('customer_id', $customer->id)
+            ->latest('return_date')
             ->get();
 
         $ledger = collect();
@@ -27,7 +33,7 @@ class CustomerAccountService
                 'date' => $invoice->sale_date,
                 'type' => 'invoice',
                 'reference' => $invoice->invoice_no,
-                'debit' => $invoice->total,
+                'debit' => $invoice->total + $invoice->returns->sum('total_amount'),
                 'credit' => 0,
                 'model' => $invoice,
             ]);
@@ -42,6 +48,18 @@ class CustomerAccountService
                 'debit' => 0,
                 'credit' => $payment->amount,
                 'model' => $payment,
+            ]);
+        }
+
+        foreach ($returns as $salesReturn) {
+
+            $ledger->push([
+                'date' => $salesReturn->return_date,
+                'type' => 'return',
+                'reference' => $salesReturn->return_no,
+                'debit' => 0,
+                'credit' => $salesReturn->total_amount,
+                'model' => $salesReturn,
             ]);
         }
 
@@ -65,6 +83,8 @@ class CustomerAccountService
             'totalSales' => $invoices->sum('total'),
 
             'totalReceived' => $payments->sum('amount'),
+
+            'totalReturns' => $returns->sum('total_amount'),
 
             'receivable' => $invoices->sum('remaining_amount'),
 

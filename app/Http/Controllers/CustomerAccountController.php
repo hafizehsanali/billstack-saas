@@ -28,6 +28,8 @@ class CustomerAccountController extends Controller
 
             'totalReceived' => $data['totalReceived'],
 
+            'totalReturns' => $data['totalReturns'],
+
             'receivable' => $data['receivable'],
 
             'advance' => $data['advance'],

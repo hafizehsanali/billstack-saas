@@ -46,6 +46,22 @@
                 <div class="card-body">
 
                     <small class="text-muted">
+                        Total Returns
+                    </small>
+
+                    <h3 class="mt-2 text-warning">
+                        Rs {{ number_format($totalReturns, 2) }}
+                    </h3>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+
+                    <small class="text-muted">
                         Total Received
                     </small>
 
@@ -134,6 +150,12 @@
                                         Invoice
                                     </span>
 
+                                @elseif($entry['type'] === 'return')
+
+                                    <span class="badge bg-warning">
+                                        Return
+                                    </span>
+
                                 @else
 
                                     <span class="badge bg-success">
@@ -149,6 +171,12 @@
                                 @if($entry['type'] === 'invoice')
 
                                     <a href="{{ route('invoices.show', $entry['model']->id) }}">
+                                        {{ $entry['reference'] }}
+                                    </a>
+
+                                @elseif($entry['type'] === 'return')
+
+                                    <a href="{{ route('invoices.show', $entry['model']->invoice_id) }}">
                                         {{ $entry['reference'] }}
                                     </a>
 
