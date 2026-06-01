@@ -168,7 +168,9 @@ class InvoiceController extends Controller
         $invoice->load([
             'customer',
             'items.product',
+            'items.returnItems',
             'payments',
+            'returns.items.product',
         ]);
 
         return view('invoices.show', compact('invoice'));

@@ -11,6 +11,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SalesReturnController;
 use App\Http\Controllers\SupplierAccountController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SupplierPaymentController;
@@ -38,6 +39,7 @@ Route::middleware('auth')->group(function () {
     Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');
     Route::patch('/invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])->name('invoices.cancel');
     Route::post('/invoices/{invoice}/payments', [PaymentController::class, 'store'])->name('payments.store');
+    Route::post('/invoices/{invoice}/returns', [SalesReturnController::class, 'store'])->name('sales-returns.store');
 });
 
 Route::middleware(['auth', 'role:owner|accountant'])->group(function () {
