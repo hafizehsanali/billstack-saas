@@ -25,6 +25,16 @@ class ProductController extends Controller
         return view('products.create', compact('categories'));
     }
 
+    public function edit(Product $product)
+    {
+        $categories = Category::all();
+
+        return view('products.edit', compact(
+            'product',
+            'categories'
+        ));
+    }
+
     public function stockLedger(Product $product)
     {
         $product->load('category');
@@ -85,6 +95,46 @@ class ProductController extends Controller
             ->with(
                 'success',
                 'Product created successfully.'
+            );
+    }
+
+    public function update(StoreProductRequest $request, Product $product)
+    {
+        $data = $request->validated();
+        $oldStock = $product->stock_quantity;
+
+        $product->update([
+            'category_id' => $data['category_id'],
+            'name' => $data['name'],
+            'sku' => $data['sku'],
+            'barcode' => $data['barcode'] ?? null,
+            'purchase_price' => $data['purchase_price'],
+            'selling_price' => $data['selling_price'],
+            'stock_quantity' => $data['stock_quantity'],
+            'low_stock_alert' => $data['low_stock_alert'],
+        ]);
+
+        $stockDifference = $product->stock_quantity - $oldStock;
+
+        if ($stockDifference !== 0) {
+            app(StockLedgerService::class)->record(
+                $product,
+                $stockDifference > 0 ? 'stock_adjustment_in' : 'stock_adjustment_out',
+                abs($stockDifference),
+                [
+                    'direction' => $stockDifference > 0 ? 'in' : 'out',
+                    'unit_cost' => $product->purchase_price,
+                    'unit_price' => $product->selling_price,
+                    'notes' => 'Manual stock adjustment from product update.',
+                ]
+            );
+        }
+
+        return redirect()
+            ->route('products.index')
+            ->with(
+                'success',
+                'Product updated successfully.'
             );
     }
 }

@@ -23,69 +23,75 @@ class StoreProductRequest extends FormRequest
      */
     public function rules(): array
     {
+        $product = $this->route('product');
+        $productId = $product?->id ?? $product;
+
         return [
 
-                    'category_id' => [
-                        'required',
-                        'exists:categories,id'
-                    ],
+            'category_id' => [
+                'required',
+                'exists:categories,id',
+            ],
 
-                    'name' => [
-                        'required',
-                        'string',
-                        'max:255'
-                    ],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
 
-                    'sku' => [
-                        'required',
-                        'string',
-                        'max:255',
-                         Rule::unique('products')
-                              ->where('tenant_id', auth()->user()->tenant_id ),
-                    ],
+            'sku' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('products')
+                    ->where('tenant_id', auth()->user()->tenant_id)
+                    ->ignore($productId),
+            ],
 
-                    'purchase_price' => [
-                        'required',
-                        'numeric',
-                        'min:0'
-                    ],
+            'barcode' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
 
-                    'selling_price' => [
-                        'required',
-                        'numeric',
-                        'min:0'
-                    ],
+            'purchase_price' => [
+                'required',
+                'numeric',
+                'min:0',
+            ],
 
-                    'stock_quantity' => [
-                        'required',
-                        'integer',
-                        'min:0'
-                    ],
+            'selling_price' => [
+                'required',
+                'numeric',
+                'min:0',
+            ],
 
-                    'low_stock_alert' => [
-                        'required',
-                        'integer',
-                        'min:0'
-                    ],
+            'stock_quantity' => [
+                'required',
+                'integer',
+                'min:0',
+            ],
 
-                ];
+            'low_stock_alert' => [
+                'required',
+                'integer',
+                'min:0',
+            ],
+
+        ];
     }
 
     public function messages(): array
     {
         return [
 
-            'sku.unique' =>
-                'This SKU already exists for your store.',
+            'sku.unique' => 'This SKU already exists for your store.',
 
-            'purchase_price.min' =>
-                'Purchase price cannot be negative.',
+            'purchase_price.min' => 'Purchase price cannot be negative.',
 
-            'selling_price.min' =>
-                'Selling price cannot be negative.',
+            'selling_price.min' => 'Selling price cannot be negative.',
 
-            'stock_quantity.min' =>
-                'Stock quantity cannot be negative.',
+            'stock_quantity.min' => 'Stock quantity cannot be negative.',
 
         ];
     }

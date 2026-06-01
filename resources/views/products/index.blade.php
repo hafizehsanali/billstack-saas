@@ -55,6 +55,11 @@
                     </td>
 
                     <td class="text-end">
+                        <a href="{{ route('products.edit', $product) }}"
+                           class="btn btn-sm btn-outline-secondary">
+                            Edit
+                        </a>
+
                         <a href="{{ route('products.stock-ledger', $product) }}"
                            class="btn btn-sm btn-outline-primary">
                             Stock Ledger
