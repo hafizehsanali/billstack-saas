@@ -2,98 +2,101 @@
 
 @section('content')
 
-  <div class="container mt-4">
-
-    <div class="d-flex justify-content-between mb-3">
-
-        <h2>Expenses</h2>
-
-        <a
-            href="{{ route('expenses.create') }}"
-            class="btn btn-primary"
-        >
-            Add Expense
-        </a>
-
+<div class="row g-3 mb-3">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <small class="text-muted">Total Expenses</small>
+                <h2 class="mb-0">Rs {{ number_format($totalExpenses, 2) }}</h2>
+            </div>
+        </div>
     </div>
 
-    <table class="table table-bordered">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <small class="text-muted">This Month</small>
+                <h2 class="mb-0">Rs {{ number_format($monthlyExpenses, 2) }}</h2>
+            </div>
+        </div>
+    </div>
 
-        <thead>
-
-            <tr>
-
-                <th>Title</th>
-
-                <th>Category</th>
-
-                <th>Amount</th>
-
-                <th>Date</th>
-
-                <th>Actions</th>
-
-            </tr>
-
-        </thead>
-
-        <tbody>
-
-            @foreach($expenses as $expense)
-
-                <tr>
-
-                    <td>
-                        {{ $expense->title }}
-                    </td>
-
-                    <td>
-                        {{ $expense->category }}
-                    </td>
-
-                    <td>
-                        {{ $expense->amount }}
-                    </td>
-
-                    <td>
-                        {{ $expense->expense_date }}
-                    </td>
-
-                    <td>
-
-                        <a
-                            href="{{ route('expenses.edit', $expense->id) }}"
-                            class="btn btn-warning btn-sm"
-                        >
-                            Edit
-                        </a>
-
-                        <form
-                            action="{{ route('expenses.destroy', $expense->id) }}"
-                            method="POST"
-                            class="d-inline"
-                        >
-
-                            @csrf
-                            @method('DELETE')
-
-                            <button
-                                class="btn btn-danger btn-sm"
-                            >
-                                Delete
-                            </button>
-
-                        </form>
-
-                    </td>
-
-                </tr>
-
-            @endforeach
-
-        </tbody>
-
-    </table>
-
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <small class="text-muted">Categories</small>
+                <h2 class="mb-0">{{ $categoryCount }}</h2>
+            </div>
+        </div>
+    </div>
 </div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">
+            Expenses
+        </h3>
+
+        <a href="{{ route('expenses.create') }}"
+           class="btn btn-primary ms-auto">
+            Add Expense
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-vcenter card-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th class="text-end">Amount</th>
+                    <th>Date</th>
+                    <th>Notes</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @forelse($expenses as $expense)
+                    <tr>
+                        <td>{{ $expense->title }}</td>
+                        <td>{{ $expense->category }}</td>
+                        <td class="text-end">Rs {{ number_format($expense->amount, 2) }}</td>
+                        <td>{{ $expense->expense_date->format('d M Y') }}</td>
+                        <td>{{ $expense->notes ?? '-' }}</td>
+                        <td class="text-end">
+                            <a href="{{ route('expenses.edit', $expense) }}"
+                               class="btn btn-sm btn-outline-secondary">
+                                Edit
+                            </a>
+
+                            <form action="{{ route('expenses.destroy', $expense) }}"
+                                  method="POST"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Delete this expense?')">
+                                @csrf
+                                @method('DELETE')
+
+                                <button class="btn btn-sm btn-outline-danger">
+                                    Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            No expenses found.
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="mt-3">
+    {{ $expenses->links() }}
+</div>
+
 @endsection

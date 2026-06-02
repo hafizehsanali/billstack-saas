@@ -2,21 +2,29 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreExpenseRequest;
 use App\Models\Expense;
-use Illuminate\Http\Request;
 
 class ExpenseController extends Controller
 {
     public function index()
     {
-        $expenses = Expense::where(
-            'tenant_id',
-            auth()->user()->tenant_id
-        )->latest()->get();
+        $query = Expense::where('tenant_id', auth()->user()->tenant_id);
+        $totalExpenses = (clone $query)->sum('amount');
+        $monthlyExpenses = (clone $query)
+            ->whereMonth('expense_date', now()->month)
+            ->whereYear('expense_date', now()->year)
+            ->sum('amount');
+        $categoryCount = (clone $query)->distinct('category')->count('category');
+
+        $expenses = $query
+            ->latest('expense_date')
+            ->latest()
+            ->paginate(10);
 
         return view(
             'expenses.index',
-            compact('expenses')
+            compact('expenses', 'totalExpenses', 'monthlyExpenses', 'categoryCount')
         );
     }
 
@@ -25,34 +33,17 @@ class ExpenseController extends Controller
         return view('expenses.create');
     }
 
-    public function store(Request $request)
+    public function store(StoreExpenseRequest $request)
     {
-        $request->validate([
-
-            'title' => ['required'],
-
-            'category' => ['required'],
-
-            'amount' => ['required', 'numeric'],
-
-            'expense_date' => ['required'],
-        ]);
+        $data = $request->validated();
 
         Expense::create([
-
-            'tenant_id' =>
-                auth()->user()->tenant_id,
-
-            'title' => $request->title,
-
-            'category' => $request->category,
-
-            'amount' => $request->amount,
-
-            'expense_date' =>
-                $request->expense_date,
-
-            'notes' => $request->notes,
+            'tenant_id' => auth()->user()->tenant_id,
+            'title' => $data['title'],
+            'category' => $data['category'],
+            'amount' => $data['amount'],
+            'expense_date' => $data['expense_date'],
+            'notes' => $data['notes'] ?? null,
         ]);
 
         return redirect()
@@ -65,6 +56,11 @@ class ExpenseController extends Controller
 
     public function edit(Expense $expense)
     {
+        abort_if(
+            $expense->tenant_id !== auth()->user()->tenant_id,
+            403
+        );
+
         return view(
             'expenses.edit',
             compact('expense')
@@ -72,22 +68,15 @@ class ExpenseController extends Controller
     }
 
     public function update(
-        Request $request,
+        StoreExpenseRequest $request,
         Expense $expense
     ) {
+        abort_if(
+            $expense->tenant_id !== auth()->user()->tenant_id,
+            403
+        );
 
-        $request->validate([
-
-            'title' => ['required'],
-
-            'category' => ['required'],
-
-            'amount' => ['required', 'numeric'],
-
-            'expense_date' => ['required'],
-        ]);
-
-        $expense->update($request->all());
+        $expense->update($request->validated());
 
         return redirect()
             ->route('expenses.index')
@@ -99,6 +88,11 @@ class ExpenseController extends Controller
 
     public function destroy(Expense $expense)
     {
+        abort_if(
+            $expense->tenant_id !== auth()->user()->tenant_id,
+            403
+        );
+
         $expense->delete();
 
         return back()->with(
