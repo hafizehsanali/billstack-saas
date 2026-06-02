@@ -35,7 +35,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('categories', CategoryController::class)->only(['index', 'create', 'store']);
     Route::get('/products/{product}/stock-ledger', [ProductController::class, 'stockLedger'])->name('products.stock-ledger');
     Route::resource('products', ProductController::class)->only(['index', 'create', 'store', 'edit', 'update']);
-    Route::resource('customers', CustomerController::class)->only(['index', 'create', 'store']);
+    Route::resource('customers', CustomerController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
     Route::get('/customers/{customer}/statement', [CustomerController::class, 'statement'])->name('customers.statement');
     Route::post('/customers/{customer}/payments', [CustomerPaymentController::class, 'store'])->name('customer-payments.store');
     Route::get('/customers/{customer}/account', [CustomerAccountController::class, 'show'])->name('customer.account');

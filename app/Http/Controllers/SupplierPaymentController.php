@@ -69,9 +69,21 @@ class SupplierPaymentController extends Controller
     {
        
         $validated = $request->validated();
-         //dd($validated);
+        $supplier = Supplier::findOrFail($validated['supplier_id']);
+
+        abort_if(
+            $supplier->tenant_id !== auth()->user()->tenant_id,
+            403
+        );
+
         $validated['tenant_id'] = auth()->user()->tenant_id;
+
         $this->supplierAccountService->storePayment($validated);
+
+        if ($request->input('source') === 'account') {
+            return back()->with('success', 'Payment added successfully.');
+        }
+
         return redirect()->route('supplier-payments.index',$validated['supplier_id'])
                ->with('success','Payment added successfully.' );
     }

@@ -26,4 +26,23 @@ class Supplier extends Model
     {
         return $this->hasMany(Purchase::class);
     }
+
+    public function totalPurchases(): float
+    {
+        return $this->purchases()
+            ->where('status', '!=', 'cancelled')
+            ->sum('total');
+    }
+
+    public function totalPaid(): float
+    {
+        return $this->payments()->sum('amount');
+    }
+
+    public function remainingAmount(): float
+    {
+        return $this->purchases()
+            ->where('status', '!=', 'cancelled')
+            ->sum('remaining_amount');
+    }
 }

@@ -106,6 +106,83 @@
 
 </div>
 
+<div class="card mb-3">
+    <div class="card-header fw-bold">
+        Pay Supplier
+    </div>
+
+    <div class="card-body">
+        <form action="{{ route('supplier-payments.store') }}" method="POST">
+            @csrf
+
+            <input type="hidden" name="supplier_id" value="{{ $supplier->id }}">
+            <input type="hidden" name="source" value="account">
+
+            <div class="row g-3 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label">Amount</label>
+                    <input type="number"
+                           name="amount"
+                           step="0.01"
+                           min="1"
+                           max="{{ max($outstanding_payable, 0) }}"
+                           class="form-control"
+                           value="{{ old('amount') }}"
+                           required>
+                    <small class="text-muted">
+                        Payable: Rs {{ number_format($outstanding_payable, 2) }}
+                    </small>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Method</label>
+                    <select name="payment_method" class="form-select">
+                        <option value="">Select Method</option>
+                        <option value="cash" @selected(old('payment_method') === 'cash')>Cash</option>
+                        <option value="bank" @selected(old('payment_method') === 'bank')>Bank Transfer</option>
+                        <option value="jazzcash" @selected(old('payment_method') === 'jazzcash')>JazzCash</option>
+                        <option value="easypaisa" @selected(old('payment_method') === 'easypaisa')>EasyPaisa</option>
+                        <option value="cheque" @selected(old('payment_method') === 'cheque')>Cheque</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Payment Date</label>
+                    <input type="date"
+                           name="payment_date"
+                           value="{{ old('payment_date', now()->format('Y-m-d')) }}"
+                           class="form-control"
+                           required>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Reference No</label>
+                    <input type="text"
+                           name="reference_no"
+                           value="{{ old('reference_no') }}"
+                           class="form-control">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Notes</label>
+                    <input type="text"
+                           name="notes"
+                           value="{{ old('notes') }}"
+                           class="form-control">
+                </div>
+
+                <div class="col-md-1">
+                    <button type="submit"
+                            class="btn btn-success w-100"
+                            @disabled($outstanding_payable <= 0)>
+                        Save
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 {{-- Ledger Table --}}
 <button onclick="window.print()" class="btn btn-dark btn-sm">
     Print Statement

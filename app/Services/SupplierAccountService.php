@@ -7,6 +7,7 @@ use App\Models\Supplier;
 use App\Models\SupplierPayment;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class SupplierAccountService
 {
@@ -119,6 +120,10 @@ class SupplierAccountService
             'ledger' => $ledger,
             'closing_balance' => $balance,
             'opening_balance' => $openingBalance,
+            'outstanding_payable' => Purchase::where('supplier_id', $supplierId)
+                ->where('tenant_id', $data['supplier']->tenant_id)
+                ->where('status', '!=', 'cancelled')
+                ->sum('remaining_amount'),
         ]);
     }
 
@@ -127,26 +132,98 @@ class SupplierAccountService
      */
     public function storePayment(array $validated): SupplierPayment
     {
-        return DB::transaction(
-            function () use ($validated) {
-                $payment = SupplierPayment::create([
-                    'tenant_id' => $validated['tenant_id'],
-                    'supplier_id' => $validated['supplier_id'],
-                    'purchase_id' => $validated['purchase_id'] ?? null,
-                    'amount' => $validated['amount'],
-                    'payment_method' => $validated['payment_method'] ?? null,
-                    'payment_date' => $validated['payment_date'] ?? null,
-                    'reference_no' => $validated['reference_no'] ?? null,
-                    'notes' => $validated['notes'] ?? null,
-                ]);
-                // Refresh Purchase
-                if (! empty($validated['purchase_id'])) {
-                    $this->refreshPurchasePaymentStatus($validated['purchase_id']);
-                }
-
-                return $payment;
+        return DB::transaction(function () use ($validated) {
+            if (! empty($validated['purchase_id'])) {
+                return $this->storePaymentForPurchase($validated);
             }
-        );
+
+            return $this->allocatePaymentToOldestPurchases($validated);
+        });
+    }
+
+    private function storePaymentForPurchase(array $validated): SupplierPayment
+    {
+        $purchase = Purchase::where('tenant_id', $validated['tenant_id'])
+            ->where('supplier_id', $validated['supplier_id'])
+            ->lockForUpdate()
+            ->findOrFail($validated['purchase_id']);
+
+        if ($purchase->status === 'cancelled') {
+            throw ValidationException::withMessages([
+                'purchase_id' => 'Cannot record payment against a cancelled purchase.',
+            ]);
+        }
+
+        if ((float) $validated['amount'] > (float) $purchase->remaining_amount) {
+            throw ValidationException::withMessages([
+                'amount' => 'Payment amount cannot be greater than purchase remaining balance.',
+            ]);
+        }
+
+        $payment = $this->createPayment($validated, $purchase->id, (float) $validated['amount']);
+        $this->refreshPurchasePaymentStatus($purchase->id);
+
+        return $payment;
+    }
+
+    private function allocatePaymentToOldestPurchases(array $validated): SupplierPayment
+    {
+        $purchases = Purchase::where('tenant_id', $validated['tenant_id'])
+            ->where('supplier_id', $validated['supplier_id'])
+            ->where('status', '!=', 'cancelled')
+            ->where('remaining_amount', '>', 0)
+            ->orderBy('purchase_date')
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get();
+
+        $outstanding = (float) $purchases->sum('remaining_amount');
+        $paymentAmount = (float) $validated['amount'];
+
+        if ($outstanding <= 0) {
+            throw ValidationException::withMessages([
+                'amount' => 'This supplier has no outstanding purchase balance.',
+            ]);
+        }
+
+        if ($paymentAmount > $outstanding) {
+            throw ValidationException::withMessages([
+                'amount' => 'Payment amount cannot be greater than supplier outstanding balance.',
+            ]);
+        }
+
+        $remainingPayment = $paymentAmount;
+        $firstPayment = null;
+
+        // Apply payments to older purchases first so supplier ageing remains predictable.
+        foreach ($purchases as $purchase) {
+            if ($remainingPayment <= 0) {
+                break;
+            }
+
+            $allocatedAmount = min($remainingPayment, (float) $purchase->remaining_amount);
+            $payment = $this->createPayment($validated, $purchase->id, $allocatedAmount);
+            $firstPayment ??= $payment;
+
+            $this->refreshPurchasePaymentStatus($purchase->id);
+            $remainingPayment -= $allocatedAmount;
+        }
+
+        return $firstPayment;
+    }
+
+    private function createPayment(array $validated, int $purchaseId, float $amount): SupplierPayment
+    {
+        return SupplierPayment::create([
+            'tenant_id' => $validated['tenant_id'],
+            'supplier_id' => $validated['supplier_id'],
+            'purchase_id' => $purchaseId,
+            'amount' => $amount,
+            'payment_method' => $validated['payment_method'] ?? null,
+            'payment_date' => $validated['payment_date'] ?? null,
+            'reference_no' => $validated['reference_no'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+        ]);
     }
 
     // Delete payment

@@ -11,7 +11,7 @@ class CustomerController extends Controller
     public function index()
     {
         $customers = Customer::where('tenant_id', auth()->user()->tenant_id)
-            ->withCount('invoices')
+            ->withCount(['invoices', 'payments', 'returns'])
             ->latest()
             ->paginate(10);
 
@@ -21,6 +21,16 @@ class CustomerController extends Controller
     public function create()
     {
         return view('customers.create');
+    }
+
+    public function edit(Customer $customer)
+    {
+        abort_if(
+            $customer->tenant_id !== auth()->user()->tenant_id,
+            403
+        );
+
+        return view('customers.edit', compact('customer'));
     }
 
     public function store(StoreCustomerRequest $request)
@@ -39,6 +49,28 @@ class CustomerController extends Controller
         return redirect()
             ->route('customers.index')
             ->with('success', 'Customer created successfully.');
+    }
+
+    public function update(StoreCustomerRequest $request, Customer $customer)
+    {
+        abort_if(
+            $customer->tenant_id !== auth()->user()->tenant_id,
+            403
+        );
+
+        $data = $request->validated();
+
+        $customer->update([
+            'name' => $data['name'],
+            'phone' => $data['phone'] ?? null,
+            'email' => $data['email'] ?? null,
+            'address' => $data['address'] ?? null,
+            'opening_balance' => $data['opening_balance'] ?? 0,
+        ]);
+
+        return redirect()
+            ->route('customers.index')
+            ->with('success', 'Customer updated successfully.');
     }
 
     public function statement(Customer $customer)
@@ -132,5 +164,29 @@ class CustomerController extends Controller
             'entries',
             'outstandingBalance'
         ));
+    }
+
+    public function destroy(Customer $customer)
+    {
+        abort_if(
+            $customer->tenant_id !== auth()->user()->tenant_id,
+            403
+        );
+
+        if (
+            $customer->invoices()->exists()
+            || $customer->payments()->exists()
+            || $customer->returns()->exists()
+        ) {
+            return back()->withErrors([
+                'customer' => 'Customer cannot be deleted because invoice, payment, or return history exists.',
+            ]);
+        }
+
+        $customer->delete();
+
+        return redirect()
+            ->route('customers.index')
+            ->with('success', 'Customer deleted successfully.');
     }
 }

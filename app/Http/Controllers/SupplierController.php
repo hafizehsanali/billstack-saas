@@ -11,8 +11,9 @@ class SupplierController extends Controller
     public function index()
     {
         $suppliers = Supplier::where('tenant_id', auth()->user()->tenant_id)
+            ->withCount(['purchases', 'payments'])
             ->latest()
-            ->get();
+            ->paginate(10);
 
         return view('suppliers.index', compact('suppliers'));
     }
@@ -47,37 +48,7 @@ class SupplierController extends Controller
 
     public function show(Supplier $supplier)
     {
-        // // Total purchases
-        // $totalPurchases = Purchase::where('supplier_id', $supplier->id)
-        //     ->sum('total');
-
-        // // Total paid amount
-        // $totalPayments = SupplierPayment::where('supplier_id', $supplier->id)
-        //     ->sum('amount');
-
-        // // Remaining payable amount
-        // $remainingAmount = $totalPurchases - $totalPayments;
-        // // Purchase history
-        // $purchases = Purchase::where('supplier_id', $supplier->id)
-        //     ->latest()
-        //     ->get();
-
-        // // Payment history
-        // $payments = SupplierPayment::where('supplier_id', $supplier->id)
-        //     ->latest()
-        //     ->get();
-
-        return view('supplier-account.index', 
-        //compact(
-           // 'supplier',
-            // 'totalPurchases',
-            // 'totalPayments',
-            // 'remainingAmount',
-            // 'purchases',
-            // 'payments'
-       // )
-        );
-
+        return redirect()->route('supplier.account', $supplier);
     }
 
     public function update(StoreSupplierRequest $request, Supplier $supplier)
@@ -98,7 +69,18 @@ class SupplierController extends Controller
 
     public function destroy(Supplier $supplier)
     {
-        $supplier->delete(); // soft delete supported
+        abort_if(
+            $supplier->tenant_id !== auth()->user()->tenant_id,
+            403
+        );
+
+        if ($supplier->purchases()->exists() || $supplier->payments()->exists()) {
+            return back()->withErrors([
+                'supplier' => 'Supplier cannot be deleted because purchase or payment history exists.',
+            ]);
+        }
+
+        $supplier->delete();
 
         return redirect()->route('suppliers.index')
             ->with('success', 'Supplier deleted successfully.');

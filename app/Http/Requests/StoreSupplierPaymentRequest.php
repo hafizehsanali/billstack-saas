@@ -21,6 +21,7 @@ class StoreSupplierPaymentRequest extends FormRequest
             'payment_method' => ['nullable', 'string', 'max:50'],
             'reference_no' => ['nullable', 'string', 'max:100'],
             'notes' => ['nullable', 'string'],
+            'source' => ['nullable', 'string', 'max:50'],
         ];
     }
 }
