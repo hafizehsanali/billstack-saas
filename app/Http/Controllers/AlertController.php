@@ -11,6 +11,8 @@ class AlertController extends Controller
         return view('alerts.index', [
             'summary' => $alerts->summary(),
             'lowStockProducts' => $alerts->lowStockProducts(),
+            'customerPaymentDues' => $alerts->customerPaymentDues(),
+            'supplierPaymentDues' => $alerts->supplierPaymentDues(),
         ]);
     }
 }

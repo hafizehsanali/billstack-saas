@@ -8,13 +8,13 @@
         <small class="text-muted">Operational alerts that need attention.</small>
     </div>
 
-    <a href="{{ route('products.index') }}" class="btn btn-secondary">
-        Products
+    <a href="{{ route('dashboard') }}" class="btn btn-secondary">
+        Dashboard
     </a>
 </div>
 
 <div class="row g-3 mb-3">
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="card border-danger">
             <div class="card-body">
                 <small class="text-muted">Total Active Alerts</small>
@@ -23,7 +23,7 @@
         </div>
     </div>
 
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="card border-danger">
             <div class="card-body">
                 <small class="text-muted">Out of Stock</small>
@@ -32,7 +32,7 @@
         </div>
     </div>
 
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="card border-warning">
             <div class="card-body">
                 <small class="text-muted">Low Stock</small>
@@ -40,9 +40,20 @@
             </div>
         </div>
     </div>
+
+    <div class="col-md-3">
+        <div class="card border-primary">
+            <div class="card-body">
+                <small class="text-muted">Payment Due</small>
+                <h2 class="mb-0 text-primary">
+                    {{ $summary['customer_payment_due'] + $summary['supplier_payment_due'] }}
+                </h2>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div class="card">
+<div class="card mb-3">
     <div class="card-header">
         <h3 class="card-title mb-0">
             Low Stock Alerts
@@ -102,6 +113,116 @@
                     <tr>
                         <td colspan="7" class="text-center text-muted py-4">
                             No active alerts.
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">
+        <h3 class="card-title mb-0">
+            Customer Payment Due
+        </h3>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-vcenter card-table">
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th class="text-center">Open Invoices</th>
+                    <th>Oldest Due</th>
+                    <th>Latest Due</th>
+                    <th class="text-end">Total Remaining</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @forelse($customerPaymentDues as $alert)
+                    <tr>
+                        <td>{{ $alert['customer']?->name ?? '-' }}</td>
+                        <td class="text-center">
+                            <span class="badge bg-dark text-white fs-5 px-3 py-2">
+                                {{ $alert['open_invoices'] }}
+                            </span>
+                        </td>
+                        <td>{{ \Carbon\Carbon::parse($alert['oldest_date'])->format('d M Y') }}</td>
+                        <td>{{ \Carbon\Carbon::parse($alert['latest_date'])->format('d M Y') }}</td>
+                        <td class="text-end">
+                            Rs {{ number_format($alert['remaining_amount'], 2) }}
+                        </td>
+                        <td class="text-end">
+                            @if($alert['customer'])
+                                <a href="{{ route('customers.statement', $alert['customer']) }}"
+                                   class="btn btn-sm btn-outline-primary">
+                                    Statement
+                                </a>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            No customer payment dues.
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title mb-0">
+            Supplier Payment Due
+        </h3>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-vcenter card-table">
+            <thead>
+                <tr>
+                    <th>Supplier</th>
+                    <th class="text-center">Open Purchases</th>
+                    <th>Oldest Due</th>
+                    <th>Latest Due</th>
+                    <th class="text-end">Total Remaining</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @forelse($supplierPaymentDues as $alert)
+                    <tr>
+                        <td>{{ $alert['supplier']?->name ?? '-' }}</td>
+                        <td class="text-center">
+                            <span class="badge bg-dark text-white fs-5 px-3 py-2">
+                                {{ $alert['open_purchases'] }}
+                            </span>
+                        </td>
+                        <td>{{ \Carbon\Carbon::parse($alert['oldest_date'])->format('d M Y') }}</td>
+                        <td>{{ \Carbon\Carbon::parse($alert['latest_date'])->format('d M Y') }}</td>
+                        <td class="text-end">
+                            Rs {{ number_format($alert['remaining_amount'], 2) }}
+                        </td>
+                        <td class="text-end">
+                            @if($alert['supplier'])
+                                <a href="{{ route('supplier.account', $alert['supplier']) }}"
+                                   class="btn btn-sm btn-outline-primary">
+                                    Supplier Account
+                                </a>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            No supplier payment dues.
                         </td>
                     </tr>
                 @endforelse
