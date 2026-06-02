@@ -291,9 +291,11 @@ class InvoiceController extends Controller
             'items.product',
         ]);
 
+        $tenant = auth()->user()->tenant;
+
         $pdf = Pdf::loadView(
             'invoices.pdf',
-            compact('invoice')
+            compact('invoice', 'tenant')
         );
 
         return $pdf->download(

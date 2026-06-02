@@ -30,6 +30,10 @@
         ['label' => 'Low Stock', 'route' => 'reports.low-stock', 'active' => ['reports.low-stock']],
         ['label' => 'Profit & Loss', 'route' => 'reports.profit-loss', 'active' => ['reports.profit-loss']],
     ];
+
+    $settingsLinks = [
+        ['label' => 'Business Settings', 'route' => 'settings.business', 'active' => ['settings.*']],
+    ];
 @endphp
 
 <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark bg-dark d-print-none">
@@ -80,6 +84,21 @@
                     </li>
 
                     @foreach($reportLinks as $link)
+                        <li class="nav-item">
+                            <a class="nav-link text-white {{ $isActive($link['active']) ? 'active' : '' }}"
+                               href="{{ route($link['route']) }}">
+                                <span class="nav-link-title">{{ $link['label'] }}</span>
+                            </a>
+                        </li>
+                    @endforeach
+
+                    <li class="nav-item mt-3 mb-1">
+                        <span class="nav-link disabled text-uppercase text-white-50 small">
+                            Settings
+                        </span>
+                    </li>
+
+                    @foreach($settingsLinks as $link)
                         <li class="nav-item">
                             <a class="nav-link text-white {{ $isActive($link['active']) ? 'active' : '' }}"
                                href="{{ route($link['route']) }}">

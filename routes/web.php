@@ -14,6 +14,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SalesReturnController;
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SupplierAccountController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SupplierPaymentController;
@@ -31,6 +32,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('/alerts', [AlertController::class, 'index'])->name('alerts.index');
+    Route::get('/settings/business', [SettingsController::class, 'business'])->name('settings.business');
+    Route::put('/settings/business', [SettingsController::class, 'updateBusiness'])->name('settings.business.update');
 
     Route::resource('categories', CategoryController::class)->only(['index', 'create', 'store']);
     Route::get('/products/{product}/stock-ledger', [ProductController::class, 'stockLedger'])->name('products.stock-ledger');
