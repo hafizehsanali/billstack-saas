@@ -1,58 +1,138 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# BillStack
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+BillStack is a Laravel-based inventory, billing, and business account management system for small and medium businesses such as general stores, hardware shops, pharmacies, wholesalers, and service-retail businesses.
 
-## About Laravel
+The project is being developed as both a portfolio-grade application and a foundation for real business deployments. The public codebase uses demo data only. Real client data, deployment secrets, paid modules, and client-specific customizations should stay private.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Current Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- Multi-tenant business data separation
+- Authentication and role-based access foundation
+- Dashboard analytics with sales, profit, expense, invoice, and stock indicators
+- Product and category management
+- Product stock ledger with sale, purchase, return, and adjustment movements
+- Purchase workflow with supplier payments
+- Invoice workflow with customer payments
+- POS billing screen
+- Sales return workflow with stock restoration
+- Customer statements and account payment allocation
+- Supplier account ledger and payment allocation
+- Expense management
+- Alerts Center, currently focused on low-stock alerts
+- Sales, stock, low-stock, and profit/loss reports
+- Invoice PDF download
+- Feature tests for key accounting and inventory flows
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Tech Stack
 
-## Learning Laravel
+- PHP 8.3+
+- Laravel 13
+- Laravel Breeze
+- Spatie Laravel Permission
+- Tabler UI
+- Vite
+- ApexCharts
+- DomPDF
+- PHPUnit
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Local Setup
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+Clone the repository and install dependencies:
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+composer install
+npm install
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Create the environment file:
 
-## Contributing
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Set up the database. SQLite is the simplest local option:
 
-## Code of Conduct
+```bash
+type nul > database\database.sqlite
+php artisan migrate --seed
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+For MySQL/XAMPP, update `.env` with your database name, username, and password, then run:
 
-## Security Vulnerabilities
+```bash
+php artisan migrate --seed
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Build frontend assets:
+
+```bash
+npm run build
+```
+
+Run the app:
+
+```bash
+php artisan serve
+```
+
+## Demo Login
+
+Seeded demo users:
+
+- `owner@test.com`
+- `alpha@example.com`
+- `beta@example.com`
+
+Password for seeded demo users:
+
+- `password`
+
+Use these credentials only for local/demo environments. Never use them in production.
+
+## Verification Commands
+
+Run these before committing major changes:
+
+```bash
+php artisan route:list --except-vendor
+php artisan view:cache
+php artisan test
+```
+
+## Public vs Private Usage
+
+Safe for the public repository:
+
+- Generic application source code
+- Migrations and demo seeders
+- Tests
+- Public README and setup notes
+- Screenshots using demo data
+
+Keep private:
+
+- `.env` files
+- Real customer, supplier, invoice, or financial data
+- API keys, mail credentials, payment keys, and server credentials
+- Client-specific custom modules
+- Production deployment notes
+- Paid modules, licensing, or subscription logic
+
+## Commercial Roadmap
+
+Planned business-ready improvements:
+
+- Customer and supplier ageing reports
+- Payment reminders in Alerts Center
+- Purchase returns
+- Batch/expiry support for pharmacy workflows
+- Business settings for invoice format, tax, currency, and branding
+- Receipt and statement print polish
+- Audit logs for sensitive changes
+- Role permission polish per module
+- Deployment and onboarding documentation
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is currently maintained as a portfolio and business product foundation. Confirm licensing and commercial usage terms before using it for a client deployment.
