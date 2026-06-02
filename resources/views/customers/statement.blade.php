@@ -85,6 +85,88 @@
 
 </div>
 
+<div class="card mb-3">
+
+    <div class="card-header">
+        <h3 class="card-title mb-0">
+            Receive Payment
+        </h3>
+    </div>
+
+    <div class="card-body">
+
+        <form action="{{ route('customer-payments.store', $customer) }}" method="POST">
+            @csrf
+
+            <div class="row g-3 align-items-end">
+
+                <div class="col-md-2">
+                    <label class="form-label">Amount</label>
+                    <input type="number"
+                           name="amount"
+                           step="0.01"
+                           min="1"
+                           max="{{ max($outstandingBalance, 0) }}"
+                           class="form-control"
+                           value="{{ old('amount') }}"
+                           required>
+                    <small class="text-muted">
+                        Outstanding: Rs {{ number_format($outstandingBalance, 2) }}
+                    </small>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Method</label>
+                    <select name="payment_method" class="form-select" required>
+                        <option value="cash" @selected(old('payment_method', 'cash') === 'cash')>Cash</option>
+                        <option value="bank" @selected(old('payment_method') === 'bank')>Bank</option>
+                        <option value="card" @selected(old('payment_method') === 'card')>Card</option>
+                        <option value="jazzcash" @selected(old('payment_method') === 'jazzcash')>JazzCash</option>
+                        <option value="easypaisa" @selected(old('payment_method') === 'easypaisa')>EasyPaisa</option>
+                        <option value="cheque" @selected(old('payment_method') === 'cheque')>Cheque</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Date</label>
+                    <input type="date"
+                           name="payment_date"
+                           class="form-control"
+                           value="{{ old('payment_date', now()->format('Y-m-d')) }}">
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Reference No</label>
+                    <input type="text"
+                           name="reference_no"
+                           class="form-control"
+                           value="{{ old('reference_no') }}">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Notes</label>
+                    <input type="text"
+                           name="notes"
+                           class="form-control"
+                           value="{{ old('notes') }}">
+                </div>
+
+                <div class="col-md-1">
+                    <button type="submit"
+                            class="btn btn-success w-100"
+                            @disabled($outstandingBalance <= 0)>
+                        Save
+                    </button>
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
 <div class="card">
 
     <div class="table-responsive">

@@ -123,9 +123,14 @@ class CustomerController extends Controller
             return $entry;
         });
 
+        $outstandingBalance = $customer->invoices()
+            ->where('status', '!=', 'cancelled')
+            ->sum('remaining_amount');
+
         return view('customers.statement', compact(
             'customer',
-            'entries'
+            'entries',
+            'outstandingBalance'
         ));
     }
 }

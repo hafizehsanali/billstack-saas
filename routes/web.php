@@ -3,6 +3,7 @@
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerAccountController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CustomerPaymentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InvoiceController;
@@ -33,6 +34,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('products', ProductController::class)->only(['index', 'create', 'store', 'edit', 'update']);
     Route::resource('customers', CustomerController::class)->only(['index', 'create', 'store']);
     Route::get('/customers/{customer}/statement', [CustomerController::class, 'statement'])->name('customers.statement');
+    Route::post('/customers/{customer}/payments', [CustomerPaymentController::class, 'store'])->name('customer-payments.store');
     Route::get('/customers/{customer}/account', [CustomerAccountController::class, 'show'])->name('customer.account');
 
     Route::get('/pos', [InvoiceController::class, 'pos'])->name('invoices.pos');
