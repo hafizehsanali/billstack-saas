@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Expense;
 use App\Models\Invoice;
+use App\Models\InvoiceItem;
 use App\Models\Product;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
@@ -63,68 +66,51 @@ class ReportController extends Controller
         );
     }
 
-    public function profitLoss()
+    public function profitLoss(Request $request)
     {
         $tenantId = auth()->user()->tenant_id;
+        $startDate = $request->start_date
+            ? Carbon::parse($request->start_date)->startOfDay()
+            : now()->startOfMonth();
+        $endDate = $request->end_date
+            ? Carbon::parse($request->end_date)->endOfDay()
+            : now()->endOfMonth();
 
-        // Paid + partial invoices only
-        $sales = Invoice::where(
-            'tenant_id',
-            $tenantId
-        )
-            ->whereIn('status', [
-            'paid',
-            'partial',
-        ])
+        $invoiceQuery = Invoice::where('tenant_id', $tenantId)
+            ->whereIn('status', ['paid', 'partial'])
+            ->whereBetween('sale_date', [$startDate, $endDate]);
+
+        $sales = (clone $invoiceQuery)
             ->sum('total');
 
-        // Total expenses
-        $expenses = Expense::where(
-            'tenant_id',
-            $tenantId
-        )
+        $cogs = InvoiceItem::whereHas('invoice', function ($query) use ($tenantId, $startDate, $endDate) {
+            $query->where('tenant_id', $tenantId)
+                ->whereIn('status', ['paid', 'partial'])
+                ->whereBetween('sale_date', [$startDate, $endDate]);
+        })
+            ->with('product')
+            ->get()
+            ->sum(fn ($item) => $item->quantity * ($item->product?->purchase_price ?? 0));
+
+        $expenses = Expense::where('tenant_id', $tenantId)
+            ->whereBetween('expense_date', [$startDate, $endDate])
             ->sum('amount');
 
-        // Net profit
-        $profit = $sales - $expenses;
-
-        // Monthly analytics
-        $monthlySales = Invoice::where(
-            'tenant_id',
-            $tenantId
-        )
-            ->whereMonth(
-                'created_at',
-                now()->month
-            )
-            ->whereIn('status', [
-                'paid',
-                'partial',
-            ])
-            ->sum('total');
-
-        $monthlyExpenses = Expense::where(
-            'tenant_id',
-            $tenantId
-        )
-            ->whereMonth(
-                'expense_date',
-                now()->month
-            )
-            ->sum('amount');
-
-        $monthlyProfit =
-            $monthlySales - $monthlyExpenses;
+        $grossProfit = $sales - $cogs;
+        $netProfit = $grossProfit - $expenses;
+        $invoiceCount = (clone $invoiceQuery)->count();
 
         return view(
             'reports.profit-loss',
             compact(
+                'startDate',
+                'endDate',
                 'sales',
+                'cogs',
+                'grossProfit',
                 'expenses',
-                'profit',
-                'monthlySales',
-                'monthlyExpenses',
-                'monthlyProfit'
+                'netProfit',
+                'invoiceCount'
             )
         );
     }
