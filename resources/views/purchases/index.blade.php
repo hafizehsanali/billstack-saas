@@ -72,26 +72,32 @@
                                     <span class="badge bg-success">Paid</span>
                                 @elseif($purchase->status == 'partial')
                                    <span class="badge bg-warning">Partial</span>
+                                @elseif($purchase->status == 'returned')
+                                   <span class="badge bg-secondary">Returned</span>
+                                @elseif($purchase->status == 'cancelled')
+                                   <span class="badge bg-dark">Cancelled</span>
                                 @else
                                     <span class="badge bg-danger">Unpaid</span>
                                 @endif
                             </td>
                             <td class="d-flex gap-1">
                                <a href="{{ route('purchases.show',$purchase->id) }}" class="btn btn-sm btn-info">View</a>
-                                @if($purchase->remaining_amount > 0)
+                                @if($purchase->remaining_amount > 0 && ! in_array($purchase->status, ['cancelled', 'returned']))
                                     <a href="{{ route('supplier-payments.create',[$purchase->supplier_id,$purchase->id]) }}" class="btn btn-sm btn-success">
                                         Pay
                                     </a>
                                 @endif
-                               <form action="{{ route('purchases.cancel', $purchase) }}"
-                                    method="POST"
-                                    class="d-inline">
-                                    @csrf
-                                    <button type="submit" class="btn btn-warning btn-sm"
-                                            onclick="return confirm('Cancel this purchase?')">
-                                        Cancel
-                                    </button>
-                                </form>
+                                @if(! in_array($purchase->status, ['cancelled', 'returned']))
+                                   <form action="{{ route('purchases.cancel', $purchase) }}"
+                                        method="POST"
+                                        class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-warning btn-sm"
+                                                onclick="return confirm('Cancel this purchase?')">
+                                            Cancel
+                                        </button>
+                                    </form>
+                                @endif
                             </td>
 
                         </tr>

@@ -7,6 +7,7 @@ use App\Models\Supplier;
 use App\Models\Purchase;
 use App\Services\PurchaseService;
 use App\Http\Requests\StorePurchaseRequest;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PurchaseController extends Controller
 {
@@ -84,7 +85,9 @@ class PurchaseController extends Controller
         $purchase->load([
             'supplier',
             'items.product',
+            'items.returnItems',
             'payments',
+            'returns.items.product',
             'creator',
         ]);
         return view('purchases.show', compact('purchase'));
@@ -125,5 +128,28 @@ class PurchaseController extends Controller
         return view('purchases.print', compact(
             'purchase'
         ));
+    }
+
+    public function pdf(Purchase $purchase)
+    {
+        if ($purchase->status === 'cancelled') {
+            abort(403, 'Cancelled purchase cannot be downloaded.');
+        }
+
+        $purchase->load([
+            'supplier',
+            'items.product',
+        ]);
+
+        $tenant = auth()->user()->tenant;
+
+        $pdf = Pdf::loadView(
+            'purchases.pdf',
+            compact('purchase', 'tenant')
+        );
+
+        return $pdf->download(
+            $purchase->purchase_no.'.pdf'
+        );
     }
 }

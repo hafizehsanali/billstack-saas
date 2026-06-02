@@ -29,4 +29,19 @@ class PurchaseItem extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    public function returnItems()
+    {
+        return $this->hasMany(PurchaseReturnItem::class);
+    }
+
+    public function returnedQuantity(): int
+    {
+        return (int) $this->returnItems()->sum('quantity');
+    }
+
+    public function returnableQuantity(): int
+    {
+        return max($this->quantity - $this->returnedQuantity(), 0);
+    }
 }

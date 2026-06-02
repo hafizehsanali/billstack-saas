@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Purchase;
+use App\Models\PurchaseReturn;
 use App\Models\Supplier;
 use App\Models\SupplierPayment;
 use Illuminate\Support\Collection;
@@ -28,16 +29,24 @@ class SupplierAccountService
             ->latest()
             ->get();
 
+        $returns = PurchaseReturn::where('supplier_id', $supplierId)
+            ->when($from, fn ($q) => $q->whereDate('return_date', '>=', $from))
+            ->when($to, fn ($q) => $q->whereDate('return_date', '<=', $to))
+            ->latest()
+            ->get();
+
         $totalPurchases = $purchases->sum('total');
         $totalPayments = $payments->sum('amount');
-        $remaining = $totalPurchases - $totalPayments;
+        $totalReturns = $returns->sum('total_amount');
+        $remaining = $totalPurchases - $totalPayments - $totalReturns;
 
-        $ledger = $this->buildLedger($purchases, $payments);
+        $ledger = $this->buildLedger($purchases, $payments, $returns);
 
         return [
             'supplier' => $supplier,
             'total_purchases' => $totalPurchases,
             'total_payments' => $totalPayments,
+            'total_returns' => $totalReturns,
             'remaining_amount' => $remaining,
             'ledger' => $ledger,
             'purchases' => $purchases,
@@ -45,7 +54,7 @@ class SupplierAccountService
         ];
     }
 
-    protected function buildLedger($purchases, $payments): Collection
+    protected function buildLedger($purchases, $payments, $returns): Collection
     {
         $ledger = collect();
         // Purchases = Debit
@@ -72,6 +81,19 @@ class SupplierAccountService
                 'credit' => $payment->amount,
                 'description' => 'Supplier Payment',
                 'notes' => $payment->notes ?? '',
+            ]);
+        }
+
+        foreach ($returns as $purchaseReturn) {
+            $ledger->push([
+                'date' => $purchaseReturn->return_date,
+                'type' => 'Supplier Return',
+                'reference' => $purchaseReturn->return_no,
+                'reference_id' => $purchaseReturn->purchase_id,
+                'debit' => 0,
+                'credit' => $purchaseReturn->total_amount,
+                'description' => 'Supplier Return',
+                'notes' => $purchaseReturn->notes ?? '',
             ]);
         }
 

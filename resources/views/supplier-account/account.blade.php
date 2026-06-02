@@ -69,6 +69,18 @@
         </div>
     </div>
 
+    {{-- Total Returns --}}
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <div class="text-muted small">Total Returns</div>
+                <div class="fs-4 fw-bold text-warning">
+                    {{ number_format($total_returns,2) }}
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- Outstanding / Advance --}}
     <div class="col-md-3">
         <div class="card shadow-sm border-0">
@@ -218,6 +230,10 @@
                                 </a>
                             @elseif($row['type'] === 'Payment')
                                 <a href="{{ route('supplier-payments.show', $row['reference_id'] ?? 0) }}">
+                                    {{ $row['description'] }}
+                                </a>
+                            @elseif($row['type'] === 'Supplier Return')
+                                <a href="{{ route('purchases.show', $row['reference_id'] ?? 0) }}">
                                     {{ $row['description'] }}
                                 </a>
                             @else

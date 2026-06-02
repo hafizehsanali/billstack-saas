@@ -53,4 +53,9 @@ class Purchase extends Model
     {
         return $this->hasMany(SupplierPayment::class);
     }
+
+    public function returns()
+    {
+        return $this->hasMany(PurchaseReturn::class);
+    }
 }

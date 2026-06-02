@@ -12,6 +12,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\PurchaseReturnController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SalesReturnController;
 use App\Http\Controllers\SettingsController;
@@ -64,8 +65,10 @@ Route::middleware(['auth', 'role:owner|accountant'])->group(function () {
     Route::delete('/supplier/{payment}', [SupplierPaymentController::class, 'destroy'])->name('supplier-payments.destroy');
 
     Route::resource('purchases', PurchaseController::class)->except(['destroy']);
+    Route::post('/purchases/{purchase}/returns', [PurchaseReturnController::class, 'store'])->name('purchase-returns.store');
     Route::post('/purchases/{purchase}/cancel', [PurchaseController::class, 'cancel'])->name('purchases.cancel');
     Route::get('/purchases/{purchase}/print', [PurchaseController::class, 'print'])->name('purchases.print');
+    Route::get('/purchases/{purchase}/pdf', [PurchaseController::class, 'pdf'])->name('purchases.pdf');
 
     Route::prefix('reports')->group(function () {
         Route::get('/daily-sales', [ReportController::class, 'dailySales'])->name('reports.daily-sales');

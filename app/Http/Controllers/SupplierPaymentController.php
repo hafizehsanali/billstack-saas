@@ -80,7 +80,7 @@ class SupplierPaymentController extends Controller
 
         $this->supplierAccountService->storePayment($validated);
 
-        if ($request->input('source') === 'account') {
+        if (in_array($request->input('source'), ['account', 'purchase_detail'], true)) {
             return back()->with('success', 'Payment added successfully.');
         }
 
