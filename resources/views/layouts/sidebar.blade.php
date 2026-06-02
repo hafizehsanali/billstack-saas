@@ -6,6 +6,7 @@
         ['label' => 'Products', 'route' => 'products.index', 'active' => ['products.index', 'products.edit', 'products.stock-ledger']],
         ['label' => 'Add Product', 'route' => 'products.create', 'active' => ['products.create']],
         ['label' => 'Categories', 'route' => 'categories.index', 'active' => ['categories.*']],
+        ['label' => 'POS Billing', 'route' => 'invoices.pos', 'active' => ['invoices.pos']],
         ['label' => 'Invoices', 'route' => 'invoices.index', 'active' => ['invoices.index', 'invoices.show', 'payments.*']],
         ['label' => 'Create Invoice', 'route' => 'invoices.create', 'active' => ['invoices.create']],
         ['label' => 'Customers', 'route' => 'customers.index', 'active' => ['customers.index', 'customers.statement', 'customer.account']],

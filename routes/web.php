@@ -35,6 +35,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/customers/{customer}/statement', [CustomerController::class, 'statement'])->name('customers.statement');
     Route::get('/customers/{customer}/account', [CustomerAccountController::class, 'show'])->name('customer.account');
 
+    Route::get('/pos', [InvoiceController::class, 'pos'])->name('invoices.pos');
     Route::resource('invoices', InvoiceController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
     Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');
     Route::patch('/invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])->name('invoices.cancel');

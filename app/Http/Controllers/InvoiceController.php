@@ -37,6 +37,18 @@ class InvoiceController extends Controller
         ));
     }
 
+    public function pos()
+    {
+        $customers = Customer::orderBy('name')->get();
+
+        $products = Product::orderBy('name')->get();
+
+        return view('invoices.pos', compact(
+            'customers',
+            'products'
+        ));
+    }
+
     public function store(StoreInvoiceRequest $request)
     {
         $data = $request->validated();

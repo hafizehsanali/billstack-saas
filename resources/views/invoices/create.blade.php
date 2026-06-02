@@ -29,7 +29,7 @@
                         <input type="text"
                                name="invoice_no"
                                class="form-control"
-                               value="INV-{{ date('YmdHis') }}"
+                               value="{{ old('invoice_no', 'INV-'.date('YmdHis')) }}"
                                readonly>
                     </div>
 
@@ -38,7 +38,7 @@
                         <input type="date"
                                name="sale_date"
                                class="form-control"
-                               value="{{ date('Y-m-d') }}"
+                               value="{{ old('sale_date', date('Y-m-d')) }}"
                                required>
                     </div>
 
@@ -48,7 +48,8 @@
                             <option value="">Select Customer</option>
 
                             @foreach($customers as $customer)
-                                <option value="{{ $customer->id }}">
+                                <option value="{{ $customer->id }}"
+                                        @selected((string) old('customer_id') === (string) $customer->id)>
                                     {{ $customer->name }}
                                 </option>
                             @endforeach
@@ -117,7 +118,7 @@
                                name="tax"
                                id="tax"
                                class="form-control"
-                               value="0">
+                               value="{{ old('tax', 0) }}">
                     </div>
 
                     <div class="col-md-3 mb-3">
@@ -127,7 +128,7 @@
                                name="discount"
                                id="discount"
                                class="form-control"
-                               value="0">
+                               value="{{ old('discount', 0) }}">
                     </div>
 
                     <div class="col-md-3 mb-3">
@@ -137,7 +138,7 @@
                                name="extra_expense"
                                id="extra_expense"
                                class="form-control"
-                               value="0">
+                               value="{{ old('extra_expense', 0) }}">
                     </div>
 
                 </div>
@@ -165,7 +166,7 @@
                                name="paid_amount"
                                id="paid_amount"
                                class="form-control"
-                               value="0">
+                               value="{{ old('paid_amount', 0) }}">
                     </div>
 
                     <div class="col-md-3 mb-3 payment-field d-none">
@@ -174,11 +175,11 @@
                                 id="payment_method"
                                 class="form-select">
                             <option value="cash">Cash</option>
-                            <option value="bank">Bank</option>
-                            <option value="card">Card</option>
-                            <option value="jazzcash">JazzCash</option>
-                            <option value="easypaisa">EasyPaisa</option>
-                            <option value="cheque">Cheque</option>
+                            <option value="bank" @selected(old('payment_method') === 'bank')>Bank</option>
+                            <option value="card" @selected(old('payment_method') === 'card')>Card</option>
+                            <option value="jazzcash" @selected(old('payment_method') === 'jazzcash')>JazzCash</option>
+                            <option value="easypaisa" @selected(old('payment_method') === 'easypaisa')>EasyPaisa</option>
+                            <option value="cheque" @selected(old('payment_method') === 'cheque')>Cheque</option>
                         </select>
                     </div>
 
@@ -188,7 +189,7 @@
                                name="payment_date"
                                id="payment_date"
                                class="form-control"
-                               value="{{ now()->format('Y-m-d\TH:i') }}">
+                               value="{{ old('payment_date', now()->format('Y-m-d\TH:i')) }}">
                     </div>
 
                     <div class="col-md-3 mb-3 payment-field d-none">
@@ -196,6 +197,7 @@
                         <input type="text"
                                name="reference_no"
                                class="form-control"
+                               value="{{ old('reference_no') }}"
                                placeholder="Cheque / Txn / Ref">
                     </div>
 
@@ -203,7 +205,7 @@
                         <label class="form-label">Payment Notes</label>
                         <textarea name="payment_notes"
                                   rows="2"
-                                  class="form-control"></textarea>
+                                  class="form-control">{{ old('payment_notes') }}</textarea>
                     </div>
 
                 </div>
@@ -257,7 +259,7 @@
                         <label class="form-label">Invoice Notes</label>
                         <textarea name="notes"
                                   rows="3"
-                                  class="form-control"></textarea>
+                                  class="form-control">{{ old('notes') }}</textarea>
                     </div>
 
                 </div>
@@ -273,9 +275,14 @@
 </div>
 
 <script>
+    const oldProducts = Object.values(@json(old('products', [])));
     let rowIndex = 0;
 
-    function addRow() {
+    function addRow(item = null) {
+        const selectedProductId = item?.product_id ? String(item.product_id) : '';
+        const quantity = Number(item?.quantity ?? 1) || 1;
+        const price = Number(item?.price ?? 0) || 0;
+
         let html = `
             <tr>
                 <td>
@@ -306,7 +313,7 @@
                            name="products[${rowIndex}][quantity]"
                            class="form-control quantity"
                            min="1"
-                           value="1"
+                           value="${quantity}"
                            onkeyup="calculateTotals()"
                            onchange="calculateTotals()"
                            required>
@@ -318,7 +325,7 @@
                            name="products[${rowIndex}][price]"
                            class="form-control price"
                            min="0"
-                           value="0"
+                           value="${price}"
                            onkeyup="calculateTotals()"
                            onchange="calculateTotals()"
                            required>
@@ -343,6 +350,16 @@
 
         document.getElementById('invoiceBody')
             .insertAdjacentHTML('beforeend', html);
+
+        const row = document.querySelector('#invoiceBody tr:last-child');
+        const productSelect = row.querySelector('.product-select');
+
+        if (selectedProductId) {
+            productSelect.value = selectedProductId;
+            setProductData(productSelect);
+            row.querySelector('.quantity').value = quantity;
+            row.querySelector('.price').value = parseFloat(price || 0).toFixed(2);
+        }
 
         rowIndex++;
         calculateTotals();
@@ -439,7 +456,11 @@
         calculateTotals();
     });
 
-    addRow();
+    if (oldProducts.length > 0) {
+        oldProducts.forEach((item) => addRow(item));
+    } else {
+        addRow();
+    }
 </script>
 
 @endsection
