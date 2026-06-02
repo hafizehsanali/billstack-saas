@@ -8,7 +8,7 @@
         <div class="text-muted">
             {{ $product->name }}
             @if($product->sku)
-                · SKU: {{ $product->sku }}
+                / SKU: {{ $product->sku }}
             @endif
         </div>
     </div>
@@ -85,20 +85,27 @@
                         </td>
 
                         <td>
-                            {{ $movement->reference_no ?? '-' }}
+                            @if($movement->reference_no && $movement->reference_url)
+                                <a href="{{ $movement->reference_url }}">
+                                    {{ $movement->reference_no }}
+                                </a>
+                            @else
+                                {{ $movement->reference_no ?? '-' }}
+                            @endif
                         </td>
 
                         <td>
-                            {{ str($movement->type)->replace('_', ' ')->title() }}
+                            {{ $movement->display_type }}
                         </td>
 
                         <td>
                             <span class="badge {{ $movement->direction === 'in' ? 'bg-green' : 'bg-red' }}">
-                                {{ strtoupper($movement->direction) }}
+                                {{ $movement->direction === 'in' ? 'Stock In' : 'Stock Out' }}
                             </span>
                         </td>
 
-                        <td class="text-end">
+                        <td class="text-end {{ $movement->direction === 'in' ? 'text-success' : 'text-danger' }}">
+                            {{ $movement->direction === 'in' ? '+' : '-' }}
                             {{ number_format($movement->quantity, 3) }}
                         </td>
 
