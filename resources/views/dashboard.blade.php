@@ -135,6 +135,10 @@
             <div class="card-body">
                 <small>Low Stock</small>
                 <h2>{{ $stats['low_stock'] }}</h2>
+                <a href="{{ route('alerts.index') }}"
+                   class="btn btn-sm btn-outline-danger">
+                    View Alerts
+                </a>
             </div>
         </div>
     </div>
@@ -311,6 +315,11 @@
                 <h3 class="card-title text-danger">
                     Low Stock Alerts
                 </h3>
+
+                <a href="{{ route('alerts.index') }}"
+                   class="btn btn-sm btn-outline-danger ms-auto">
+                    View All
+                </a>
             </div>
 
             <div class="table-responsive">

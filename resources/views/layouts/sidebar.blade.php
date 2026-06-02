@@ -3,6 +3,7 @@
 
     $storeLinks = [
         ['label' => 'Dashboard', 'route' => 'dashboard', 'active' => ['dashboard']],
+        ['label' => 'Alerts', 'route' => 'alerts.index', 'active' => ['alerts.*']],
         ['label' => 'Products', 'route' => 'products.index', 'active' => ['products.index', 'products.edit', 'products.stock-ledger']],
         ['label' => 'Add Product', 'route' => 'products.create', 'active' => ['products.create']],
         ['label' => 'Categories', 'route' => 'categories.index', 'active' => ['categories.*']],
