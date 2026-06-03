@@ -1,4 +1,11 @@
 <x-guest-layout>
+    <div class="mb-5">
+        <h1 class="text-xl font-semibold text-gray-900">Sign in to BillStack</h1>
+        <p class="mt-1 text-sm text-gray-600">
+            Access your inventory, invoices, purchases, reports, and business accounts.
+        </p>
+    </div>
+
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
@@ -40,7 +47,7 @@
             @endif
 
             <x-primary-button class="ms-3">
-                {{ __('Log in') }}
+                {{ __('Sign In') }}
             </x-primary-button>
         </div>
     </form>

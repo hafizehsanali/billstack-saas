@@ -1,6 +1,6 @@
 # Public and Private Project Guide
 
-BillStack can be used as a public portfolio project and as a foundation for private business deployments. Keep these boundaries clear before publishing code or onboarding a real business.
+BillStack can keep a public generic codebase while private business deployments hold client-specific configuration, data, and custom modules. Keep these boundaries clear before publishing code or onboarding a real business.
 
 ## Public Repository
 

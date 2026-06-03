@@ -1,4 +1,11 @@
 <x-guest-layout>
+    <div class="mb-5">
+        <h1 class="text-xl font-semibold text-gray-900">Create your BillStack workspace</h1>
+        <p class="mt-1 text-sm text-gray-600">
+            Set up a demo business account for inventory, billing, customers, and suppliers.
+        </p>
+    </div>
+
     <form method="POST" action="{{ route('register') }}">
         @csrf
 
@@ -59,7 +66,7 @@
             </a>
 
             <x-primary-button class="ms-4">
-                {{ __('Register') }}
+                {{ __('Create Account') }}
             </x-primary-button>
         </div>
     </form>

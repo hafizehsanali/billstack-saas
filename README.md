@@ -2,7 +2,7 @@
 
 BillStack is a Laravel-based inventory, billing, and business account management system for small and medium businesses such as general stores, hardware shops, pharmacies, wholesalers, and service-retail businesses.
 
-The project is being developed as both a portfolio-grade application and a foundation for real business deployments. The public codebase uses demo data only. Real client data, deployment secrets, paid modules, and client-specific customizations should stay private.
+The public codebase is kept generic and demo-safe. Real client data, deployment secrets, paid modules, and client-specific customizations should stay private.
 
 ## Current Features
 
@@ -135,4 +135,4 @@ Planned business-ready improvements:
 
 ## License
 
-This project is currently maintained as a portfolio and business product foundation. Confirm licensing and commercial usage terms before using it for a client deployment.
+This project is currently maintained as a business product foundation. Confirm licensing and commercial usage terms before using it for a client deployment.

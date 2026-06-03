@@ -13,7 +13,10 @@ class RegistrationTest extends TestCase
     {
         $response = $this->get('/register');
 
-        $response->assertStatus(200);
+        $response
+            ->assertStatus(200)
+            ->assertSee('Create your BillStack workspace')
+            ->assertSee('inventory, billing, customers, and suppliers');
     }
 
     public function test_new_users_can_register(): void
