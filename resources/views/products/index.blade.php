@@ -2,80 +2,146 @@
 
 @section('content')
 
-<div class="card">
+@php
+    $totalProducts = $products->count();
+    $outOfStockCount = $products->where('stock_quantity', '<=', 0)->count();
+    $lowStockCount = $products
+        ->filter(fn ($product) => $product->stock_quantity > 0 && $product->stock_quantity <= $product->low_stock_alert)
+        ->count();
+    $stockValue = $products->sum(fn ($product) => $product->stock_quantity * $product->purchase_price);
+@endphp
 
-    <div class="card-header">
-
-        <h3 class="card-title">
-            Products
-        </h3>
-
-        <a href="{{ route('products.create') }}"
-           class="btn btn-primary ms-auto">
-            Add Product
-        </a>
-
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="mb-1">Products</h3>
+        <div class="text-muted">
+            Inventory list with stock health, pricing, and movement history.
+        </div>
     </div>
 
+    <a href="{{ route('products.create') }}"
+       class="btn btn-primary">
+        Add Product
+    </a>
+</div>
+
+<div class="row row-cards mb-3">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-muted">Total Products</div>
+                <div class="h2 mb-0">{{ number_format($totalProducts) }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-muted">Low Stock Items</div>
+                <div class="h2 mb-0 text-warning">{{ number_format($lowStockCount) }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-muted">Out of Stock</div>
+                <div class="h2 mb-0 text-danger">{{ number_format($outOfStockCount) }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-muted">Stock Value at Cost</div>
+                <div class="h2 mb-0">Rs {{ number_format($stockValue, 2) }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
     <div class="table-responsive">
-
         <table class="table table-vcenter card-table">
-
             <thead>
                 <tr>
-                    <th>Name</th>
+                    <th>Product</th>
                     <th>Category</th>
-                    <th>Purchase Price</th>
-                    <th>Selling Price</th>
-                    <th>Stock</th>
+                    <th>SKU</th>
+                    <th class="text-end">Purchase Price</th>
+                    <th class="text-end">Selling Price</th>
+                    <th class="text-end">Stock</th>
+                    <th>Status</th>
                     <th class="text-end">Actions</th>
                 </tr>
             </thead>
 
             <tbody>
+                @forelse($products as $product)
+                    @php
+                        $isOutOfStock = $product->stock_quantity <= 0;
+                        $isLowStock = ! $isOutOfStock && $product->stock_quantity <= $product->low_stock_alert;
+                    @endphp
 
-            @foreach($products as $product)
+                    <tr>
+                        <td>
+                            <div class="fw-bold">{{ $product->name }}</div>
+                            @if($product->barcode)
+                                <div class="text-muted small">Barcode: {{ $product->barcode }}</div>
+                            @endif
+                        </td>
 
-                <tr>
+                        <td>{{ $product->category?->name ?? '-' }}</td>
 
-                    <td>
-                        {{ $product->name }}
-                    </td>
+                        <td>{{ $product->sku ?: '-' }}</td>
 
-                    <td>
-                        {{ $product->category?->name }}
-                    </td>
+                        <td class="text-end">
+                            Rs {{ number_format($product->purchase_price, 2) }}
+                        </td>
 
-                    
-                    <td>{{ $product->purchase_price }}</td>
-                    <td>{{ $product->selling_price }}</td>
+                        <td class="text-end">
+                            Rs {{ number_format($product->selling_price, 2) }}
+                        </td>
 
-                    <td>
-                        {{ $product->stock_quantity }}
-                    </td>
+                        <td class="text-end fw-bold">
+                            {{ number_format($product->stock_quantity) }}
+                        </td>
 
-                    <td class="text-end">
-                        <a href="{{ route('products.edit', $product) }}"
-                           class="btn btn-sm btn-outline-secondary">
-                            Edit
-                        </a>
+                        <td>
+                            @if($isOutOfStock)
+                                <span class="badge bg-danger">Out of Stock</span>
+                            @elseif($isLowStock)
+                                <span class="badge bg-warning">Low Stock</span>
+                            @else
+                                <span class="badge bg-success">In Stock</span>
+                            @endif
+                        </td>
 
-                        <a href="{{ route('products.stock-ledger', $product) }}"
-                           class="btn btn-sm btn-outline-primary">
-                            Stock Ledger
-                        </a>
-                    </td>
+                        <td class="text-end">
+                            <a href="{{ route('products.stock-ledger', $product) }}"
+                               class="btn btn-sm btn-outline-primary">
+                                Stock Ledger
+                            </a>
 
-                </tr>
-
-            @endforeach
-
+                            <a href="{{ route('products.edit', $product) }}"
+                               class="btn btn-sm btn-outline-secondary">
+                                Edit
+                            </a>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            No products found. Add your first product to start tracking inventory.
+                        </td>
+                    </tr>
+                @endforelse
             </tbody>
-
         </table>
-
     </div>
-
 </div>
 
 @endsection
