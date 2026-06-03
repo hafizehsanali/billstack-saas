@@ -19,10 +19,12 @@ class ReportController extends Controller
             ->get();
 
         $totalSales = $invoices->sum('total');
+        $totalReceived = $invoices->sum('paid_amount');
+        $totalReceivable = $invoices->sum('remaining_amount');
 
         return view(
             'reports.daily-sales',
-            compact('invoices', 'totalSales')
+            compact('invoices', 'totalSales', 'totalReceived', 'totalReceivable')
         );
     }
 
@@ -35,20 +37,27 @@ class ReportController extends Controller
             ->get();
 
         $totalSales = $invoices->sum('total');
+        $totalReceived = $invoices->sum('paid_amount');
+        $totalReceivable = $invoices->sum('remaining_amount');
 
         return view(
             'reports.monthly-sales',
-            compact('invoices', 'totalSales')
+            compact('invoices', 'totalSales', 'totalReceived', 'totalReceivable')
         );
     }
 
     public function stock()
     {
         $products = Product::latest()->get();
+        $stockValue = $products->sum(fn ($product) => $product->stock_quantity * $product->purchase_price);
+        $lowStockCount = $products
+            ->filter(fn ($product) => $product->stock_quantity > 0 && $product->stock_quantity <= $product->low_stock_alert)
+            ->count();
+        $outOfStockCount = $products->where('stock_quantity', '<=', 0)->count();
 
         return view(
             'reports.stock',
-            compact('products')
+            compact('products', 'stockValue', 'lowStockCount', 'outOfStockCount')
         );
     }
 
@@ -59,10 +68,11 @@ class ReportController extends Controller
             '<=',
             'low_stock_alert'
         )->get();
+        $outOfStockCount = $products->where('stock_quantity', '<=', 0)->count();
 
         return view(
             'reports.low-stock',
-            compact('products')
+            compact('products', 'outOfStockCount')
         );
     }
 

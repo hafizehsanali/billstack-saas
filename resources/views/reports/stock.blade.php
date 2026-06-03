@@ -2,63 +2,111 @@
 
 @section('content')
 
-<div class="card">
-
-    <div class="card-header">
-
-        <h3 class="card-title">
-            Stock Report
-        </h3>
-
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="mb-1">Stock Report</h3>
+        <div class="text-muted">
+            Current inventory quantity, selling value, and stock health.
+        </div>
     </div>
 
+    <a href="{{ route('products.index') }}" class="btn btn-secondary">
+        Products
+    </a>
+</div>
+
+<div class="row row-cards mb-3">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-muted">Products</div>
+                <div class="h2 mb-0">{{ number_format($products->count()) }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-muted">Stock Value at Cost</div>
+                <div class="h2 mb-0">Rs {{ number_format($stockValue, 2) }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-muted">Low Stock</div>
+                <div class="h2 mb-0 text-warning">{{ number_format($lowStockCount) }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-muted">Out of Stock</div>
+                <div class="h2 mb-0 text-danger">{{ number_format($outOfStockCount) }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
     <div class="table-responsive">
-
         <table class="table table-vcenter card-table">
-
             <thead>
-
-            <tr>
-                <th>Product</th>
-                <th>SKU</th>
-                <th>Stock</th>
-                <th>Selling Price</th>
-                <th class="text-end">Actions</th>
-            </tr>
-
+                <tr>
+                    <th>Product</th>
+                    <th>SKU</th>
+                    <th class="text-end">Current Stock</th>
+                    <th class="text-end">Purchase Price</th>
+                    <th class="text-end">Selling Price</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
             </thead>
 
             <tbody>
+                @forelse($products as $product)
+                    @php
+                        $isOutOfStock = $product->stock_quantity <= 0;
+                        $isLowStock = ! $isOutOfStock && $product->stock_quantity <= $product->low_stock_alert;
+                    @endphp
 
-            @foreach($products as $product)
-
-                <tr>
-
-                    <td>{{ $product->name }}</td>
-
-                    <td>{{ $product->sku }}</td>
-
-                    <td>{{ $product->stock_quantity }}</td>
-
-                    <td>{{ $product->selling_price }}</td>
-
-                    <td class="text-end">
-                        <a href="{{ route('products.stock-ledger', $product) }}"
-                           class="btn btn-sm btn-outline-primary">
-                            Ledger
-                        </a>
-                    </td>
-
-                </tr>
-
-            @endforeach
-
+                    <tr>
+                        <td>{{ $product->name }}</td>
+                        <td>{{ $product->sku ?: '-' }}</td>
+                        <td class="text-end fw-bold">{{ number_format($product->stock_quantity) }}</td>
+                        <td class="text-end">Rs {{ number_format($product->purchase_price, 2) }}</td>
+                        <td class="text-end">Rs {{ number_format($product->selling_price, 2) }}</td>
+                        <td>
+                            @if($isOutOfStock)
+                                <span class="badge bg-danger">Out of Stock</span>
+                            @elseif($isLowStock)
+                                <span class="badge bg-warning">Low Stock</span>
+                            @else
+                                <span class="badge bg-success">In Stock</span>
+                            @endif
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ route('products.stock-ledger', $product) }}"
+                               class="btn btn-sm btn-outline-primary">
+                                Stock Ledger
+                            </a>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            No products found for stock reporting.
+                        </td>
+                    </tr>
+                @endforelse
             </tbody>
-
         </table>
-
     </div>
-
 </div>
 
 @endsection
