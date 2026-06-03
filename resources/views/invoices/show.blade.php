@@ -223,7 +223,7 @@
                     <div class="border rounded p-3">
 
                         <small class="text-muted">
-                            Remaining Amount
+                            Customer Owes Us
                         </small>
 
                         <h5 class="mt-2 text-danger">

@@ -236,7 +236,7 @@
                     </div>
 
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Remaining Amount</label>
+                        <label class="form-label">Customer Owes Us</label>
                         <input type="number"
                                step="0.01"
                                name="remaining_amount"

@@ -35,7 +35,7 @@
 
 </div> {{-- filters row ends here --}}
 
-{{-- Remaining amount summary --}}
+{{-- Customer balance summary --}}
 @php
     $remainingAmount = $entries->last()['remaining_amount'] ?? 0;
 @endphp
@@ -53,7 +53,7 @@
 
                     @if($remainingAmount > 0)
 
-                        Customer Remaining Amount
+                        Customer Owes Us
 
                     @elseif($remainingAmount < 0)
 
@@ -181,7 +181,7 @@
                     <th>Invoice / Payment</th>
                     <th>Sale Amount</th>
                     <th>Payment / Return</th>
-                    <th>Remaining Amount</th>
+                    <th>Customer Balance</th>
                 </tr>
 
             </thead>

@@ -360,11 +360,11 @@
 
                     </div>
 
-                    {{-- Remaining Amount --}}
+                    {{-- Supplier payable balance --}}
                     <div class="col-md-6 mb-3">
 
                         <label class="form-label">
-                            Remaining Amount
+                            Still Payable to Supplier
                         </label>
 
                         <input type="number"

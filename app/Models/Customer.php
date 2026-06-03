@@ -47,7 +47,7 @@ class Customer extends Model
         return $this->payments()->sum('amount');
     }
 
-    // Remaining Amount
+    // Amount the customer still owes the business.
     public function remainingAmount(): float
     {
         return $this->totalSales() - $this->totalPaid();

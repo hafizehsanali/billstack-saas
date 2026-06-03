@@ -12,6 +12,7 @@ The project is being developed as both a portfolio-grade application and a found
 - Product and category management
 - Product stock ledger with sale, purchase, return, and adjustment movements
 - Purchase workflow with supplier payments
+- Purchase return workflow with supplier ledger credits
 - Invoice workflow with customer payments
 - POS billing screen
 - Sales return workflow with stock restoration
@@ -21,6 +22,7 @@ The project is being developed as both a portfolio-grade application and a found
 - Alerts Center, currently focused on low-stock alerts
 - Sales, stock, low-stock, and profit/loss reports
 - Invoice PDF download
+- Business settings for invoice branding and company details
 - Feature tests for key accounting and inventory flows
 
 ## Tech Stack
@@ -125,9 +127,7 @@ Planned business-ready improvements:
 
 - Customer and supplier ageing reports
 - Payment reminders in Alerts Center
-- Purchase returns
 - Batch/expiry support for pharmacy workflows
-- Business settings for invoice format, tax, currency, and branding
 - Receipt and statement print polish
 - Audit logs for sensitive changes
 - Role permission polish per module
