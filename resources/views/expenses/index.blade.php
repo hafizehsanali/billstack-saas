@@ -52,7 +52,7 @@
                     <th class="text-end">Amount</th>
                     <th>Date</th>
                     <th>Notes</th>
-                    <th class="text-end">Actions</th>
+                    <th class="text-end" style="min-width: 150px;">Actions</th>
                 </tr>
             </thead>
 
@@ -65,28 +65,30 @@
                         <td>{{ $expense->expense_date->format('d M Y') }}</td>
                         <td>{{ $expense->notes ?? '-' }}</td>
                         <td class="text-end">
-                            <a href="{{ route('expenses.edit', $expense) }}"
-                               class="btn btn-sm btn-outline-secondary">
-                                Edit
-                            </a>
+                            <div class="d-inline-flex gap-1 flex-nowrap">
+                                <a href="{{ route('expenses.edit', $expense) }}"
+                                   class="btn btn-sm btn-outline-secondary text-nowrap">
+                                    Edit
+                                </a>
 
-                            <form action="{{ route('expenses.destroy', $expense) }}"
-                                  method="POST"
-                                  class="d-inline"
-                                  onsubmit="return confirm('Delete this expense?')">
-                                @csrf
-                                @method('DELETE')
+                                <form action="{{ route('expenses.destroy', $expense) }}"
+                                      method="POST"
+                                      class="m-0"
+                                      onsubmit="return confirm('Delete this expense?')">
+                                    @csrf
+                                    @method('DELETE')
 
-                                <button class="btn btn-sm btn-outline-danger">
-                                    Delete
-                                </button>
-                            </form>
+                                    <button class="btn btn-sm btn-outline-danger text-nowrap">
+                                        Delete
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 @empty
                     <tr>
                         <td colspan="6" class="text-center text-muted py-4">
-                            No expenses found.
+                            No expenses found. Add expenses to keep profit reports accurate.
                         </td>
                     </tr>
                 @endforelse
