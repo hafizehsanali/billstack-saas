@@ -85,11 +85,6 @@ class DashboardService
 
             'net_profit' => $netProfit,
 
-            // Inventory
-            'total_products' => Product::where('tenant_id', $tenantId)
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->count(),
-
             'low_stock' => Product::where('tenant_id', $tenantId)
                 ->whereColumn('stock_quantity', '<=', 'low_stock_alert')
                 ->count(),
@@ -159,68 +154,4 @@ class DashboardService
            
         ];
     }
-    public function stats2(Request $request): array
-    {
-        
-        // Base invoice query
-        $invoiceQuery = Invoice::where('tenant_id', $tenantId)
-            ->whereBetween('created_at', [$startDate, $endDate]);
-
-        return [
-
-            // Sales
-            'today_sales' => Invoice::where('tenant_id', $tenantId)
-                ->whereDate('created_at', Carbon::today())
-                ->whereIn('status', ['paid', 'partial'])
-                ->sum('total'),
-
-            'monthly_sales' => $invoiceQuery
-                ->clone()
-                ->whereIn('status', ['paid', 'partial'])
-                ->sum('total'),
-
-            'totalSales' => $invoiceQuery
-                ->clone()
-                ->whereIn('status', ['paid', 'partial'])
-                ->sum('total'),
-
-            // Products
-            'total_products' => Product::where('tenant_id', $tenantId)->count(),
-
-            'low_stock' => Product::where('tenant_id', $tenantId)
-                ->whereColumn('stock_quantity', '<=', 'low_stock_alert')
-                ->count(),
-
-            // Customers
-            'total_customers' => Customer::where('tenant_id', $tenantId)->count(),
-            
-
-            // Invoice counts
-            'total_invoices' => $invoiceQuery
-                ->clone()
-                ->where('status', '!=', 'cancelled')
-                ->count(),
-
-            'paid_invoices' => $invoiceQuery
-                ->clone()
-                ->where('status', 'paid')
-                ->count(),
-
-            'partial_invoices' => $invoiceQuery
-                ->clone()
-                ->where('status', 'partial')
-                ->count(),
-
-            'unpaid_invoices' => $invoiceQuery
-                ->clone()
-                ->where('status', 'unpaid')
-                ->count(),
-
-            'cancelled_invoices' => $invoiceQuery
-                ->clone()
-                ->where('status', 'cancelled')
-                ->count(),
-        ];
-    }
-
 }

@@ -59,7 +59,7 @@
     <div class="col-md-3">
         <div class="card bg-primary text-white">
             <div class="card-body">
-                <small>Today Sales</small>
+                <small>Sales Today</small>
                 <h2>Rs {{ number_format($stats['today_sales'], 2) }}</h2>
             </div>
         </div>
@@ -68,7 +68,7 @@
     <div class="col-md-3">
         <div class="card bg-blue text-white">
             <div class="card-body">
-                <small>Monthly Sales</small>
+                <small>Sales in Selected Period</small>
                 <h2>Rs {{ number_format($stats['monthly_sales'], 2) }}</h2>
             </div>
         </div>
@@ -77,7 +77,7 @@
     <div class="col-md-3">
         <div class="card bg-success text-white">
             <div class="card-body">
-                <small>Total Revenue</small>
+                <small>Total Sales</small>
                 <h2>Rs {{ number_format($stats['total_sales'], 2) }}</h2>
             </div>
         </div>
@@ -96,7 +96,7 @@
     <div class="col-md-4">
         <div class="card">
             <div class="card-body">
-                <small>COGS</small>
+                <small>Cost of Goods Sold</small>
                 <h2>Rs {{ number_format($stats['total_cogs'], 2) }}</h2>
             </div>
         </div>
@@ -133,7 +133,7 @@
     <div class="col-md-3">
         <div class="card border-danger">
             <div class="card-body">
-                <small>Low Stock</small>
+                <small>Low Stock Items</small>
                 <h2>{{ $stats['low_stock'] }}</h2>
                 <a href="{{ route('alerts.index') }}"
                    class="btn btn-sm btn-outline-danger">
@@ -174,7 +174,7 @@
     <div class="col-md-3">
         <div class="card bg-warning text-white">
             <div class="card-body">
-                <small>Partial</small>
+                <small>Partially Paid</small>
                 <h2>{{ $stats['partial_invoices'] }}</h2>
             </div>
         </div>
@@ -183,7 +183,7 @@
     <div class="col-md-3">
         <div class="card bg-danger text-white">
             <div class="card-body">
-                <small>Unpaid</small>
+                <small>Unpaid Invoices</small>
                 <h2>{{ $stats['unpaid_invoices'] }}</h2>
             </div>
         </div>
@@ -295,7 +295,7 @@
 
                             <tr>
                                 <td colspan="2" class="text-center">
-                                    No data found
+                    No product sales in this period
                                 </td>
                             </tr>
 
@@ -350,7 +350,7 @@
 
                             <tr>
                                 <td colspan="2" class="text-center">
-                                    No low stock items
+                                    No low-stock alerts right now
                                 </td>
                             </tr>
 
@@ -390,7 +390,7 @@
                             <th>Invoice</th>
                             <th>Customer</th>
                             <th>Status</th>
-                            <th>Total</th>
+                            <th class="text-end">Invoice Total</th>
                         </tr>
                     </thead>
 
@@ -401,7 +401,9 @@
                             <tr>
 
                                 <td>
-                                    {{ $invoice->invoice_no }}
+                                    <a href="{{ route('invoices.show', $invoice) }}">
+                                        {{ $invoice->invoice_no }}
+                                    </a>
                                 </td>
 
                                 <td>
@@ -423,7 +425,7 @@
 
                                 </td>
 
-                                <td>
+                                <td class="text-end">
                                     Rs {{ number_format($invoice->total, 2) }}
                                 </td>
 
@@ -433,7 +435,7 @@
 
                             <tr>
                                 <td colspan="4" class="text-center">
-                                    No invoices found
+                                    No recent invoices found
                                 </td>
                             </tr>
 
