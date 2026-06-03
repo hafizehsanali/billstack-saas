@@ -20,7 +20,7 @@ class InvoiceController extends Controller
     {
         $invoices = Invoice::with('customer')
             ->latest()
-            ->get();
+            ->paginate(20);
 
         return view('invoices.index', compact('invoices'));
     }
