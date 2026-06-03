@@ -74,7 +74,7 @@
                     <th class="text-end">Amount Received</th>
                     <th class="text-end">Customer Owes Us</th>
                     <th>Status</th>
-                    <th class="text-end">Actions</th>
+                    <th class="text-end" style="min-width: 220px;">Actions</th>
                 </tr>
             </thead>
 
@@ -113,29 +113,31 @@
                         </td>
 
                         <td class="text-end">
-                            <a href="{{ route('customers.statement', $customer) }}"
-                               class="btn btn-sm btn-dark">
-                                Account Detail
-                            </a>
+                            <div class="d-inline-flex gap-1 flex-nowrap">
+                                <a href="{{ route('customers.statement', $customer) }}"
+                                   class="btn btn-sm btn-dark text-nowrap">
+                                    Account
+                                </a>
 
-                            <a href="{{ route('customers.edit', $customer) }}"
-                               class="btn btn-sm btn-outline-secondary">
-                                Edit
-                            </a>
+                                <a href="{{ route('customers.edit', $customer) }}"
+                                   class="btn btn-sm btn-outline-secondary text-nowrap">
+                                    Edit
+                                </a>
 
-                            @if($customer->invoices_count === 0 && $customer->payments_count === 0 && $customer->returns_count === 0)
-                                <form action="{{ route('customers.destroy', $customer) }}"
-                                      method="POST"
-                                      class="d-inline"
-                                      onsubmit="return confirm('Delete this customer?')">
-                                    @csrf
-                                    @method('DELETE')
+                                @if($customer->invoices_count === 0 && $customer->payments_count === 0 && $customer->returns_count === 0)
+                                    <form action="{{ route('customers.destroy', $customer) }}"
+                                          method="POST"
+                                          class="m-0"
+                                          onsubmit="return confirm('Delete this customer?')">
+                                        @csrf
+                                        @method('DELETE')
 
-                                    <button class="btn btn-sm btn-outline-danger">
-                                        Delete
-                                    </button>
-                                </form>
-                            @endif
+                                        <button class="btn btn-sm btn-outline-danger text-nowrap">
+                                            Delete
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                 @empty

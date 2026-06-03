@@ -74,7 +74,7 @@
                     <th class="text-end">Amount Paid</th>
                     <th class="text-end">Still Payable to Supplier</th>
                     <th>Status</th>
-                    <th class="text-end">Actions</th>
+                    <th class="text-end" style="min-width: 220px;">Actions</th>
                 </tr>
             </thead>
 
@@ -113,29 +113,31 @@
                         </td>
 
                         <td class="text-end">
-                            <a href="{{ route('supplier.account', $supplier) }}"
-                               class="btn btn-sm btn-dark">
-                                Account Detail
-                            </a>
+                            <div class="d-inline-flex gap-1 flex-nowrap">
+                                <a href="{{ route('supplier.account', $supplier) }}"
+                                   class="btn btn-sm btn-dark text-nowrap">
+                                    Account
+                                </a>
 
-                            <a href="{{ route('suppliers.edit', $supplier) }}"
-                               class="btn btn-sm btn-outline-secondary">
-                                Edit
-                            </a>
+                                <a href="{{ route('suppliers.edit', $supplier) }}"
+                                   class="btn btn-sm btn-outline-secondary text-nowrap">
+                                    Edit
+                                </a>
 
-                            @if($supplier->purchases_count === 0 && $supplier->payments_count === 0)
-                                <form action="{{ route('suppliers.destroy', $supplier) }}"
-                                      method="POST"
-                                      class="d-inline"
-                                      onsubmit="return confirm('Delete this supplier?')">
-                                    @csrf
-                                    @method('DELETE')
+                                @if($supplier->purchases_count === 0 && $supplier->payments_count === 0)
+                                    <form action="{{ route('suppliers.destroy', $supplier) }}"
+                                          method="POST"
+                                          class="m-0"
+                                          onsubmit="return confirm('Delete this supplier?')">
+                                        @csrf
+                                        @method('DELETE')
 
-                                    <button class="btn btn-sm btn-outline-danger">
-                                        Delete
-                                    </button>
-                                </form>
-                            @endif
+                                        <button class="btn btn-sm btn-outline-danger text-nowrap">
+                                            Delete
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                 @empty
