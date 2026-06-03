@@ -3,9 +3,13 @@
 @section('content')
 <div class="container">
 
-    {{-- Page Header --}}
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>Add Supplier Payment</h3>
+        <div>
+            <h3 class="mb-1">Record Supplier Payment</h3>
+            <div class="text-muted">
+                Pay supplier bills directly or auto-allocate payment to oldest purchases.
+            </div>
+        </div>
 
         <a href="{{ route('supplier.account', $supplier) }}" class="btn btn-secondary">
             Back
@@ -23,7 +27,6 @@
         </div>
     @endif
 
-    {{-- Payment Form --}}
     <div class="card">
         <div class="card-body">
 
@@ -44,7 +47,7 @@
                         @foreach($purchases as $purchase)
                             <option value="{{ $purchase->id }}"
                                     @selected((string) old('purchase_id', $selectedPurchase?->id) === (string) $purchase->id)>
-                               {{ $purchase->purchase_no }} - Remaining: Rs {{ number_format($purchase->remaining_amount,2) }}
+                               {{ $purchase->purchase_no }} - Still payable: Rs {{ number_format($purchase->remaining_amount,2) }}
                             </option>
                         @endforeach
                     </select>
@@ -54,7 +57,7 @@
                     <input type="date" name="payment_date" value="{{ old('payment_date', now()->format('Y-m-d')) }}" class="form-control" required>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Payment Amount</label>
+                    <label class="form-label">Amount Paid to Supplier</label>
                     <input type="number"
                            step="0.01"
                            name="amount"
@@ -92,7 +95,7 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary">
-                    Save Payment
+                    Save Supplier Payment
                 </button>
 
             </form>

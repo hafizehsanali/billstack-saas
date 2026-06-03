@@ -5,7 +5,7 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
 
     <div>
-        <h2 class="mb-1">Customer Account</h2>
+        <h2 class="mb-1">Customer Statement</h2>
         <small class="text-muted">{{ $customer->name }}</small>
     </div>
 
@@ -101,7 +101,7 @@
             <div class="row g-3 align-items-end">
 
                 <div class="col-md-2">
-                    <label class="form-label">Amount</label>
+                    <label class="form-label">Amount Received from Customer</label>
                     <input type="number"
                            name="amount"
                            step="0.01"
@@ -111,7 +111,7 @@
                            value="{{ old('amount') }}"
                            required>
                     <small class="text-muted">
-                        Outstanding: Rs {{ number_format($outstandingBalance, 2) }}
+                        Customer owes us: Rs {{ number_format($outstandingBalance, 2) }}
                     </small>
                 </div>
 
@@ -155,7 +155,7 @@
                     <button type="submit"
                             class="btn btn-success w-100"
                             @disabled($outstandingBalance <= 0)>
-                        Save
+                        Save Payment
                     </button>
                 </div>
 
@@ -180,7 +180,7 @@
                     <th>Entry</th>
                     <th>Invoice / Payment</th>
                     <th>Sale Amount</th>
-                    <th>Payment / Return</th>
+                    <th>Payment / Return Credit</th>
                     <th>Customer Balance</th>
                 </tr>
 
@@ -227,7 +227,7 @@
                     <tr>
 
                         <td colspan="6" class="text-center text-muted">
-                            No statement records found.
+                            No customer statement records found.
                         </td>
 
                     </tr>

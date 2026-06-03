@@ -18,7 +18,7 @@
 }
 </style>
 <div class="container">
-{{-- fillters --}}
+{{-- Ledger date filters --}}
 <form method="GET" class="row g-2 mb-3 ">
 
     <div class="col-md-3">
@@ -42,55 +42,51 @@
 </form>
 
 <h3>{{ $supplier->name }} Ledger</h3>
-{{-- Summary --}}
+{{-- Supplier payable summary --}}
 <div class="row g-3 mb-4">
 
-    {{-- Total Purchases --}}
     <div class="col-md-3">
         <div class="card shadow-sm border-0">
             <div class="card-body">
-                <div class="text-muted small">Total Purchases</div>
+                <div class="text-muted small">Total Supplier Bills</div>
                 <div class="fs-4 fw-bold text-danger">
-                    {{ number_format($total_purchases,2) }}
+                    Rs {{ number_format($total_purchases,2) }}
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- Total Payments --}}
     <div class="col-md-3">
         <div class="card shadow-sm border-0">
             <div class="card-body">
-                <div class="text-muted small">Total Payments</div>
+                <div class="text-muted small">Paid to Supplier</div>
                 <div class="fs-4 fw-bold text-success">
-                    {{ number_format($total_payments,2) }}
+                    Rs {{ number_format($total_payments,2) }}
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- Total Returns --}}
     <div class="col-md-3">
         <div class="card shadow-sm border-0">
             <div class="card-body">
-                <div class="text-muted small">Total Returns</div>
+                <div class="text-muted small">Items Returned to Supplier</div>
                 <div class="fs-4 fw-bold text-warning">
-                    {{ number_format($total_returns,2) }}
+                    Rs {{ number_format($total_returns,2) }}
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- Outstanding / Advance --}}
     <div class="col-md-3">
         <div class="card shadow-sm border-0">
             <div class="card-body">
                 <div class="text-muted small">
-                    {{ $remaining_amount >= 0 ? 'Outstanding Payable' : 'Advance Paid' }}
+                    {{ $remaining_amount >= 0 ? 'Still Payable to Supplier' : 'Advance Paid to Supplier' }}
                 </div>
 
                 <div class="fs-4 fw-bold {{ $remaining_amount >= 0 ? 'text-warning' : 'text-primary' }}">
-                    {{ number_format(abs($remaining_amount),2) }}
+                    Rs {{ number_format(abs($remaining_amount),2) }}
                 </div>
             </div>
         </div>
@@ -120,7 +116,7 @@
 
 <div class="card mb-3">
     <div class="card-header fw-bold">
-        Pay Supplier
+        Record Supplier Payment
     </div>
 
     <div class="card-body">
@@ -142,7 +138,7 @@
                            value="{{ old('amount') }}"
                            required>
                     <small class="text-muted">
-                        Payable: Rs {{ number_format($outstanding_payable, 2) }}
+                        Still payable: Rs {{ number_format($outstanding_payable, 2) }}
                     </small>
                 </div>
 
@@ -187,7 +183,7 @@
                     <button type="submit"
                             class="btn btn-success w-100"
                             @disabled($outstanding_payable <= 0)>
-                        Save
+                        Save Payment
                     </button>
                 </div>
             </div>
