@@ -126,4 +126,65 @@ class SupplierPaymentAllocationTest extends TestCase
             ->assertRedirect(route('supplier.account', $supplier))
             ->assertSessionHasErrors('amount');
     }
+
+    public function test_supplier_payment_supplier_and_purchase_must_belong_to_current_store(): void
+    {
+        $firstTenant = Tenant::create([
+            'name' => 'First Store',
+            'slug' => uniqid('first-store-'),
+        ]);
+
+        $secondTenant = Tenant::create([
+            'name' => 'Second Store',
+            'slug' => uniqid('second-store-'),
+        ]);
+
+        Role::create(['name' => 'owner']);
+
+        $firstUser = User::factory()->create([
+            'tenant_id' => $firstTenant->id,
+        ]);
+        $firstUser->assignRole('owner');
+
+        $secondUser = User::factory()->create([
+            'tenant_id' => $secondTenant->id,
+        ]);
+        $secondUser->assignRole('owner');
+
+        $this->actingAs($secondUser);
+
+        $foreignSupplier = Supplier::create([
+            'tenant_id' => $secondTenant->id,
+            'name' => 'Foreign Supplier',
+        ]);
+
+        $foreignPurchase = Purchase::create([
+            'tenant_id' => $secondTenant->id,
+            'supplier_id' => $foreignSupplier->id,
+            'purchase_no' => 'PUR-FOREIGN-PAYMENT',
+            'purchase_date' => '2026-06-04',
+            'subtotal' => 1000,
+            'total' => 1000,
+            'paid_amount' => 0,
+            'remaining_amount' => 1000,
+            'status' => 'unpaid',
+        ]);
+
+        $this->actingAs($firstUser);
+
+        $this
+            ->from(route('purchases.index'))
+            ->post(route('supplier-payments.store'), [
+                'supplier_id' => $foreignSupplier->id,
+                'purchase_id' => $foreignPurchase->id,
+                'payment_date' => '2026-06-04',
+                'amount' => 100,
+                'payment_method' => 'cash',
+            ])
+            ->assertRedirect(route('purchases.index'))
+            ->assertSessionHasErrors([
+                'supplier_id',
+                'purchase_id',
+            ]);
+    }
 }

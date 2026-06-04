@@ -43,6 +43,10 @@
 
         @method('PUT')
 
+        <input type="hidden"
+               name="purchase_no"
+               value="{{ old('purchase_no', $purchase->purchase_no) }}">
+
         <div class="card mb-3">
 
             <div class="card-body">
@@ -67,7 +71,7 @@
                             @foreach($suppliers as $supplier)
 
                                 <option value="{{ $supplier->id }}"
-                                    {{ $purchase->supplier_id == $supplier->id ? 'selected' : '' }}>
+                                        @selected(old('supplier_id', $purchase->supplier_id) == $supplier->id)>
 
                                     {{ $supplier->name }}
 
@@ -106,17 +110,17 @@
                                 required>
 
                             <option value="paid"
-                                {{ $purchase->status == 'paid' ? 'selected' : '' }}>
+                                    @selected(old('status', $purchase->status) === 'paid')>
                                 Paid
                             </option>
 
                             <option value="partial"
-                                {{ $purchase->status == 'partial' ? 'selected' : '' }}>
+                                    @selected(old('status', $purchase->status) === 'partial')>
                                 Partial
                             </option>
 
                             <option value="unpaid"
-                                {{ $purchase->status == 'unpaid' ? 'selected' : '' }}>
+                                    @selected(old('status', $purchase->status) === 'unpaid')>
                                 Unpaid
                             </option>
 
@@ -183,14 +187,24 @@
 
                     <tbody>
 
-                        @foreach($purchase->items as $index => $item)
+                        @php
+                            $purchaseRows = collect(old('products', $purchase->items->map(fn ($item) => [
+                                'product_id' => $item->product_id,
+                                'quantity' => $item->quantity,
+                                'purchase_price' => $item->purchase_price,
+                                'line_total' => $item->line_total,
+                            ])->toArray()))->values();
+                        @endphp
+
+                        @foreach($purchaseRows as $index => $item)
 
                             <tr>
 
                                 <td>
 
-                                    <select name="items[{{ $index }}][product_id]"
-                                            class="form-control"
+                                    <select name="products[{{ $index }}][product_id]"
+                                            class="form-select product-select"
+                                            onchange="setProductPrice(this)"
                                             required>
 
                                         <option value="">
@@ -200,7 +214,8 @@
                                         @foreach($products as $product)
 
                                             <option value="{{ $product->id }}"
-                                                {{ $item->product_id == $product->id ? 'selected' : '' }}>
+                                                    data-price="{{ $product->purchase_price }}"
+                                                    @selected(($item['product_id'] ?? null) == $product->id)>
 
                                                 {{ $product->name }}
 
@@ -217,9 +232,9 @@
                                     <input type="number"
                                            step="0.01"
                                            min="1"
-                                           name="items[{{ $index }}][quantity]"
+                                           name="products[{{ $index }}][quantity]"
                                            class="form-control quantity"
-                                           value="{{ $item->quantity }}"
+                                           value="{{ $item['quantity'] ?? 1 }}"
                                            required>
 
                                 </td>
@@ -229,9 +244,9 @@
                                     <input type="number"
                                            step="0.01"
                                            min="0"
-                                           name="items[{{ $index }}][purchase_price]"
+                                           name="products[{{ $index }}][purchase_price]"
                                            class="form-control price"
-                                           value="{{ $item->purchase_price }}"
+                                           value="{{ $item['purchase_price'] ?? 0 }}"
                                            required>
 
                                 </td>
@@ -240,7 +255,7 @@
 
                                     <input type="text"
                                            class="form-control line-total"
-                                           value="{{ number_format($item->line_total, 2) }}"
+                                           value="{{ number_format($item['line_total'] ?? (($item['quantity'] ?? 0) * ($item['purchase_price'] ?? 0)), 2) }}"
                                            readonly>
 
                                 </td>
@@ -287,7 +302,7 @@
                                name="subtotal"
                                id="subtotal"
                                class="form-control"
-                               value="{{ $purchase->subtotal }}"
+                               value="{{ old('subtotal', $purchase->subtotal) }}"
                                readonly>
 
                     </div>
@@ -305,7 +320,7 @@
                                name="extra_expense"
                                id="extra_expense"
                                class="form-control"
-                               value="{{ $purchase->extra_expense }}">
+                               value="{{ old('extra_expense', $purchase->extra_expense) }}">
 
                     </div>
 
@@ -322,7 +337,7 @@
                                name="discount"
                                id="discount"
                                class="form-control"
-                               value="{{ $purchase->discount }}">
+                               value="{{ old('discount', $purchase->discount) }}">
 
                     </div>
 
@@ -338,16 +353,15 @@
                                name="total"
                                id="total"
                                class="form-control"
-                               value="{{ $purchase->total }}"
+                               value="{{ old('total', $purchase->total) }}"
                                readonly>
 
                     </div>
 
-                    {{-- Paid Amount --}}
                     <div class="col-md-6 mb-3">
 
                         <label class="form-label">
-                            Paid Amount
+                            Paid to Supplier
                         </label>
 
                         <input type="number"
@@ -355,8 +369,12 @@
                                min="0"
                                name="paid_amount"
                                id="paid_amount"
-                               class="form-control"
-                               value="{{ $purchase->paid_amount }}">
+                               class="form-control @error('paid_amount') is-invalid @enderror"
+                               value="{{ old('paid_amount', $purchase->paid_amount) }}">
+
+                        @error('paid_amount')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
 
                     </div>
 
@@ -372,7 +390,7 @@
                                name="remaining_amount"
                                id="remaining_amount"
                                class="form-control bg-light fw-bold text-danger"
-                               value="{{ $purchase->remaining_amount }}"
+                               value="{{ old('remaining_amount', $purchase->remaining_amount) }}"
                                readonly>
 
                     </div>
@@ -386,7 +404,7 @@
 
                         <textarea name="notes"
                                   rows="3"
-                                  class="form-control">{{ $purchase->notes }}</textarea>
+                                  class="form-control">{{ old('notes', $purchase->notes) }}</textarea>
 
                     </div>
 
@@ -413,7 +431,7 @@
 
 <script>
 
-    let rowIndex = {{ count($purchase->items) }};
+    let rowIndex = {{ $purchaseRows->count() }};
 
     document
         .getElementById('add-row')
@@ -424,8 +442,9 @@
 
                     <td>
 
-                        <select name="items[${rowIndex}][product_id]"
-                                class="form-control"
+                        <select name="products[${rowIndex}][product_id]"
+                                class="form-select product-select"
+                                onchange="setProductPrice(this)"
                                 required>
 
                             <option value="">
@@ -434,7 +453,8 @@
 
                             @foreach($products as $product)
 
-                                <option value="{{ $product->id }}">
+                                <option value="{{ $product->id }}"
+                                        data-price="{{ $product->purchase_price }}">
 
                                     {{ $product->name }}
 
@@ -451,8 +471,9 @@
                         <input type="number"
                                step="0.01"
                                min="1"
-                               name="items[${rowIndex}][quantity]"
+                               name="products[${rowIndex}][quantity]"
                                class="form-control quantity"
+                               value="1"
                                required>
 
                     </td>
@@ -462,8 +483,9 @@
                         <input type="number"
                                step="0.01"
                                min="0"
-                               name="items[${rowIndex}][purchase_price]"
+                               name="products[${rowIndex}][purchase_price]"
                                class="form-control price"
+                               value="0"
                                required>
 
                     </td>
@@ -495,6 +517,8 @@
                 .insertAdjacentHTML('beforeend', row);
 
             rowIndex++;
+
+            calculateTotals();
         });
 
     document.addEventListener('input', function (e) {
@@ -561,17 +585,21 @@
             document.getElementById('extra_expense').value || 0
         );
 
-        let total =
-            subtotal
-            + extraExpense
-            - discount;
+        let total = subtotal + extraExpense - discount;
+
+        if (total < 0) {
+            total = 0;
+        }
 
         let paidAmount = parseFloat(
             document.getElementById('paid_amount').value || 0
         );
 
-        let remainingAmount =
-            total - paidAmount;
+        let remainingAmount = total - paidAmount;
+
+        if (remainingAmount < 0) {
+            remainingAmount = 0;
+        }
 
         document.getElementById('subtotal').value =
             subtotal.toFixed(2);
@@ -581,6 +609,17 @@
 
         document.getElementById('remaining_amount').value =
             remainingAmount.toFixed(2);
+    }
+
+    function setProductPrice(select)
+    {
+        let row = select.closest('tr');
+        let option = select.options[select.selectedIndex];
+        let price = parseFloat(option.dataset.price) || 0;
+
+        row.querySelector('.price').value = price.toFixed(2);
+
+        calculateTotals();
     }
 
     calculateTotals();

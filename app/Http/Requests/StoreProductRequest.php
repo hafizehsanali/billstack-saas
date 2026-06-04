@@ -30,7 +30,8 @@ class StoreProductRequest extends FormRequest
 
             'category_id' => [
                 'required',
-                'exists:categories,id',
+                Rule::exists('categories', 'id')
+                    ->where('tenant_id', auth()->user()->tenant_id),
             ],
 
             'name' => [
@@ -52,6 +53,9 @@ class StoreProductRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:255',
+                Rule::unique('products')
+                    ->where('tenant_id', auth()->user()->tenant_id)
+                    ->ignore($productId),
             ],
 
             'purchase_price' => [
@@ -86,6 +90,8 @@ class StoreProductRequest extends FormRequest
         return [
 
             'sku.unique' => 'This SKU already exists for your store.',
+
+            'barcode.unique' => 'This barcode already exists for your store.',
 
             'purchase_price.min' => 'Purchase price cannot be negative.',
 

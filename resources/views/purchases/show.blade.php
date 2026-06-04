@@ -204,10 +204,10 @@
                 <h4>Record Supplier Payment</h4>
 
                 <div class="alert alert-info">
-                    <strong>Paid:</strong>
+                    <strong>Paid to supplier:</strong>
                     {{ number_format($paid, 2) }}
                     <br>
-                    <strong>Remaining:</strong>
+                    <strong>Still payable to supplier:</strong>
                     {{ number_format($remaining, 2) }}
                 </div>
 

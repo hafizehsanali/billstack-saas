@@ -31,7 +31,8 @@
                     </label>
 
                     <select name="category_id"
-                            class="form-select">
+                            class="form-select @error('category_id') is-invalid @enderror"
+                            required>
 
                         <option value="">
                             Select Category
@@ -48,6 +49,10 @@
 
                     </select>
 
+                    @error('category_id')
+                        <small class="text-danger">{{ $message }}</small>
+                    @enderror
+
                 </div>
 
                 <div class="col-md-6 mb-3">
@@ -58,8 +63,14 @@
 
                     <input type="text"
                            name="name"
-                           class="form-control"
-                           value="{{ old('name', $product->name) }}">
+                           class="form-control @error('name') is-invalid @enderror"
+                           value="{{ old('name', $product->name) }}"
+                           maxlength="255"
+                           required>
+
+                    @error('name')
+                        <small class="text-danger">{{ $message }}</small>
+                    @enderror
 
                 </div>
 
@@ -71,8 +82,14 @@
 
                     <input type="text"
                            name="sku"
-                           class="form-control"
-                           value="{{ old('sku', $product->sku) }}">
+                           class="form-control @error('sku') is-invalid @enderror"
+                           value="{{ old('sku', $product->sku) }}"
+                           maxlength="100"
+                           required>
+
+                    @error('sku')
+                        <small class="text-danger">{{ $message }}</small>
+                    @enderror
 
                 </div>
 
@@ -84,8 +101,13 @@
 
                     <input type="text"
                            name="barcode"
-                           class="form-control"
-                           value="{{ old('barcode', $product->barcode) }}">
+                           class="form-control @error('barcode') is-invalid @enderror"
+                           value="{{ old('barcode', $product->barcode) }}"
+                           maxlength="100">
+
+                    @error('barcode')
+                        <small class="text-danger">{{ $message }}</small>
+                    @enderror
 
                 </div>
 
@@ -97,9 +119,15 @@
 
                     <input type="number"
                            step="0.01"
+                           min="0"
                            name="purchase_price"
-                           class="form-control"
-                           value="{{ old('purchase_price', $product->purchase_price) }}">
+                           class="form-control @error('purchase_price') is-invalid @enderror"
+                           value="{{ old('purchase_price', $product->purchase_price) }}"
+                           required>
+
+                    @error('purchase_price')
+                        <small class="text-danger">{{ $message }}</small>
+                    @enderror
 
                 </div>
 
@@ -111,9 +139,15 @@
 
                     <input type="number"
                            step="0.01"
+                           min="0"
                            name="selling_price"
-                           class="form-control"
-                           value="{{ old('selling_price', $product->selling_price) }}">
+                           class="form-control @error('selling_price') is-invalid @enderror"
+                           value="{{ old('selling_price', $product->selling_price) }}"
+                           required>
+
+                    @error('selling_price')
+                        <small class="text-danger">{{ $message }}</small>
+                    @enderror
 
                 </div>
 
@@ -125,12 +159,18 @@
 
                     <input type="number"
                            name="stock_quantity"
-                           class="form-control"
-                           value="{{ old('stock_quantity', $product->stock_quantity) }}">
+                           min="0"
+                           class="form-control @error('stock_quantity') is-invalid @enderror"
+                           value="{{ old('stock_quantity', $product->stock_quantity) }}"
+                           required>
 
                     <small class="text-muted">
                         Stock changes are recorded in the product stock ledger.
                     </small>
+
+                    @error('stock_quantity')
+                        <small class="text-danger d-block">{{ $message }}</small>
+                    @enderror
 
                 </div>
 
@@ -142,8 +182,14 @@
 
                     <input type="number"
                            name="low_stock_alert"
-                           class="form-control"
-                           value="{{ old('low_stock_alert', $product->low_stock_alert) }}">
+                           min="0"
+                           class="form-control @error('low_stock_alert') is-invalid @enderror"
+                           value="{{ old('low_stock_alert', $product->low_stock_alert) }}"
+                           required>
+
+                    @error('low_stock_alert')
+                        <small class="text-danger">{{ $message }}</small>
+                    @enderror
 
                 </div>
 

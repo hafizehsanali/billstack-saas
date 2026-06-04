@@ -136,7 +136,7 @@
                     <th class="text-center">Open Invoices</th>
                     <th>Oldest Due</th>
                     <th>Latest Due</th>
-                    <th class="text-end">Total Remaining</th>
+                    <th class="text-end">Customer Owes Us</th>
                     <th class="text-end">Actions</th>
                 </tr>
             </thead>
@@ -152,10 +152,10 @@
                         </td>
                         <td>{{ \Carbon\Carbon::parse($alert['oldest_date'])->format('d M Y') }}</td>
                         <td>{{ \Carbon\Carbon::parse($alert['latest_date'])->format('d M Y') }}</td>
-                        <td class="text-end">
+                        <td class="text-end fw-bold text-danger">
                             Rs {{ number_format($alert['remaining_amount'], 2) }}
                         </td>
-                        <td class="text-end">
+                        <td class="text-end text-nowrap">
                             @if($alert['customer'])
                                 <a href="{{ route('customers.statement', $alert['customer']) }}"
                                    class="btn btn-sm btn-outline-primary">
@@ -191,7 +191,7 @@
                     <th class="text-center">Open Purchases</th>
                     <th>Oldest Due</th>
                     <th>Latest Due</th>
-                    <th class="text-end">Total Remaining</th>
+                    <th class="text-end">Still Payable to Supplier</th>
                     <th class="text-end">Actions</th>
                 </tr>
             </thead>
@@ -207,10 +207,10 @@
                         </td>
                         <td>{{ \Carbon\Carbon::parse($alert['oldest_date'])->format('d M Y') }}</td>
                         <td>{{ \Carbon\Carbon::parse($alert['latest_date'])->format('d M Y') }}</td>
-                        <td class="text-end">
+                        <td class="text-end fw-bold text-danger">
                             Rs {{ number_format($alert['remaining_amount'], 2) }}
                         </td>
-                        <td class="text-end">
+                        <td class="text-end text-nowrap">
                             @if($alert['supplier'])
                                 <a href="{{ route('supplier.account', $alert['supplier']) }}"
                                    class="btn btn-sm btn-outline-primary">

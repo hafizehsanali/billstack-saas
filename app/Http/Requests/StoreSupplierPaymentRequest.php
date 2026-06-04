@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreSupplierPaymentRequest extends FormRequest
 {
@@ -14,8 +15,16 @@ class StoreSupplierPaymentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'supplier_id' => ['required', 'exists:suppliers,id'],
-            'purchase_id' => 'nullable|exists:purchases,id',
+            'supplier_id' => [
+                'required',
+                Rule::exists('suppliers', 'id')
+                    ->where('tenant_id', auth()->user()->tenant_id),
+            ],
+            'purchase_id' => [
+                'nullable',
+                Rule::exists('purchases', 'id')
+                    ->where('tenant_id', auth()->user()->tenant_id),
+            ],
             'payment_date' => 'required|date',
             'amount' => ['required', 'numeric', 'min:1'],
             'payment_method' => ['nullable', 'string', 'max:50'],

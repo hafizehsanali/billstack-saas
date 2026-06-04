@@ -177,7 +177,7 @@
                     <div class="hr-text">Payment</div>
 
                     <div class="mb-3">
-                        <label class="form-label">Paid Amount</label>
+                        <label class="form-label">Amount Received from Customer</label>
                         <input type="number"
                                step="0.01"
                                min="0"
@@ -230,7 +230,7 @@
                     </div>
 
                     <div class="d-flex justify-content-between text-muted mb-3">
-                        <span>Remaining</span>
+                        <span>Customer Owes Us</span>
                         <span>Rs <span id="remainingDisplay">0.00</span></span>
                     </div>
 

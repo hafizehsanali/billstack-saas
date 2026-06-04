@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class PurchaseService
 {
@@ -24,7 +25,15 @@ class PurchaseService
 
             $total = ($subtotal + $extraExpense) - $discount;
 
-            $remainingAmount = $total - $paidAmount;
+            $total = max($total, 0);
+
+            if ($paidAmount > $total) {
+                throw ValidationException::withMessages([
+                    'paid_amount' => 'Paid amount cannot be greater than purchase total.',
+                ]);
+            }
+
+            $remainingAmount = max($total - $paidAmount, 0);
 
             $status = 'unpaid';
 
@@ -150,6 +159,15 @@ class PurchaseService
 
             $purchase->items()->delete();
 
+            $paidAmount = (float) ($data['paid_amount'] ?? 0);
+            $total = (float) ($data['total'] ?? 0);
+
+            if ($paidAmount > $total) {
+                throw ValidationException::withMessages([
+                    'paid_amount' => 'Paid amount cannot be greater than purchase total.',
+                ]);
+            }
+
             $purchase->update([
 
                 'supplier_id' => $data['supplier_id'],
@@ -162,13 +180,13 @@ class PurchaseService
 
                 'discount' => $data['discount'] ?? 0,
 
-                'total' => $data['total'],
+                'total' => $total,
 
-                'paid_amount' => $data['paid_amount'] ?? 0,
+                'paid_amount' => $paidAmount,
 
                 'remaining_amount' => $data['remaining_amount'] ?? 0,
 
-                'status' => $data['status'],
+                'status' => $data['status'] ?? 'unpaid',
 
                 'notes' => $data['notes'] ?? null,
             ]);

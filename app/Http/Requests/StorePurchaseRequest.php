@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StorePurchaseRequest extends FormRequest
 {
@@ -16,16 +17,34 @@ class StorePurchaseRequest extends FormRequest
     {
         return [
 
-            'supplier_id' => ['required', 'exists:suppliers,id'],
+            'supplier_id' => [
+                'required',
+                Rule::exists('suppliers', 'id')
+                    ->where('tenant_id', auth()->user()->tenant_id),
+            ],
             'purchase_date' => ['required', 'date'],
-            'purchase_no' => ['required', 'string', 'max:255'],
+            'purchase_no' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('purchases', 'purchase_no')
+                    ->where('tenant_id', auth()->user()->tenant_id)
+                    ->ignore($this->route('purchase')),
+            ],
             'subtotal' => ['required', 'numeric', 'min:0'],
             'extra_expense' => ['nullable', 'numeric', 'min:0'],
             'discount' => ['nullable', 'numeric', 'min:0'],
+            'total' => ['nullable', 'numeric', 'min:0'],
             'paid_amount' => ['nullable', 'numeric', 'min:0'],
+            'remaining_amount' => ['nullable', 'numeric', 'min:0'],
+            'status' => ['nullable', Rule::in(['unpaid', 'partial', 'paid'])],
             'notes' => ['nullable', 'string'],
             'products' => ['required', 'array', 'min:1'],
-            'products.*.product_id' => ['required','exists:products,id',],
+            'products.*.product_id' => [
+                'required',
+                Rule::exists('products', 'id')
+                    ->where('tenant_id', auth()->user()->tenant_id),
+            ],
             'products.*.quantity' => ['required','integer','min:1',],
             'products.*.purchase_price' => ['required','numeric','min:0'],
         ];

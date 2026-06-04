@@ -29,7 +29,6 @@
 
         <div class="card-body">
 
-            <!-- HEADER -->
             <div class="d-flex justify-content-between align-items-start">
 
                 <div>
@@ -80,7 +79,7 @@
                         PDF
                     </a>
 
-                    <a href="{{ url()->previous() }}"
+                    <a href="{{ url()->previous() !== url()->current() ? url()->previous() : route('invoices.index') }}"
                     class="btn btn-secondary">
                         Back
                     </a>
@@ -91,7 +90,6 @@
 
             <hr>
 
-            <!-- CUSTOMER INFO -->
             <div class="row">
 
                 <div class="col-md-6">
@@ -106,7 +104,6 @@
 
             <hr>
 
-            <!-- ITEMS -->
             <table class="table table-bordered">
 
                 <thead>
@@ -124,11 +121,11 @@
                     @foreach($invoice->items as $item)
 
                         <tr>
-                            <td>{{ $item->product->name }}</td>
-                            <td>{{ $item->price }}</td>
+                            <td>{{ $item->product?->name ?? 'Deleted product' }}</td>
+                            <td>{{ number_format($item->price, 2) }}</td>
                             <td>{{ $item->quantity }}</td>
                             <td>{{ $item->returnedQuantity() }}</td>
-                            <td>{{ $item->total }}</td>
+                            <td>{{ number_format($item->total, 2) }}</td>
                         </tr>
 
                     @endforeach
@@ -148,7 +145,6 @@
                 $creditDue = max($paid - $invoice->total, 0);
 
             @endphp
-            <!-- ACCOUNTING SUMMARY -->
             <div class="row text-center mb-3">
 
                 <div class="col-md-3">
@@ -189,7 +185,7 @@
                     <div class="border rounded p-3">
 
                         <small class="text-muted">
-                            Returned Amount
+                            Items Returned by Customer
                         </small>
 
                         <h5 class="mt-2 text-warning">
@@ -207,7 +203,7 @@
                     <div class="border rounded p-3">
 
                         <small class="text-muted">
-                            Paid Received
+                            Amount Received from Customer
                         </small>
 
                         <h5 class="mt-2 text-success">
@@ -272,13 +268,13 @@
             <h4>Record Payment</h4>
             <div class="alert alert-info">
 
-                <strong>Paid:</strong>
-                {{ $paid }}
+                <strong>Amount received:</strong>
+                {{ number_format($paid, 2) }}
 
                 <br>
 
-                <strong>Remaining:</strong>
-                {{ $remaining }}
+                <strong>Customer still owes:</strong>
+                {{ number_format($remaining, 2) }}
 
             </div>
 
@@ -288,59 +284,56 @@
 
                 <div class="row g-2 align-items-end">
 
-                    {{-- Amount --}}
                     <div class="col-md-3">
                         <label class="form-label mb-1">Amount</label>
                         <input type="number"
                             step="0.01"
                             name="amount"
+                            value="{{ old('amount') }}"
                             class="form-control"
                             placeholder="0.00"
                             required>
                     </div>
 
-                    {{-- Payment Method --}}
                     <div class="col-md-3">
                         <label class="form-label mb-1">Method</label>
                         <select name="payment_method" class="form-select" required>
-                            <option value="cash">Cash</option>
-                            <option value="bank">Bank</option>
-                            <option value="card">Card</option>
-                            <option value="jazzcash">JazzCash</option>
-                            <option value="easypaisa">EasyPaisa</option>
-                            <option value="cheque">Cheque</option>
+                            <option value="cash" @selected(old('payment_method') === 'cash')>Cash</option>
+                            <option value="bank" @selected(old('payment_method') === 'bank')>Bank</option>
+                            <option value="card" @selected(old('payment_method') === 'card')>Card</option>
+                            <option value="jazzcash" @selected(old('payment_method') === 'jazzcash')>JazzCash</option>
+                            <option value="easypaisa" @selected(old('payment_method') === 'easypaisa')>EasyPaisa</option>
+                            <option value="cheque" @selected(old('payment_method') === 'cheque')>Cheque</option>
                         </select>
                     </div>
 
-                    {{-- Payment Date --}}
                     <div class="col-md-3">
                         <label class="form-label mb-1">Payment Date</label>
                         <input type="datetime-local"
                             name="payment_date"
                             class="form-control"
-                            value="{{ now()->format('Y-m-d\TH:i') }}"
+                            value="{{ old('payment_date', now()->format('Y-m-d\TH:i')) }}"
                             required>
                     </div>
 
-                    {{-- Reference No --}}
                     <div class="col-md-3">
                         <label class="form-label mb-1">Reference No</label>
                         <input type="text"
                             name="reference_no"
+                            value="{{ old('reference_no') }}"
                             class="form-control"
                             placeholder="Cheque / Txn / Ref">
                     </div>
 
-                    {{-- Note --}}
                     <div class="col-md-6 mt-2">
                         <label class="form-label mb-1">Note</label>
                         <input type="text"
                             name="notes"
+                            value="{{ old('notes') }}"
                             class="form-control"
                             placeholder="Optional note">
                     </div>
 
-                    {{-- Submit --}}
                     <div class="col-md-6 mt-2">
                         <button type="submit" class="btn btn-success w-100">
                             Save Payment
@@ -365,7 +358,7 @@
                             <input type="date"
                                    name="return_date"
                                    class="form-control"
-                                   value="{{ now()->format('Y-m-d') }}"
+                                   value="{{ old('return_date', now()->format('Y-m-d')) }}"
                                    required>
                         </div>
 
@@ -373,6 +366,7 @@
                             <label class="form-label mb-1">Return Notes</label>
                             <input type="text"
                                    name="notes"
+                                   value="{{ old('notes') }}"
                                    class="form-control"
                                    placeholder="Reason or reference">
                         </div>
@@ -407,7 +401,7 @@
                                                    class="form-control"
                                                    min="0"
                                                    max="{{ $returnableQuantity }}"
-                                                   value="0"
+                                                   value="{{ old('items.'.$item->id.'.quantity', 0) }}"
                                                    {{ $returnableQuantity === 0 ? 'disabled' : '' }}>
                                         </td>
                                     </tr>
@@ -522,8 +516,6 @@
 
             </table>
 
-            <!-- ACTIONS -->
-           
             <div class="d-flex gap-2">
                 @if($invoice->status != 'cancelled' && $invoice->status != 'paid' && $invoice->status != 'partial')
 

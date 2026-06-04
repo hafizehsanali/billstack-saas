@@ -160,7 +160,7 @@
                 <div class="row">
 
                     <div class="col-md-3 mb-3">
-                        <label class="form-label">Paid Amount</label>
+                        <label class="form-label">Amount Received from Customer</label>
                         <input type="number"
                                step="0.01"
                                name="paid_amount"

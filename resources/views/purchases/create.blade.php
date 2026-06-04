@@ -31,7 +31,7 @@
                         <input type="text"
                                name="purchase_no"
                                class="form-control"
-                               value="PUR-{{ date('YmdHis') }}"
+                               value="{{ old('purchase_no', 'PUR-'.date('YmdHis')) }}"
                                required>
                     </div>
 
@@ -43,7 +43,7 @@
                         <input type="date"
                                name="purchase_date"
                                class="form-control"
-                               value="{{ date('Y-m-d') }}"
+                               value="{{ old('purchase_date', date('Y-m-d')) }}"
                                required>
                     </div>
 
@@ -62,7 +62,8 @@
 
                             @foreach($suppliers as $supplier)
 
-                                <option value="{{ $supplier->id }}">
+                                <option value="{{ $supplier->id }}"
+                                        @selected((string) old('supplier_id') === (string) $supplier->id)>
                                     {{ $supplier->name }}
                                 </option>
 
@@ -139,6 +140,7 @@
                                name="subtotal"
                                id="subtotal"
                                class="form-control"
+                               value="{{ old('subtotal') }}"
                                readonly>
                     </div>
 
@@ -152,7 +154,7 @@
                                name="extra_expense"
                                id="extra_expense"
                                class="form-control"
-                               value="0">
+                               value="{{ old('extra_expense', 0) }}">
                     </div>
 
                     <div class="col-md-3 mb-3">
@@ -165,7 +167,7 @@
                                name="discount"
                                id="discount"
                                class="form-control"
-                               value="0">
+                               value="{{ old('discount', 0) }}">
                     </div>
 
                     <div class="col-md-3 mb-3">
@@ -178,20 +180,24 @@
                                name="total"
                                id="total"
                                class="form-control"
+                               value="{{ old('total') }}"
                                readonly>
                     </div>
 
                     <div class="col-md-6 mb-3">
                         <label class="form-label">
-                            Paid Amount
+                            Paid to Supplier
                         </label>
 
                         <input type="number"
                                step="0.01"
                                name="paid_amount"
                                id="paid_amount"
-                               class="form-control"
-                               value="0">
+                               class="form-control @error('paid_amount') is-invalid @enderror"
+                               value="{{ old('paid_amount', 0) }}">
+                        @error('paid_amount')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
                     </div>
 
                     <div class="col-md-6 mb-3">
@@ -201,8 +207,10 @@
 
                         <input type="number"
                                step="0.01"
+                               name="remaining_amount"
                                id="remaining_amount"
                                class="form-control bg-warning"
+                               value="{{ old('remaining_amount') }}"
                                readonly>
                     </div>
 
@@ -213,7 +221,7 @@
 
                         <textarea name="notes"
                                   rows="3"
-                                  class="form-control"></textarea>
+                                  class="form-control">{{ old('notes') }}</textarea>
                     </div>
 
                 </div>
@@ -234,16 +242,22 @@
 
 <script>
 
+    const oldProducts = Object.values(@json(old('products', [])));
     let rowIndex = 0;
 
-    function addRow()
+    function addRow(item = null)
     {
+        const selectedProductId = item?.product_id ? String(item.product_id) : '';
+        const quantity = Number(item?.quantity ?? 1) || 1;
+        const purchasePrice = Number(item?.purchase_price ?? 0) || 0;
+
         let html = `
             <tr>
 
                 <td>
                     <select name="products[${rowIndex}][product_id]"
-                            class="form-select"
+                            class="form-select product-select"
+                            onchange="setProductPrice(this)"
                             required>
 
                         <option value="">
@@ -252,7 +266,8 @@
 
                         @foreach($products as $product)
 
-                            <option value="{{ $product->id }}">
+                            <option value="{{ $product->id }}"
+                                    data-price="{{ $product->purchase_price }}">
                                 {{ $product->name }}
                             </option>
 
@@ -266,7 +281,7 @@
                            name="products[${rowIndex}][quantity]"
                            class="form-control quantity"
                            min="1"
-                           value="1"
+                           value="${quantity}"
                            onkeyup="calculateTotals()"
                            onchange="calculateTotals()"
                            required>
@@ -278,7 +293,7 @@
                            name="products[${rowIndex}][purchase_price]"
                            class="form-control price"
                            min="0"
-                           value="0"
+                           value="${purchasePrice}"
                            onkeyup="calculateTotals()"
                            onchange="calculateTotals()"
                            required>
@@ -305,7 +320,26 @@
         document.getElementById('purchaseBody')
             .insertAdjacentHTML('beforeend', html);
 
+        const row = document.querySelector('#purchaseBody tr:last-child');
+        const productSelect = row.querySelector('.product-select');
+
+        if (selectedProductId) {
+            productSelect.value = selectedProductId;
+            row.querySelector('.price').value = parseFloat(purchasePrice || 0).toFixed(2);
+        }
+
         rowIndex++;
+
+        calculateTotals();
+    }
+
+    function setProductPrice(select)
+    {
+        let row = select.closest('tr');
+        let option = select.options[select.selectedIndex];
+        let price = parseFloat(option.dataset.price) || 0;
+
+        row.querySelector('.price').value = price.toFixed(2);
 
         calculateTotals();
     }
@@ -353,11 +387,17 @@
             document.getElementById('paid_amount').value
         ) || 0;
 
-        let total =
-            (subtotal + extraExpense) - discount;
+        let total = (subtotal + extraExpense) - discount;
 
-        let remainingAmount =
-            total - paidAmount;
+        if (total < 0) {
+            total = 0;
+        }
+
+        let remainingAmount = total - paidAmount;
+
+        if (remainingAmount < 0) {
+            remainingAmount = 0;
+        }
 
         document.getElementById('subtotal').value =
             subtotal.toFixed(2);
@@ -373,8 +413,11 @@
         calculateTotals();
     });
 
-    // Default first row
-    addRow();
+    if (oldProducts.length > 0) {
+        oldProducts.forEach((item) => addRow(item));
+    } else {
+        addRow();
+    }
 
 </script>
 

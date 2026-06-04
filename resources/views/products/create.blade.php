@@ -40,6 +40,7 @@
                            name="name"
                            value="{{ old('name') }}"
                            class="form-control @error('name') is-invalid @enderror"
+                           maxlength="255"
                            required>
                     @error('name')
                         <small class="text-danger">{{ $message }}</small>
@@ -52,6 +53,7 @@
                            name="sku"
                            value="{{ old('sku') }}"
                            class="form-control @error('sku') is-invalid @enderror"
+                           maxlength="100"
                            required>
                     @error('sku')
                         <small class="text-danger">{{ $message }}</small>
@@ -63,7 +65,8 @@
                     <input type="text"
                            name="barcode"
                            value="{{ old('barcode') }}"
-                           class="form-control @error('barcode') is-invalid @enderror">
+                           class="form-control @error('barcode') is-invalid @enderror"
+                           maxlength="100">
                     @error('barcode')
                         <small class="text-danger">{{ $message }}</small>
                     @enderror
@@ -73,6 +76,7 @@
                     <label class="form-label">Purchase Price <span class="text-danger">*</span></label>
                     <input type="number"
                            step="0.01"
+                           min="0"
                            name="purchase_price"
                            value="{{ old('purchase_price') }}"
                            class="form-control @error('purchase_price') is-invalid @enderror"
@@ -86,6 +90,7 @@
                     <label class="form-label">Selling Price <span class="text-danger">*</span></label>
                     <input type="number"
                            step="0.01"
+                           min="0"
                            name="selling_price"
                            value="{{ old('selling_price') }}"
                            class="form-control @error('selling_price') is-invalid @enderror"
@@ -99,6 +104,7 @@
                     <label class="form-label">Opening Stock Quantity <span class="text-danger">*</span></label>
                     <input type="number"
                            name="stock_quantity"
+                           min="0"
                            value="{{ old('stock_quantity', 0) }}"
                            class="form-control @error('stock_quantity') is-invalid @enderror"
                            required>
@@ -111,6 +117,7 @@
                     <label class="form-label">Low Stock Alert <span class="text-danger">*</span></label>
                     <input type="number"
                            name="low_stock_alert"
+                           min="0"
                            value="{{ old('low_stock_alert', 5) }}"
                            class="form-control @error('low_stock_alert') is-invalid @enderror"
                            required>

@@ -14,7 +14,7 @@
 
             <small class="text-muted">
                 Payment Reference:
-                {{ $supplierPayment->reference_no ?? 'N/A' }}
+                {{ $supplierPayment->reference_no ?? 'Not recorded' }}
             </small>
         </div>
 

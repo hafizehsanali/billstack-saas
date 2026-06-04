@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreInvoiceRequest extends FormRequest
 {
@@ -27,7 +28,8 @@ class StoreInvoiceRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                'unique:invoices,invoice_no',
+                Rule::unique('invoices', 'invoice_no')
+                    ->where('tenant_id', auth()->user()->tenant_id),
             ],
 
             'sale_date' => [
@@ -37,7 +39,8 @@ class StoreInvoiceRequest extends FormRequest
 
             'customer_id' => [
                 'required',
-                'exists:customers,id'
+                Rule::exists('customers', 'id')
+                    ->where('tenant_id', auth()->user()->tenant_id),
             ],
 
             'products' => [
@@ -48,7 +51,8 @@ class StoreInvoiceRequest extends FormRequest
 
             'products.*.product_id' => [
                 'required',
-                'exists:products,id'
+                Rule::exists('products', 'id')
+                    ->where('tenant_id', auth()->user()->tenant_id),
             ],
 
             'products.*.quantity' => [

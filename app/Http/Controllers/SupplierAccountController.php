@@ -7,29 +7,20 @@ use App\Services\SupplierAccountService;
 
 class SupplierAccountController extends Controller
 {
-    protected SupplierAccountService
-        $supplierAccountService;
+    protected SupplierAccountService $service;
 
-    public function __construct( SupplierAccountService $supplierAccountService) 
+    public function __construct(SupplierAccountService $supplierAccountService)
     {
-        $this->service    = $supplierAccountService;
-    }
-
-    /**
-     * Supplier account statement
-     */
-    public function show1(Supplier $supplier)
-    {
-        $account = $this->service->getAccount($supplier->id);
-
-        return view('supplier-account.account', $account);
+        $this->service = $supplierAccountService;
     }
     
     public function show(Supplier $supplier)
     {
         $from = request('from');
         $to = request('to');
-        $account = $this->service->getLedgerWithBalance($supplier->id,$from, $to);
+
+        $account = $this->service->getLedgerWithBalance($supplier->id, $from, $to);
+
         return view('supplier-account.account', $account);
     }
 }
