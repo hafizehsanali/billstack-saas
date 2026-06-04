@@ -68,7 +68,7 @@
 
                 {{-- Opening Balance --}}
                 <div class="mb-3">
-                    <label class="form-label">Opening Balance</label>
+                    <label class="form-label">Opening Balance / Previous Payable</label>
 
                     <input
                         type="number"
