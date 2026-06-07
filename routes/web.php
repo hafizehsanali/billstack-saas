@@ -19,6 +19,7 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SupplierAccountController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SupplierPaymentController;
+use App\Http\Controllers\TeamMemberController;
 use App\Http\Controllers\Platform\DashboardController as PlatformDashboardController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,6 +37,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/alerts', [AlertController::class, 'index'])->name('alerts.index');
     Route::get('/settings/business', [SettingsController::class, 'business'])->name('settings.business');
     Route::put('/settings/business', [SettingsController::class, 'updateBusiness'])->name('settings.business.update');
+
+    Route::middleware('role:owner')->group(function () {
+        Route::get('/team', [TeamMemberController::class, 'index'])->name('team.index');
+        Route::get('/team/create', [TeamMemberController::class, 'create'])->name('team.create');
+        Route::post('/team', [TeamMemberController::class, 'store'])->name('team.store');
+        Route::get('/team/{teamMember}/edit', [TeamMemberController::class, 'edit'])->name('team.edit');
+        Route::put('/team/{teamMember}', [TeamMemberController::class, 'update'])->name('team.update');
+        Route::patch('/team/{teamMember}/activate', [TeamMemberController::class, 'activate'])->name('team.activate');
+        Route::patch('/team/{teamMember}/deactivate', [TeamMemberController::class, 'deactivate'])->name('team.deactivate');
+    });
 
     Route::resource('categories', CategoryController::class)->only(['index', 'create', 'store']);
     Route::get('/products/{product}/stock-ledger', [ProductController::class, 'stockLedger'])->name('products.stock-ledger');
