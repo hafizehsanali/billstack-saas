@@ -49,32 +49,11 @@ jobs:
           cp .env.example .env
           php artisan key:generate
 
-      - name: Run application tests
-        shell: bash
-        run: |
-          set -o pipefail
-          if ! php artisan test --do-not-cache-result --stop-on-failure 2>&1 | tee test-output.log; then
-            failure_excerpt="$(
-              grep -E 'FAIL|Exception|Error|SQLSTATE|Undefined|Call to|Failed asserting|Expected|Actual|Tests:' \
-                test-output.log |
-                head -n 80
-            )"
-            failure_excerpt="${failure_excerpt//'%'/'%25'}"
-            failure_excerpt="${failure_excerpt//$'\r'/'%0D'}"
-            failure_excerpt="${failure_excerpt//$'\n'/'%0A'}"
-            echo "::error title=PHPUnit failure::$failure_excerpt"
-
-            {
-              echo "## PHPUnit failure"
-              echo '```text'
-              tail -n 200 test-output.log
-              echo '```'
-            } >> "$GITHUB_STEP_SUMMARY"
-            exit 1
-          fi
-
       - name: Build production assets
         run: npm run build
+
+      - name: Run application tests
+        run: php artisan test --do-not-cache-result
 
       - name: Check dependency advisories
         run: composer audit --locked
