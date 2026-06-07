@@ -2,28 +2,31 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Purchase;
 use App\Models\SupplierPayment;
+use Illuminate\Database\Seeder;
 
 class SupplierPaymentSeeder extends Seeder
 {
     public function run(): void
     {
-        $purchases = Purchase::take(3)->get();
+        $purchases = Purchase::query()
+            ->where('status', 'unpaid')
+            ->get()
+            ->groupBy('tenant_id')
+            ->flatMap(fn ($tenantPurchases) => $tenantPurchases->take(3));
 
         foreach ($purchases as $purchase) {
-
             $amount = $purchase->total / 2;
 
             SupplierPayment::create([
-                'tenant_id' => 1,
+                'tenant_id' => $purchase->tenant_id,
                 'supplier_id' => $purchase->supplier_id,
                 'purchase_id' => $purchase->id,
                 'payment_date' => now(),
                 'amount' => $amount,
                 'payment_method' => 'cash',
-                'reference_no' => 'PAY-' . rand(1000, 9999),
+                'reference_no' => 'PAY-DEMO-'.$purchase->id,
                 'notes' => 'Demo supplier payment',
             ]);
 

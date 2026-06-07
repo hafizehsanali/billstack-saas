@@ -48,15 +48,15 @@ npm install
 
 Create the environment file:
 
-```bash
-cp .env.example .env
+```powershell
+Copy-Item .env.example .env
 php artisan key:generate
 ```
 
 Set up the database. SQLite is the simplest local option:
 
-```bash
-type nul > database\database.sqlite
+```powershell
+New-Item database\database.sqlite -ItemType File -Force
 php artisan migrate --seed
 ```
 
@@ -64,6 +64,12 @@ For MySQL/XAMPP, update `.env` with your database name, username, and password, 
 
 ```bash
 php artisan migrate --seed
+```
+
+Create the public storage link used by uploaded business assets:
+
+```bash
+php artisan storage:link
 ```
 
 Build frontend assets:
@@ -99,8 +105,12 @@ Run these before committing major changes:
 ```bash
 php artisan route:list --except-vendor
 php artisan view:cache
-php artisan test
+php artisan test --do-not-cache-result
+npm run build
 ```
+
+For production, set `APP_ENV=production`, `APP_DEBUG=false`, a strong generated
+`APP_KEY`, the correct `APP_URL`, and the business timezone in `APP_TIMEZONE`.
 
 ## Public vs Private Usage
 

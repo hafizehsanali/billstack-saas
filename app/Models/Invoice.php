@@ -58,4 +58,11 @@ class Invoice extends Model
     {
         return $this->hasMany(SalesReturn::class);
     }
+
+    public function canBeCancelled(): bool
+    {
+        return $this->status === 'unpaid'
+            && ! $this->payments()->exists()
+            && ! $this->returns()->exists();
+    }
 }

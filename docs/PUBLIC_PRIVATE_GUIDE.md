@@ -33,3 +33,9 @@ Seeders must use fake or clearly marked demo data. Demo passwords must never be 
 ## Commercial Deployment Rules
 
 For real businesses, keep deployment configuration, production backups, credentials, and client customizations in private storage or a private repository. The public project should stay generic and safe to inspect.
+
+When private development begins, keep this public repository as the generic
+upstream. Create the private repository from a reviewed public release, then
+periodically merge selected public fixes into the private repository. Do not
+merge client data, credentials, licensed modules, or private deployment files
+back into the public history.

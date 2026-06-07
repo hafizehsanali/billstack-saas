@@ -68,8 +68,6 @@ class PurchaseService
                 'status' => $status,
 
                 'notes' => $data['notes'] ?? null,
-
-                'created_by' => auth()->id(),
             ]);
 
             foreach ($data['products'] as $item) {
@@ -259,11 +257,14 @@ class PurchaseService
 
         DB::transaction(function () use ($purchase) {
             $stockLedger = app(StockLedgerService::class);
+            $purchase = Purchase::query()
+                ->with('items.product')
+                ->lockForUpdate()
+                ->findOrFail($purchase->id);
 
-            if ($purchase->status === 'cancelled') {
-
+            if (! $purchase->canBeCancelled()) {
                 throw new \Exception(
-                    'Purchase already cancelled.'
+                    'Only an unpaid purchase without payments or returns can be cancelled.'
                 );
             }
 

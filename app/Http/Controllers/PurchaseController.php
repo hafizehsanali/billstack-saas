@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
-use App\Models\Supplier;
-use App\Models\Purchase;
-use App\Services\PurchaseService;
 use App\Http\Requests\StorePurchaseRequest;
+use App\Models\Product;
+use App\Models\Purchase;
+use App\Models\Supplier;
+use App\Services\PurchaseService;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class PurchaseController extends Controller
@@ -35,6 +35,7 @@ class PurchaseController extends Controller
             'products'
         ));
     }
+
     public function edit(Purchase $purchase)
     {
         abort_unless(
@@ -79,6 +80,7 @@ class PurchaseController extends Controller
                 'Purchase updated successfully.'
             );
     }
+
     public function store(StorePurchaseRequest $request)
     {
         $this->purchaseService->store(
@@ -92,6 +94,7 @@ class PurchaseController extends Controller
                 'Purchase created successfully.'
             );
     }
+
     public function show(Purchase $purchase)
     {
         $purchase->load([
@@ -100,12 +103,12 @@ class PurchaseController extends Controller
             'items.returnItems',
             'payments',
             'returns.items.product',
-            'creator',
         ]);
+
         return view('purchases.show', compact('purchase'));
     }
 
-    public function cancel(Purchase $purchase,PurchaseService $purchaseService) 
+    public function cancel(Purchase $purchase, PurchaseService $purchaseService)
     {
         try {
 
@@ -134,7 +137,6 @@ class PurchaseController extends Controller
         $purchase->load([
             'supplier',
             'items.product',
-            'creator',
         ]);
 
         return view('purchases.print', compact(

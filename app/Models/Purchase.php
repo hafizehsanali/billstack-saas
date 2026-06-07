@@ -23,7 +23,6 @@ class Purchase extends Model
         'remaining_amount',
         'status',
         'notes',
-        
     ];
 
     protected $casts = [
@@ -46,10 +45,6 @@ class Purchase extends Model
         return $this->hasMany(PurchaseItem::class);
     }
 
-    public function creator()
-    {
-        return $this->belongsTo(User::class, 'created_by');
-    }
     public function payments()
     {
         return $this->hasMany(SupplierPayment::class);
@@ -62,20 +57,22 @@ class Purchase extends Model
 
     public function canBeEdited(): bool
     {
-        if ($this->status !== 'unpaid') {
-            return false;
-        }
-
-        if ($this->payments()->exists() || $this->returns()->exists()) {
+        if (! $this->canBeCancelled()) {
             return false;
         }
 
         $this->loadMissing('items.product');
 
         return $this->items->every(
-            fn (PurchaseItem $item) =>
-                $item->product
+            fn (PurchaseItem $item) => $item->product
                 && $item->product->stock_quantity >= $item->quantity
         );
+    }
+
+    public function canBeCancelled(): bool
+    {
+        return $this->status === 'unpaid'
+            && ! $this->payments()->exists()
+            && ! $this->returns()->exists();
     }
 }

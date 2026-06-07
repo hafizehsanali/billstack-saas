@@ -9,9 +9,9 @@
         <small class="text-muted">{{ $customer->name }}</small>
     </div>
 
-    <div class="d-flex gap-2">
+    <div class="page-actions">
 
-        <form method="GET" class="d-flex gap-2">
+        <form method="GET" class="d-flex flex-wrap gap-2">
 
             <input type="date" name="start_date"
                    value="{{ request('start_date') }}"
@@ -24,6 +24,10 @@
             <button class="btn btn-primary">
                 Filter
             </button>
+
+            <a href="{{ url()->current() }}" class="btn btn-outline-secondary">
+                Reset
+            </a>
 
         </form>
 
@@ -153,7 +157,7 @@
 
             </div>
 
-            <div class="d-flex justify-content-end mt-3">
+            <div class="form-actions">
                 <button type="submit"
                         class="btn btn-success px-4 text-nowrap"
                         @disabled($outstandingBalance <= 0)>

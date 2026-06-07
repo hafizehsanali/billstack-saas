@@ -188,70 +188,34 @@ class InvoiceController extends Controller
         return view('invoices.show', compact('invoice'));
     }
 
-    public function destroy(Invoice $invoice)
-    {
-        if ($invoice->status === 'cancelled') {
-            $invoice->delete();
-
-            return redirect()
-                ->route('invoices.index')
-                ->with('success', 'Invoice deleted.');
-        }
-
-        $stockLedger = app(StockLedgerService::class);
-
-        foreach ($invoice->items as $item) {
-
-            if ($item->product) {
-
-                $item->product->increment(
-                    'stock_quantity',
-                    $item->quantity
-                );
-
-                $item->product->refresh();
-
-                $stockLedger->record($item->product, 'sale_cancel', $item->quantity, [
-                    'direction' => 'in',
-                    'unit_cost' => $item->product->purchase_price,
-                    'unit_price' => $item->price,
-                    'stock_after' => $item->product->stock_quantity,
-                    'source_type' => InvoiceItem::class,
-                    'source_id' => $item->id,
-                    'reference_no' => $invoice->invoice_no,
-                    'movement_date' => now()->toDateString(),
-                    'notes' => 'Invoice deleted.',
-                ]);
-            }
-        }
-
-        $invoice->delete();
-
-        return redirect()
-            ->route('invoices.index')
-            ->with('success', 'Invoice deleted.');
-    }
-
     public function cancel(Invoice $invoice)
     {
-        if ($invoice->status === 'cancelled') {
-
+        if (! $invoice->canBeCancelled()) {
             return back()->withErrors([
-                'invoice' => 'Invoice already cancelled.',
+                'invoice' => 'Only an unpaid invoice without payments or returns can be cancelled.',
             ]);
         }
 
-        $stockLedger = app(StockLedgerService::class);
+        DB::transaction(function () use ($invoice) {
+            $lockedInvoice = Invoice::query()
+                ->with('items.product')
+                ->lockForUpdate()
+                ->findOrFail($invoice->id);
 
-        foreach ($invoice->items as $item) {
+            if (! $lockedInvoice->canBeCancelled()) {
+                throw ValidationException::withMessages([
+                    'invoice' => 'Only an unpaid invoice without payments or returns can be cancelled.',
+                ]);
+            }
 
-            if ($item->product) {
+            $stockLedger = app(StockLedgerService::class);
 
-                $item->product->increment(
-                    'stock_quantity',
-                    $item->quantity
-                );
+            foreach ($lockedInvoice->items as $item) {
+                if (! $item->product) {
+                    continue;
+                }
 
+                $item->product->increment('stock_quantity', $item->quantity);
                 $item->product->refresh();
 
                 $stockLedger->record($item->product, 'sale_cancel', $item->quantity, [
@@ -261,16 +225,16 @@ class InvoiceController extends Controller
                     'stock_after' => $item->product->stock_quantity,
                     'source_type' => InvoiceItem::class,
                     'source_id' => $item->id,
-                    'reference_no' => $invoice->invoice_no,
+                    'reference_no' => $lockedInvoice->invoice_no,
                     'movement_date' => now()->toDateString(),
                     'notes' => 'Invoice cancelled.',
                 ]);
             }
-        }
 
-        $invoice->update([
-            'status' => 'cancelled',
-        ]);
+            $lockedInvoice->update([
+                'status' => 'cancelled',
+            ]);
+        });
 
         return redirect()
             ->route('invoices.index')

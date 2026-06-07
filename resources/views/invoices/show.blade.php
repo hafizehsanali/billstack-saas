@@ -517,7 +517,7 @@
             </table>
 
             <div class="d-flex gap-2">
-                @if($invoice->status != 'cancelled' && $invoice->status != 'paid' && $invoice->status != 'partial')
+                @if($invoice->canBeCancelled())
 
                     <form method="POST" action="{{ route('invoices.cancel', $invoice->id) }}">
                         @csrf

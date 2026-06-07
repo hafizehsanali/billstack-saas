@@ -433,7 +433,7 @@
             </table>
 
             <div class="d-flex gap-2">
-                @if(! in_array($purchase->status, ['cancelled', 'paid', 'partial', 'returned']))
+                @if($purchase->canBeCancelled())
                     <form method="POST" action="{{ route('purchases.cancel', $purchase) }}">
                         @csrf
 

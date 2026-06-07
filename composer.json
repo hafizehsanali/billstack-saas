@@ -1,9 +1,9 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "billstack/billstack",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "description": "Multi-tenant inventory, billing, and business account management system.",
+    "keywords": ["inventory", "billing", "pos", "laravel", "multi-tenant"],
     "license": "MIT",
     "require": {
         "php": "^8.3",

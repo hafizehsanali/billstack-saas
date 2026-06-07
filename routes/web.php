@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\AlertController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerAccountController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerPaymentController;
@@ -45,7 +45,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/customers/{customer}/account', [CustomerAccountController::class, 'show'])->name('customer.account');
 
     Route::get('/pos', [InvoiceController::class, 'pos'])->name('invoices.pos');
-    Route::resource('invoices', InvoiceController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
+    Route::resource('invoices', InvoiceController::class)->only(['index', 'create', 'store', 'show']);
     Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');
     Route::patch('/invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])->name('invoices.cancel');
     Route::post('/invoices/{invoice}/payments', [PaymentController::class, 'store'])->name('payments.store');

@@ -18,14 +18,33 @@
 }
 </style>
 <div class="container">
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="mb-1">Supplier Ledger</h2>
+        <div class="text-muted">{{ $supplier->name }}</div>
+    </div>
+
+    <div class="page-actions">
+        <button onclick="window.print()" class="btn btn-dark">
+            Print Statement
+        </button>
+
+        <a href="{{ route('suppliers.index') }}" class="btn btn-secondary">
+            Back
+        </a>
+    </div>
+</div>
+
 {{-- Ledger date filters --}}
-<form method="GET" class="row g-2 mb-3 ">
+<form method="GET" class="row g-2 align-items-end mb-3">
 
     <div class="col-md-3">
+        <label class="form-label">From Date</label>
         <input type="date" name="from" value="{{ request('from') }}" class="form-control">
     </div>
 
     <div class="col-md-3">
+        <label class="form-label">To Date</label>
         <input type="date" name="to" value="{{ request('to') }}" class="form-control">
     </div>
 
@@ -41,7 +60,6 @@
 
 </form>
 
-<h3>{{ $supplier->name }} Ledger</h3>
 {{-- Supplier payable summary --}}
 <div class="row g-3 mb-4">
 
@@ -127,7 +145,7 @@
             <input type="hidden" name="source" value="account">
 
             <div class="row g-3 align-items-end">
-                <div class="col-md-2">
+                <div class="col-lg-3 col-md-6">
                     <label class="form-label">Amount</label>
                     <input type="number"
                            name="amount"
@@ -142,7 +160,7 @@
                     </small>
                 </div>
 
-                <div class="col-md-2">
+                <div class="col-lg-2 col-md-6">
                     <label class="form-label">Method</label>
                     <select name="payment_method" class="form-select">
                         <option value="">Select Method</option>
@@ -154,7 +172,7 @@
                     </select>
                 </div>
 
-                <div class="col-md-2">
+                <div class="col-lg-2 col-md-6">
                     <label class="form-label">Payment Date</label>
                     <input type="date"
                            name="payment_date"
@@ -163,7 +181,7 @@
                            required>
                 </div>
 
-                <div class="col-md-2">
+                <div class="col-lg-2 col-md-6">
                     <label class="form-label">Reference No</label>
                     <input type="text"
                            name="reference_no"
@@ -171,7 +189,7 @@
                            class="form-control">
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-lg-3 col-md-12">
                     <label class="form-label">Notes</label>
                     <input type="text"
                            name="notes"
@@ -179,23 +197,21 @@
                            class="form-control">
                 </div>
 
-                <div class="col-md-1">
-                    <button type="submit"
-                            class="btn btn-success w-100"
-                            @disabled($outstanding_payable <= 0)>
-                        Save Payment
-                    </button>
-                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit"
+                        class="btn btn-success px-4"
+                        @disabled($outstanding_payable <= 0)>
+                    Save Payment
+                </button>
             </div>
         </form>
     </div>
 </div>
 
 {{-- Ledger Table --}}
-<button onclick="window.print()" class="btn btn-dark btn-sm">
-    Print Statement
-</button>
-<div class="card mt-3">
+<div class="card">
     <div class="card-header fw-bold">
         Ledger Statement
     </div>
@@ -215,7 +231,7 @@
             </thead>
 
             <tbody>
-                @foreach($ledger as $row)
+                @forelse($ledger as $row)
                   <tr>
                         <td>{{ $row['date'] }}</td>
 
@@ -242,7 +258,13 @@
                         <td class="text-end text-success">{{ number_format($row['credit'],2) }}</td>
                         <td class="text-end fw-bold">{{ number_format($row['balance'],2) }}</td>
                     </tr>
-                @endforeach
+                @empty
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            No supplier ledger transactions found.
+                        </td>
+                    </tr>
+                @endforelse
             </tbody>
 
         </table>
@@ -250,7 +272,7 @@
 </div>
 
 <div class="mt-3 card">
-    <div class="card-body d-flex justify-content-between">
+    <div class="card-body d-flex flex-wrap justify-content-between gap-3">
 
         <div>
             <strong>Opening Balance:</strong>

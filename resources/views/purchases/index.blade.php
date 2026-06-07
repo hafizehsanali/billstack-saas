@@ -127,7 +127,7 @@
                                     </a>
                                 @endif
 
-                                @if(! in_array($purchase->status, ['cancelled', 'paid', 'partial', 'returned'], true))
+                                @if($purchase->canBeCancelled())
                                     <form action="{{ route('purchases.cancel', $purchase) }}"
                                           method="POST"
                                           class="m-0"

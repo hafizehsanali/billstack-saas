@@ -120,7 +120,7 @@
                                     View
                                 </a>
 
-                                @if(! in_array($invoice->status, ['cancelled', 'paid', 'partial', 'returned'], true))
+                                @if($invoice->canBeCancelled())
                                     <form method="POST"
                                           action="{{ route('invoices.cancel', $invoice) }}"
                                           class="m-0"
