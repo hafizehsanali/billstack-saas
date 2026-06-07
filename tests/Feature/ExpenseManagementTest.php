@@ -93,18 +93,45 @@ class ExpenseManagementTest extends TestCase
         ]);
     }
 
-    private function ownerUser(): User
+    public function test_expenses_from_another_store_are_not_accessible(): void
+    {
+        $firstUser = $this->ownerUser('First Store');
+        $secondUser = $this->ownerUser('Second Store');
+
+        $this->actingAs($secondUser);
+
+        $foreignExpense = Expense::create([
+            'tenant_id' => $secondUser->tenant_id,
+            'title' => 'Foreign Expense',
+            'category' => 'General',
+            'amount' => 1000,
+            'expense_date' => '2026-06-07',
+        ]);
+
+        $this->actingAs($firstUser);
+
+        $this
+            ->get(route('expenses.edit', $foreignExpense->id))
+            ->assertNotFound();
+
+        $this
+            ->get(route('expenses.index'))
+            ->assertOk()
+            ->assertDontSee('Foreign Expense');
+    }
+
+    private function ownerUser(string $storeName = 'Demo Store'): User
     {
         $tenant = Tenant::create([
-            'name' => 'Demo Store',
-            'slug' => 'demo-store',
+            'name' => $storeName,
+            'slug' => uniqid(str($storeName)->slug().'-'),
         ]);
 
         $user = User::factory()->create([
             'tenant_id' => $tenant->id,
         ]);
 
-        Role::create(['name' => 'owner']);
+        Role::findOrCreate('owner');
         $user->assignRole('owner');
 
         return $user;

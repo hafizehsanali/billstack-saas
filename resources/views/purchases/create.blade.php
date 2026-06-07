@@ -214,6 +214,44 @@
                                readonly>
                     </div>
 
+                    <div class="col-md-3 mb-3 purchase-payment-field d-none">
+                        <label class="form-label">Payment Method</label>
+                        <select name="payment_method" class="form-select">
+                            <option value="cash" @selected(old('payment_method', 'cash') === 'cash')>Cash</option>
+                            <option value="bank" @selected(old('payment_method') === 'bank')>Bank</option>
+                            <option value="card" @selected(old('payment_method') === 'card')>Card</option>
+                            <option value="jazzcash" @selected(old('payment_method') === 'jazzcash')>JazzCash</option>
+                            <option value="easypaisa" @selected(old('payment_method') === 'easypaisa')>EasyPaisa</option>
+                            <option value="cheque" @selected(old('payment_method') === 'cheque')>Cheque</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3 mb-3 purchase-payment-field d-none">
+                        <label class="form-label">Payment Date</label>
+                        <input type="datetime-local"
+                               name="payment_date"
+                               class="form-control"
+                               value="{{ old('payment_date', now()->format('Y-m-d\TH:i')) }}">
+                    </div>
+
+                    <div class="col-md-3 mb-3 purchase-payment-field d-none">
+                        <label class="form-label">Reference No</label>
+                        <input type="text"
+                               name="reference_no"
+                               class="form-control"
+                               value="{{ old('reference_no') }}"
+                               placeholder="Cheque / Txn / Ref">
+                    </div>
+
+                    <div class="col-md-3 mb-3 purchase-payment-field d-none">
+                        <label class="form-label">Payment Notes</label>
+                        <input type="text"
+                               name="payment_notes"
+                               class="form-control"
+                               value="{{ old('payment_notes') }}"
+                               placeholder="Optional payment note">
+                    </div>
+
                     <div class="col-md-12 mb-3">
                         <label class="form-label">
                             Notes
@@ -407,6 +445,10 @@
 
         document.getElementById('remaining_amount').value =
             remainingAmount.toFixed(2);
+
+        document.querySelectorAll('.purchase-payment-field').forEach(function(field) {
+            field.classList.toggle('d-none', paidAmount <= 0);
+        });
     }
 
     document.addEventListener('input', function() {

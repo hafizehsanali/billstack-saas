@@ -56,6 +56,62 @@ class PurchaseValidationTest extends TestCase
         ]);
     }
 
+    public function test_purchase_initial_payment_is_recorded_in_supplier_payment_history(): void
+    {
+        [$tenant, $user] = $this->createOwnerUser();
+        $this->actingAs($user);
+
+        $supplier = Supplier::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Main Supplier',
+        ]);
+
+        $product = $this->createProduct('Paid Purchase Product', 'PAID-PUR-001');
+
+        $this
+            ->post(route('purchases.store'), [
+                'supplier_id' => $supplier->id,
+                'purchase_no' => 'PUR-WITH-PAYMENT',
+                'purchase_date' => '2026-06-07',
+                'subtotal' => 1000,
+                'extra_expense' => 0,
+                'discount' => 0,
+                'paid_amount' => 400,
+                'payment_method' => 'bank',
+                'payment_date' => '2026-06-07 10:30:00',
+                'reference_no' => 'BANK-001',
+                'payment_notes' => 'Initial supplier payment',
+                'products' => [
+                    [
+                        'product_id' => $product->id,
+                        'quantity' => 10,
+                        'purchase_price' => 100,
+                    ],
+                ],
+            ])
+            ->assertRedirect(route('purchases.index'));
+
+        $purchase = Purchase::where('purchase_no', 'PUR-WITH-PAYMENT')->firstOrFail();
+
+        $this->assertDatabaseHas('purchases', [
+            'id' => $purchase->id,
+            'paid_amount' => 400,
+            'remaining_amount' => 600,
+            'status' => 'partial',
+        ]);
+
+        $this->assertDatabaseHas('supplier_payments', [
+            'tenant_id' => $tenant->id,
+            'supplier_id' => $supplier->id,
+            'purchase_id' => $purchase->id,
+            'amount' => 400,
+            'payment_method' => 'bank',
+            'payment_date' => '2026-06-07',
+            'reference_no' => 'BANK-001',
+            'notes' => 'Initial supplier payment',
+        ]);
+    }
+
     public function test_purchase_supplier_and_products_must_belong_to_current_store(): void
     {
         [$firstTenant, $firstUser] = $this->createOwnerUser('First Store');
@@ -250,6 +306,42 @@ class PurchaseValidationTest extends TestCase
             ])
             ->assertRedirect(route('purchases.create'))
             ->assertSessionHasErrors('purchase_no');
+    }
+
+    public function test_purchases_from_another_store_are_not_accessible(): void
+    {
+        [, $firstUser] = $this->createOwnerUser('First Store');
+        [, $secondUser] = $this->createOwnerUser('Second Store');
+
+        $this->actingAs($secondUser);
+
+        $supplier = Supplier::create([
+            'tenant_id' => $secondUser->tenant_id,
+            'name' => 'Foreign Supplier',
+        ]);
+
+        $foreignPurchase = Purchase::create([
+            'tenant_id' => $secondUser->tenant_id,
+            'supplier_id' => $supplier->id,
+            'purchase_no' => 'PUR-FOREIGN-ROUTE',
+            'purchase_date' => '2026-06-07',
+            'subtotal' => 100,
+            'total' => 100,
+            'paid_amount' => 0,
+            'remaining_amount' => 100,
+            'status' => 'unpaid',
+        ]);
+
+        $this->actingAs($firstUser);
+
+        $this
+            ->get(route('purchases.show', $foreignPurchase->id))
+            ->assertNotFound();
+
+        $this
+            ->get(route('purchases.index'))
+            ->assertOk()
+            ->assertDontSee('PUR-FOREIGN-ROUTE');
     }
 
     private function createOwnerUser(string $storeName = 'Demo Store'): array

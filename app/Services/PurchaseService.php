@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -99,6 +100,20 @@ class PurchaseService
                     'source_id' => $purchaseItem->id,
                     'reference_no' => $purchase->purchase_no,
                     'movement_date' => $purchase->purchase_date,
+                ]);
+            }
+
+            if ($paidAmount > 0) {
+                $purchase->payments()->create([
+                    'tenant_id' => auth()->user()->tenant_id,
+                    'supplier_id' => $purchase->supplier_id,
+                    'amount' => $paidAmount,
+                    'payment_method' => $data['payment_method'] ?? 'cash',
+                    'payment_date' => isset($data['payment_date'])
+                        ? Carbon::parse($data['payment_date'])->toDateString()
+                        : now()->toDateString(),
+                    'reference_no' => $data['reference_no'] ?? null,
+                    'notes' => $data['payment_notes'] ?? null,
                 ]);
             }
 

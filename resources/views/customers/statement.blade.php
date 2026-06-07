@@ -100,7 +100,7 @@
 
             <div class="row g-3 align-items-end">
 
-                <div class="col-md-2">
+                <div class="col-lg-3 col-md-6">
                     <label class="form-label">Amount Received from Customer</label>
                     <input type="number"
                            name="amount"
@@ -115,7 +115,7 @@
                     </small>
                 </div>
 
-                <div class="col-md-2">
+                <div class="col-lg-2 col-md-6">
                     <label class="form-label">Method</label>
                     <select name="payment_method" class="form-select" required>
                         <option value="cash" @selected(old('payment_method', 'cash') === 'cash')>Cash</option>
@@ -127,7 +127,7 @@
                     </select>
                 </div>
 
-                <div class="col-md-2">
+                <div class="col-lg-2 col-md-6">
                     <label class="form-label">Date</label>
                     <input type="date"
                            name="payment_date"
@@ -135,7 +135,7 @@
                            value="{{ old('payment_date', now()->format('Y-m-d')) }}">
                 </div>
 
-                <div class="col-md-2">
+                <div class="col-lg-2 col-md-6">
                     <label class="form-label">Reference No</label>
                     <input type="text"
                            name="reference_no"
@@ -143,7 +143,7 @@
                            value="{{ old('reference_no') }}">
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-lg-3 col-md-12">
                     <label class="form-label">Notes</label>
                     <input type="text"
                            name="notes"
@@ -151,14 +151,14 @@
                            value="{{ old('notes') }}">
                 </div>
 
-                <div class="col-md-1">
-                    <button type="submit"
-                            class="btn btn-success w-100"
-                            @disabled($outstandingBalance <= 0)>
-                        Save Payment
-                    </button>
-                </div>
+            </div>
 
+            <div class="d-flex justify-content-end mt-3">
+                <button type="submit"
+                        class="btn btn-success px-4 text-nowrap"
+                        @disabled($outstandingBalance <= 0)>
+                    Save Payment
+                </button>
             </div>
 
         </form>
