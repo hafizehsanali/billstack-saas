@@ -1,8 +1,41 @@
 # BillStack
 
-BillStack is a Laravel-based inventory, billing, and business account management system for small and medium businesses such as general stores, hardware shops, pharmacies, wholesalers, and service-retail businesses.
+<img src="docs/assets/billstack-mark.png" alt="BillStack mark" width="96">
 
-The public codebase is kept generic and demo-safe. Real client data, deployment secrets, paid modules, and client-specific customizations should stay private.
+[![CI](https://github.com/hafizehsanali/billstack-saas/actions/workflows/ci.yml/badge.svg)](https://github.com/hafizehsanali/billstack-saas/actions/workflows/ci.yml)
+[![PHP](https://img.shields.io/badge/PHP-8.3%2B-777BB4?logo=php&logoColor=white)](https://www.php.net/)
+[![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white)](https://laravel.com/)
+[![License](https://img.shields.io/badge/license-MIT-2ea44f)](LICENSE)
+
+BillStack is a multi-tenant inventory, billing, and account management system
+for general stores, hardware shops, pharmacies, wholesalers, and
+service-retail businesses.
+
+The public repository contains the generic, demo-safe product foundation.
+Client data, deployment secrets, paid modules, and business-specific
+customizations remain private.
+
+## Product Preview
+
+| Dashboard | POS Billing |
+| --- | --- |
+| ![BillStack dashboard](docs/screenshots/dashboard.png) | ![BillStack POS billing](docs/screenshots/pos-billing.png) |
+
+| Invoice Workflow | Supplier Ledger |
+| --- | --- |
+| ![BillStack invoice detail](docs/screenshots/invoice-detail.png) | ![BillStack supplier ledger](docs/screenshots/supplier-ledger.png) |
+
+## Engineering Highlights
+
+- Tenant isolation through global model scopes and tenant-scoped validation
+- Transaction-safe stock, payment, return, and cancellation workflows
+- Immutable financial history after payments or returns exist
+- Stock movement ledger with source references and resulting quantities
+- Customer and supplier payment allocation across open documents
+- Return credits reflected in inventory and account balances
+- Per-tenant invoice and purchase numbering constraints
+- Automated coverage across 80 tests and 427 assertions
+- CI verification for PHP tests, production assets, and dependency advisories
 
 ## Current Features
 
@@ -24,6 +57,13 @@ The public codebase is kept generic and demo-safe. Real client data, deployment 
 - Invoice PDF download
 - Business settings for invoice branding and company details
 - Feature tests for key accounting and inventory flows
+
+See [Architecture](docs/ARCHITECTURE.md) for the design and transaction
+boundaries, and [Demo Workflows](docs/DEMO_WORKFLOWS.md) for guided review
+paths.
+
+Release history is maintained in the [Changelog](CHANGELOG.md). Security
+reports should follow the [Security Policy](SECURITY.md).
 
 ## Tech Stack
 
@@ -98,6 +138,9 @@ Password for seeded demo users:
 
 Use these credentials only for local/demo environments. Never use them in production.
 
+The project currently provides a reproducible local demo rather than a hosted
+public environment.
+
 ## Verification Commands
 
 Run these before committing major changes:
@@ -145,4 +188,6 @@ Planned business-ready improvements:
 
 ## License
 
-This project is currently maintained as a business product foundation. Confirm licensing and commercial usage terms before using it for a client deployment.
+The generic public foundation is available under the [MIT License](LICENSE).
+Private modules, client customizations, production data, and deployment
+configuration are not part of this repository.

@@ -10,17 +10,17 @@ class TenantSeeder extends Seeder
     public function run(): void
     {
         Tenant::create([
-            'name' => 'Demo Company 1',
+            'name' => 'Northstar General Store',
             'slug' => 'demo-store-1',
         ]);
 
         Tenant::create([
-            'name' => 'Demo Company 2',
+            'name' => 'Summit Hardware',
             'slug' => 'demo-store-2',
         ]);
 
         Tenant::create([
-            'name' => 'Demo Company 3',
+            'name' => 'Greenline Pharmacy',
             'slug' => 'demo-store-3',
         ]);
     }
