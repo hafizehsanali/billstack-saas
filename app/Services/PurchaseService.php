@@ -153,6 +153,11 @@ class PurchaseService
 
     public function update(Purchase $purchase, array $data): void
     {
+        if (! $purchase->canBeEdited()) {
+            throw ValidationException::withMessages([
+                'purchase' => 'This purchase cannot be edited after payments, returns, or stock usage.',
+            ]);
+        }
 
         DB::transaction(function () use ($purchase, $data) {
             $stockLedger = app(StockLedgerService::class);

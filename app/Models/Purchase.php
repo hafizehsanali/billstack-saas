@@ -59,4 +59,23 @@ class Purchase extends Model
     {
         return $this->hasMany(PurchaseReturn::class);
     }
+
+    public function canBeEdited(): bool
+    {
+        if ($this->status !== 'unpaid') {
+            return false;
+        }
+
+        if ($this->payments()->exists() || $this->returns()->exists()) {
+            return false;
+        }
+
+        $this->loadMissing('items.product');
+
+        return $this->items->every(
+            fn (PurchaseItem $item) =>
+                $item->product
+                && $item->product->stock_quantity >= $item->quantity
+        );
+    }
 }

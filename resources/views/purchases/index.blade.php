@@ -120,6 +120,13 @@
                                     View
                                 </a>
 
+                                @if($purchase->canBeEdited())
+                                    <a href="{{ route('purchases.edit', $purchase) }}"
+                                       class="btn btn-sm btn-outline-secondary text-nowrap">
+                                        Edit
+                                    </a>
+                                @endif
+
                                 @if(! in_array($purchase->status, ['cancelled', 'paid', 'partial', 'returned'], true))
                                     <form action="{{ route('purchases.cancel', $purchase) }}"
                                           method="POST"

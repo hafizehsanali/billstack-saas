@@ -52,7 +52,14 @@
                     </h5>
                 </div>
 
-                <div class="d-flex gap-2">
+                <div class="d-flex gap-2 flex-wrap justify-content-end">
+                    @if($purchase->canBeEdited())
+                        <a href="{{ route('purchases.edit', $purchase) }}"
+                           class="btn btn-outline-secondary">
+                            Edit
+                        </a>
+                    @endif
+
                     <a href="{{ route('supplier.account', $purchase->supplier_id) }}"
                        class="btn btn-dark">
                         Supplier Ledger

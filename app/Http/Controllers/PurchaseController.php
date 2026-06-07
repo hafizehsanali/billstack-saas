@@ -37,6 +37,12 @@ class PurchaseController extends Controller
     }
     public function edit(Purchase $purchase)
     {
+        abort_unless(
+            $purchase->canBeEdited(),
+            403,
+            'This purchase cannot be edited after payments, returns, or stock usage.'
+        );
+
         $purchase->load('items');
 
         $suppliers = Supplier::all();
@@ -55,6 +61,12 @@ class PurchaseController extends Controller
         Purchase $purchase,
         PurchaseService $purchaseService
     ) {
+        abort_unless(
+            $purchase->canBeEdited(),
+            403,
+            'This purchase cannot be edited after payments, returns, or stock usage.'
+        );
+
         $purchaseService->update(
             $purchase,
             $request->validated()

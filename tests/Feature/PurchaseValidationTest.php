@@ -229,6 +229,89 @@ class PurchaseValidationTest extends TestCase
         ]);
     }
 
+    public function test_untouched_purchase_can_be_opened_for_editing(): void
+    {
+        [$tenant, $user] = $this->createOwnerUser();
+        $this->actingAs($user);
+
+        $supplier = Supplier::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Main Supplier',
+        ]);
+
+        $product = $this->createProduct('Editable Product', 'EDIT-001');
+
+        $purchase = Purchase::create([
+            'tenant_id' => $tenant->id,
+            'supplier_id' => $supplier->id,
+            'purchase_no' => 'PUR-EDITABLE',
+            'purchase_date' => '2026-06-07',
+            'subtotal' => 100,
+            'total' => 100,
+            'paid_amount' => 0,
+            'remaining_amount' => 100,
+            'status' => 'unpaid',
+        ]);
+
+        $purchase->items()->create([
+            'product_id' => $product->id,
+            'quantity' => 1,
+            'purchase_price' => 100,
+            'line_total' => 100,
+        ]);
+
+        $this
+            ->get(route('purchases.edit', $purchase))
+            ->assertOk()
+            ->assertSee('Edit Purchase');
+    }
+
+    public function test_purchase_with_payment_history_cannot_be_edited(): void
+    {
+        [$tenant, $user] = $this->createOwnerUser();
+        $this->actingAs($user);
+
+        $supplier = Supplier::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Main Supplier',
+        ]);
+
+        $product = $this->createProduct('Locked Product', 'LOCK-001');
+
+        $purchase = Purchase::create([
+            'tenant_id' => $tenant->id,
+            'supplier_id' => $supplier->id,
+            'purchase_no' => 'PUR-LOCKED-PAYMENT',
+            'purchase_date' => '2026-06-07',
+            'subtotal' => 100,
+            'total' => 100,
+            'paid_amount' => 50,
+            'remaining_amount' => 50,
+            'status' => 'partial',
+        ]);
+
+        $purchase->items()->create([
+            'product_id' => $product->id,
+            'quantity' => 1,
+            'purchase_price' => 100,
+            'line_total' => 100,
+        ]);
+
+        $purchase->payments()->create([
+            'tenant_id' => $tenant->id,
+            'supplier_id' => $supplier->id,
+            'amount' => 50,
+            'payment_method' => 'cash',
+            'payment_date' => '2026-06-07',
+        ]);
+
+        $this
+            ->get(route('purchases.edit', $purchase))
+            ->assertForbidden();
+
+        $this->assertFalse($purchase->fresh()->canBeEdited());
+    }
+
     public function test_purchase_number_must_be_unique_only_within_current_store(): void
     {
         [, $firstUser] = $this->createOwnerUser('First Store');
