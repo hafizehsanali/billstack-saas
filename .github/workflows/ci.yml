@@ -54,6 +54,12 @@ jobs:
         run: |
           set -o pipefail
           if ! php artisan test --do-not-cache-result 2>&1 | tee test-output.log; then
+            failure_tail="$(tail -n 120 test-output.log)"
+            failure_tail="${failure_tail//'%'/'%25'}"
+            failure_tail="${failure_tail//$'\r'/'%0D'}"
+            failure_tail="${failure_tail//$'\n'/'%0A'}"
+            echo "::error title=PHPUnit failure::$failure_tail"
+
             {
               echo "## PHPUnit failure"
               echo '```text'
