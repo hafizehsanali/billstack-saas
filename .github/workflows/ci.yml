@@ -13,6 +13,9 @@ on:
 permissions:
   contents: read
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   test:
     name: PHP tests and frontend build
@@ -47,7 +50,18 @@ jobs:
           php artisan key:generate
 
       - name: Run application tests
-        run: php artisan test --do-not-cache-result
+        shell: bash
+        run: |
+          set -o pipefail
+          if ! php artisan test --do-not-cache-result 2>&1 | tee test-output.log; then
+            {
+              echo "## PHPUnit failure"
+              echo '```text'
+              tail -n 200 test-output.log
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
 
       - name: Build production assets
         run: npm run build
