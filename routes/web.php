@@ -19,6 +19,7 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SupplierAccountController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SupplierPaymentController;
+use App\Http\Controllers\Platform\DashboardController as PlatformDashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -78,5 +79,12 @@ Route::middleware(['auth', 'role:owner|accountant'])->group(function () {
         Route::get('/profit-loss', [ReportController::class, 'profitLoss'])->name('reports.profit-loss');
     });
 });
+
+Route::middleware(['auth', 'platform_admin'])
+    ->prefix('platform')
+    ->name('platform.')
+    ->group(function () {
+        Route::get('/', [PlatformDashboardController::class, 'index'])->name('dashboard');
+    });
 
 require __DIR__.'/auth.php';

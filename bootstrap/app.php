@@ -21,6 +21,9 @@ return Application::configure(basePath: dirname(__DIR__))
                                 'role_or_permission' =>
                                     \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
 
+                                'platform_admin' =>
+                                    \App\Http\Middleware\EnsurePlatformAdmin::class,
+
                             ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

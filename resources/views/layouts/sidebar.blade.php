@@ -34,6 +34,10 @@
     $settingsLinks = [
         ['label' => 'Business Settings', 'route' => 'settings.business', 'active' => ['settings.*']],
     ];
+
+    $platformLinks = [
+        ['label' => 'Platform Admin', 'route' => 'platform.dashboard', 'active' => ['platform.*']],
+    ];
 @endphp
 
 <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark bg-dark d-print-none">
@@ -107,6 +111,23 @@
                         </li>
                     @endforeach
                 @endhasanyrole
+
+                @if(auth()->user()?->isPlatformAdmin())
+                    <li class="nav-item mt-3 mb-1">
+                        <span class="nav-link disabled text-uppercase text-white-50 small">
+                            SaaS Control
+                        </span>
+                    </li>
+
+                    @foreach($platformLinks as $link)
+                        <li class="nav-item">
+                            <a class="nav-link text-white {{ $isActive($link['active']) ? 'active' : '' }}"
+                               href="{{ route($link['route']) }}">
+                                <span class="nav-link-title">{{ $link['label'] }}</span>
+                            </a>
+                        </li>
+                    @endforeach
+                @endif
             </ul>
         </div>
     </div>

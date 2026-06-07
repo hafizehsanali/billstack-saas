@@ -13,7 +13,9 @@ use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use App\Models\Tenant;
+use App\Services\TenantSubscriptionService;
 use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role;
 
 class RegisteredUserController extends Controller
 {
@@ -30,7 +32,7 @@ class RegisteredUserController extends Controller
      *
      * @throws ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, TenantSubscriptionService $subscriptions): RedirectResponse
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -48,6 +50,10 @@ class RegisteredUserController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
+
+        Role::findOrCreate('owner');
+        $user->assignRole('owner');
+        $subscriptions->assignDefaultPlan($tenant);
 
         event(new Registered($user));
 

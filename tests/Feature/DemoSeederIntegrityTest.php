@@ -18,7 +18,8 @@ class DemoSeederIntegrityTest extends TestCase
         $this->seed();
 
         $this->assertSame(3, Tenant::count());
-        $this->assertSame(3, User::count());
+        $this->assertSame(3, User::whereNotNull('tenant_id')->count());
+        $this->assertSame(1, User::where('is_platform_admin', true)->count());
 
         Purchase::withoutGlobalScopes()
             ->with(['supplier', 'items.product'])

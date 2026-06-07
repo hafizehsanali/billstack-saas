@@ -14,33 +14,48 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
+        User::updateOrCreate(
+            ['email' => 'platform@test.com'],
+            [
+                'name' => 'Platform Admin',
+                'password' => Hash::make('password'),
+                'is_platform_admin' => true,
+            ]
+        );
+
         $tenants = Tenant::query()
             ->whereIn('slug', ['demo-store-1', 'demo-store-2', 'demo-store-3'])
             ->get()
             ->keyBy('slug');
 
-        $user1 = User::create([
-            'tenant_id' => $tenants->get('demo-store-1')->id,
-            'name' => 'Owner',
-            'email' => 'owner@test.com',
-            'password' => Hash::make('password'),
-        ]);
+        $user1 = User::updateOrCreate(
+            ['email' => 'owner@test.com'],
+            [
+                'tenant_id' => $tenants->get('demo-store-1')->id,
+                'name' => 'Owner',
+                'password' => Hash::make('password'),
+            ]
+        );
         $user1->assignRole('owner');
 
-        $user2 = User::create([
-            'tenant_id' => $tenants->get('demo-store-2')->id,
-            'name' => 'Alpha Admin',
-            'email' => 'alpha@example.com',
-            'password' => Hash::make('password'),
-        ]);
+        $user2 = User::updateOrCreate(
+            ['email' => 'alpha@example.com'],
+            [
+                'tenant_id' => $tenants->get('demo-store-2')->id,
+                'name' => 'Alpha Admin',
+                'password' => Hash::make('password'),
+            ]
+        );
         $user2->assignRole('owner');
 
-        $user3 = User::create([
-            'tenant_id' => $tenants->get('demo-store-3')->id,
-            'name' => 'Beta Admin',
-            'email' => 'beta@example.com',
-            'password' => Hash::make('password'),
-        ]);
+        $user3 = User::updateOrCreate(
+            ['email' => 'beta@example.com'],
+            [
+                'tenant_id' => $tenants->get('demo-store-3')->id,
+                'name' => 'Beta Admin',
+                'password' => Hash::make('password'),
+            ]
+        );
         $user3->assignRole('owner');
     }
 }
