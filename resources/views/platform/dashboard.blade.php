@@ -10,6 +10,9 @@
         <a href="{{ route('platform.tenants.index') }}" class="btn btn-outline-secondary">
             Tenants
         </a>
+        <a href="{{ route('platform.offers.index') }}" class="btn btn-outline-secondary">
+            Offers
+        </a>
         <a href="{{ route('platform.features.index') }}" class="btn btn-outline-secondary">
             Features
         </a>

@@ -25,6 +25,7 @@ use App\Http\Controllers\Platform\DashboardController as PlatformDashboardContro
 use App\Http\Controllers\Platform\FeatureController as PlatformFeatureController;
 use App\Http\Controllers\Platform\PlanController as PlatformPlanController;
 use App\Http\Controllers\Platform\TenantController as PlatformTenantController;
+use App\Http\Controllers\Platform\OfferController as PlatformOfferController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -109,6 +110,7 @@ Route::middleware(['auth', 'platform_admin'])
         Route::put('tenants/{tenant}', [PlatformTenantController::class, 'update'])->name('tenants.update');
         Route::resource('plans', PlatformPlanController::class)->except(['show', 'destroy']);
         Route::resource('features', PlatformFeatureController::class)->except(['show', 'destroy']);
+        Route::resource('offers', PlatformOfferController::class)->except(['show', 'destroy']);
     });
 
 require __DIR__.'/auth.php';

@@ -38,4 +38,10 @@ class SubscriptionPlan extends Model
     {
         return $this->hasMany(TenantSubscription::class);
     }
+
+    public function offers(): BelongsToMany
+    {
+        return $this->belongsToMany(PlatformOffer::class, 'offer_subscription_plan')
+            ->withTimestamps();
+    }
 }
