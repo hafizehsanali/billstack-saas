@@ -48,79 +48,18 @@
 <aside class="navbar navbar-vertical navbar-expand-lg navbar-dark bg-dark d-print-none">
     <div class="container-fluid">
         <h1 class="navbar-brand">
-            <a href="{{ route('dashboard') }}" class="text-white text-decoration-none">
+            <a href="{{ auth()->user()?->isPlatformAdmin() ? route('platform.dashboard') : route('dashboard') }}"
+               class="text-white text-decoration-none">
                 BillStack
             </a>
         </h1>
 
         <div class="navbar-collapse">
             <ul class="navbar-nav pt-lg-3">
-                <li class="nav-item mb-1">
-                    <span class="nav-link disabled text-uppercase text-white-50 small">
-                        Store Operations
-                    </span>
-                </li>
-
-                @foreach($storeLinks as $link)
-                    <li class="nav-item">
-                        <a class="nav-link text-white {{ $isActive($link['active']) ? 'active' : '' }}"
-                           href="{{ route($link['route']) }}">
-                            <span class="nav-link-title">{{ $link['label'] }}</span>
-                        </a>
-                    </li>
-                @endforeach
-
-                @hasanyrole('owner|accountant')
-                    <li class="nav-item mt-3 mb-1">
-                        <span class="nav-link disabled text-uppercase text-white-50 small">
-                            Finance
-                        </span>
-                    </li>
-
-                    @foreach($financeLinks as $link)
-                        <li class="nav-item">
-                            <a class="nav-link text-white {{ $isActive($link['active']) ? 'active' : '' }}"
-                               href="{{ route($link['route']) }}">
-                                <span class="nav-link-title">{{ $link['label'] }}</span>
-                            </a>
-                        </li>
-                    @endforeach
-
-                    <li class="nav-item mt-3 mb-1">
-                        <span class="nav-link disabled text-uppercase text-white-50 small">
-                            Reports
-                        </span>
-                    </li>
-
-                    @foreach($reportLinks as $link)
-                        <li class="nav-item">
-                            <a class="nav-link text-white {{ $isActive($link['active']) ? 'active' : '' }}"
-                               href="{{ route($link['route']) }}">
-                                <span class="nav-link-title">{{ $link['label'] }}</span>
-                            </a>
-                        </li>
-                    @endforeach
-
-                    <li class="nav-item mt-3 mb-1">
-                        <span class="nav-link disabled text-uppercase text-white-50 small">
-                            Settings
-                        </span>
-                    </li>
-
-                    @foreach($settingsLinks as $link)
-                        <li class="nav-item">
-                            <a class="nav-link text-white {{ $isActive($link['active']) ? 'active' : '' }}"
-                               href="{{ route($link['route']) }}">
-                                <span class="nav-link-title">{{ $link['label'] }}</span>
-                            </a>
-                        </li>
-                    @endforeach
-                @endhasanyrole
-
                 @if(auth()->user()?->isPlatformAdmin())
-                    <li class="nav-item mt-3 mb-1">
+                    <li class="nav-item mb-1">
                         <span class="nav-link disabled text-uppercase text-white-50 small">
-                            SaaS Control
+                            Platform Control
                         </span>
                     </li>
 
@@ -132,6 +71,68 @@
                             </a>
                         </li>
                     @endforeach
+                @else
+                    <li class="nav-item mb-1">
+                        <span class="nav-link disabled text-uppercase text-white-50 small">
+                            Store Operations
+                        </span>
+                    </li>
+
+                    @foreach($storeLinks as $link)
+                        <li class="nav-item">
+                            <a class="nav-link text-white {{ $isActive($link['active']) ? 'active' : '' }}"
+                               href="{{ route($link['route']) }}">
+                                <span class="nav-link-title">{{ $link['label'] }}</span>
+                            </a>
+                        </li>
+                    @endforeach
+
+                    @hasanyrole('owner|accountant')
+                        <li class="nav-item mt-3 mb-1">
+                            <span class="nav-link disabled text-uppercase text-white-50 small">
+                                Finance
+                            </span>
+                        </li>
+
+                        @foreach($financeLinks as $link)
+                            <li class="nav-item">
+                                <a class="nav-link text-white {{ $isActive($link['active']) ? 'active' : '' }}"
+                                   href="{{ route($link['route']) }}">
+                                    <span class="nav-link-title">{{ $link['label'] }}</span>
+                                </a>
+                            </li>
+                        @endforeach
+
+                        <li class="nav-item mt-3 mb-1">
+                            <span class="nav-link disabled text-uppercase text-white-50 small">
+                                Reports
+                            </span>
+                        </li>
+
+                        @foreach($reportLinks as $link)
+                            <li class="nav-item">
+                                <a class="nav-link text-white {{ $isActive($link['active']) ? 'active' : '' }}"
+                                   href="{{ route($link['route']) }}">
+                                    <span class="nav-link-title">{{ $link['label'] }}</span>
+                                </a>
+                            </li>
+                        @endforeach
+
+                        <li class="nav-item mt-3 mb-1">
+                            <span class="nav-link disabled text-uppercase text-white-50 small">
+                                Settings
+                            </span>
+                        </li>
+
+                        @foreach($settingsLinks as $link)
+                            <li class="nav-item">
+                                <a class="nav-link text-white {{ $isActive($link['active']) ? 'active' : '' }}"
+                                   href="{{ route($link['route']) }}">
+                                    <span class="nav-link-title">{{ $link['label'] }}</span>
+                                </a>
+                            </li>
+                        @endforeach
+                    @endhasanyrole
                 @endif
             </ul>
         </div>

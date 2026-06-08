@@ -81,9 +81,9 @@
                         </td>
                         <td>
                             @if($member->is_active)
-                                <span class="badge bg-success">Active</span>
+                                <span class="badge bg-success text-white">Active</span>
                             @else
-                                <span class="badge bg-secondary">Inactive</span>
+                                <span class="badge bg-light text-dark border">Inactive</span>
                             @endif
                         </td>
                         <td>{{ $member->created_at?->format('M d, Y') }}</td>

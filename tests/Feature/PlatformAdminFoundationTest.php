@@ -65,6 +65,21 @@ class PlatformAdminFoundationTest extends TestCase
             ->assertSee('Demo Store');
     }
 
+    public function test_platform_admin_is_sent_to_platform_dashboard_after_login(): void
+    {
+        $admin = User::factory()->create([
+            'email' => 'platform@example.com',
+            'password' => 'password',
+            'tenant_id' => null,
+            'is_platform_admin' => true,
+        ]);
+
+        $this->post(route('login'), [
+            'email' => $admin->email,
+            'password' => 'password',
+        ])->assertRedirect(route('platform.dashboard', absolute: false));
+    }
+
     public function test_saas_plan_seeder_creates_default_features_and_subscriptions(): void
     {
         $tenant = Tenant::create(['name' => 'Seeded Store', 'slug' => 'seeded-store']);
