@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TenantSubscription extends Model
 {
@@ -33,5 +34,10 @@ class TenantSubscription extends Model
     public function plan(): BelongsTo
     {
         return $this->belongsTo(SubscriptionPlan::class, 'subscription_plan_id');
+    }
+
+    public function platformInvoices(): HasMany
+    {
+        return $this->hasMany(PlatformSubscriptionInvoice::class);
     }
 }
