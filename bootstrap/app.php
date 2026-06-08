@@ -24,6 +24,9 @@ return Application::configure(basePath: dirname(__DIR__))
                                 'platform_admin' =>
                                     \App\Http\Middleware\EnsurePlatformAdmin::class,
 
+                                'active_subscription' =>
+                                    \App\Http\Middleware\EnsureTenantSubscriptionIsActive::class,
+
                             ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

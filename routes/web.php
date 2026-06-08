@@ -16,6 +16,7 @@ use App\Http\Controllers\PurchaseReturnController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SalesReturnController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\SubscriptionStatusController;
 use App\Http\Controllers\SupplierAccountController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SupplierPaymentController;
@@ -31,6 +32,9 @@ Route::get('/', function () {
 });
 
 Route::middleware('auth')->group(function () {
+    Route::get('/subscription/status', [SubscriptionStatusController::class, 'show'])->name('subscription.status');
+
+    Route::middleware('active_subscription')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -65,9 +69,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])->name('invoices.cancel');
     Route::post('/invoices/{invoice}/payments', [PaymentController::class, 'store'])->name('payments.store');
     Route::post('/invoices/{invoice}/returns', [SalesReturnController::class, 'store'])->name('sales-returns.store');
+    });
 });
 
-Route::middleware(['auth', 'role:owner|accountant'])->group(function () {
+Route::middleware(['auth', 'active_subscription', 'role:owner|accountant'])->group(function () {
     Route::resource('expenses', ExpenseController::class)->except(['show']);
 
     Route::resource('suppliers', SupplierController::class);
