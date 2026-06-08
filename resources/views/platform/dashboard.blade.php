@@ -10,6 +10,9 @@
         <a href="{{ route('platform.tenants.index') }}" class="btn btn-outline-secondary">
             Tenants
         </a>
+        <a href="{{ route('platform.billing.index') }}" class="btn btn-outline-secondary">
+            Billing
+        </a>
         <a href="{{ route('platform.offers.index') }}" class="btn btn-outline-secondary">
             Offers
         </a>
@@ -50,8 +53,8 @@
     <div class="col-md-3">
         <div class="card">
             <div class="card-body">
-                <div class="text-secondary small fw-semibold text-uppercase">Paid Features</div>
-                <div class="h2 mb-0 text-dark">{{ $paidFeatureCount }}</div>
+                <div class="text-secondary small fw-semibold text-uppercase">Platform Amount Due</div>
+                <div class="h2 mb-0 text-danger">Rs {{ number_format($platformDueCents / 100, 2) }}</div>
             </div>
         </div>
     </div>
@@ -124,7 +127,7 @@
                 @endforeach
 
                 <div class="text-muted small">
-                    Platform admins: {{ $platformAdminCount }}
+                    Platform admins: {{ $platformAdminCount }} · Paid features: {{ $paidFeatureCount }}
                 </div>
             </div>
         </div>

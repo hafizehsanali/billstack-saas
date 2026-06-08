@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
             PurchaseSeeder::class,
             ExpenseSeeder::class,
             SupplierPaymentSeeder::class,
+            PlatformBillingSeeder::class,
         ]);
     }
 }

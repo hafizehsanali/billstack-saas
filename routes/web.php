@@ -11,6 +11,7 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FeatureUnavailableController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\Platform\BillingController as PlatformBillingController;
 use App\Http\Controllers\Platform\DashboardController as PlatformDashboardController;
 use App\Http\Controllers\Platform\FeatureController as PlatformFeatureController;
 use App\Http\Controllers\Platform\OfferController as PlatformOfferController;
@@ -115,6 +116,8 @@ Route::middleware(['auth', 'platform_admin'])
         Route::get('tenants', [PlatformTenantController::class, 'index'])->name('tenants.index');
         Route::get('tenants/{tenant}/edit', [PlatformTenantController::class, 'edit'])->name('tenants.edit');
         Route::put('tenants/{tenant}', [PlatformTenantController::class, 'update'])->name('tenants.update');
+        Route::get('billing', [PlatformBillingController::class, 'index'])->name('billing.index');
+        Route::get('billing/{invoice}', [PlatformBillingController::class, 'show'])->name('billing.show');
         Route::resource('plans', PlatformPlanController::class)->except(['show', 'destroy']);
         Route::resource('features', PlatformFeatureController::class)->except(['show', 'destroy']);
         Route::resource('offers', PlatformOfferController::class)->except(['show', 'destroy']);
