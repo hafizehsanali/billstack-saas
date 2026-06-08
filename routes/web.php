@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AlertController;
+use App\Http\Controllers\BarcodeController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerAccountController;
 use App\Http\Controllers\CustomerController;
@@ -67,6 +68,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/customers/{customer}/account', [CustomerAccountController::class, 'show'])->name('customer.account');
 
         Route::get('/pos', [InvoiceController::class, 'pos'])->name('invoices.pos');
+        Route::middleware('feature:pro.barcode')->group(function () {
+            Route::get('/barcode', [BarcodeController::class, 'index'])->name('barcode.index');
+            Route::post('/barcode/lookup', [BarcodeController::class, 'lookup'])->name('barcode.lookup');
+        });
         Route::resource('invoices', InvoiceController::class)->only(['index', 'create', 'store', 'show']);
         Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');
         Route::patch('/invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])->name('invoices.cancel');

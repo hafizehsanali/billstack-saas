@@ -8,6 +8,7 @@
         ['label' => 'Add Product', 'route' => 'products.create', 'active' => ['products.create']],
         ['label' => 'Categories', 'route' => 'categories.index', 'active' => ['categories.*']],
         ['label' => 'POS Billing', 'route' => 'invoices.pos', 'active' => ['invoices.pos']],
+        ['label' => 'Barcode Scanner', 'route' => 'barcode.index', 'active' => ['barcode.*'], 'feature' => 'pro.barcode'],
         ['label' => 'Invoices', 'route' => 'invoices.index', 'active' => ['invoices.index', 'invoices.show', 'payments.*']],
         ['label' => 'Create Invoice', 'route' => 'invoices.create', 'active' => ['invoices.create']],
         ['label' => 'Customers', 'route' => 'customers.index', 'active' => ['customers.index', 'customers.statement', 'customer.account']],
@@ -79,12 +80,14 @@
                     </li>
 
                     @foreach($storeLinks as $link)
-                        <li class="nav-item">
-                            <a class="nav-link text-white {{ $isActive($link['active']) ? 'active' : '' }}"
-                               href="{{ route($link['route']) }}">
-                                <span class="nav-link-title">{{ $link['label'] }}</span>
-                            </a>
-                        </li>
+                        @if(! isset($link['feature']) || app(\App\Services\TenantFeatureService::class)->userHasFeature(auth()->user(), $link['feature']))
+                            <li class="nav-item">
+                                <a class="nav-link text-white {{ $isActive($link['active']) ? 'active' : '' }}"
+                                   href="{{ route($link['route']) }}">
+                                    <span class="nav-link-title">{{ $link['label'] }}</span>
+                                </a>
+                            </li>
+                        @endif
                     @endforeach
 
                     @hasanyrole('owner|accountant')
