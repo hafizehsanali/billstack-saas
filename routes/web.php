@@ -7,6 +7,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerPaymentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\FeatureUnavailableController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Platform\DashboardController as PlatformDashboardController;
@@ -34,6 +35,7 @@ Route::get('/', function () {
 
 Route::middleware('auth')->group(function () {
     Route::get('/subscription/status', [SubscriptionStatusController::class, 'show'])->name('subscription.status');
+    Route::get('/features/unavailable', [FeatureUnavailableController::class, 'show'])->name('features.unavailable');
 
     Route::middleware('active_subscription')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

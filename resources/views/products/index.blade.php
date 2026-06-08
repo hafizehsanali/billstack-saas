@@ -19,10 +19,23 @@
         </div>
     </div>
 
-    <a href="{{ route('products.create') }}"
-       class="btn btn-primary">
-        Add Product
-    </a>
+    <div class="d-flex flex-wrap gap-2">
+        @feature('pro.barcode')
+            <span class="btn btn-outline-primary disabled">
+                Barcode Scanner Enabled
+            </span>
+        @else
+            <a href="{{ route('features.unavailable', ['feature' => 'pro.barcode']) }}"
+               class="btn btn-outline-secondary">
+                Barcode Scanner
+            </a>
+        @endfeature
+
+        <a href="{{ route('products.create') }}"
+           class="btn btn-primary">
+            Add Product
+        </a>
+    </div>
 </div>
 
 <div class="row row-cards mb-3">

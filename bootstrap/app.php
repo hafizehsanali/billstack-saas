@@ -27,6 +27,9 @@ return Application::configure(basePath: dirname(__DIR__))
                                 'active_subscription' =>
                                     \App\Http\Middleware\EnsureTenantSubscriptionIsActive::class,
 
+                                'feature' =>
+                                    \App\Http\Middleware\EnsureTenantFeatureIsEnabled::class,
+
                             ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

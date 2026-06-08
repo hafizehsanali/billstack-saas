@@ -67,8 +67,13 @@
                            value="{{ old('barcode') }}"
                            class="form-control @error('barcode') is-invalid @enderror"
                            maxlength="100">
+                    @feature('pro.barcode')
+                        <small class="text-muted">Barcode scanner workflows are enabled for this plan.</small>
+                    @else
+                        <small class="text-muted">Manual barcode entry is available. Scanner workflows require a paid feature.</small>
+                    @endfeature
                     @error('barcode')
-                        <small class="text-danger">{{ $message }}</small>
+                        <small class="text-danger d-block">{{ $message }}</small>
                     @enderror
                 </div>
 
