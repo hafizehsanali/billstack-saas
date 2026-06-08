@@ -37,7 +37,9 @@
     ];
 
     $platformLinks = [
-        ['label' => 'Platform Admin', 'route' => 'platform.dashboard', 'active' => ['platform.*']],
+        ['label' => 'Platform Admin', 'route' => 'platform.dashboard', 'active' => ['platform.dashboard']],
+        ['label' => 'Plans', 'route' => 'platform.plans.index', 'active' => ['platform.plans.*']],
+        ['label' => 'Features', 'route' => 'platform.features.index', 'active' => ['platform.features.*']],
     ];
 @endphp
 

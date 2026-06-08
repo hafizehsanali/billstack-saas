@@ -21,6 +21,8 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SupplierPaymentController;
 use App\Http\Controllers\TeamMemberController;
 use App\Http\Controllers\Platform\DashboardController as PlatformDashboardController;
+use App\Http\Controllers\Platform\FeatureController as PlatformFeatureController;
+use App\Http\Controllers\Platform\PlanController as PlatformPlanController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -96,6 +98,8 @@ Route::middleware(['auth', 'platform_admin'])
     ->name('platform.')
     ->group(function () {
         Route::get('/', [PlatformDashboardController::class, 'index'])->name('dashboard');
+        Route::resource('plans', PlatformPlanController::class)->except(['show', 'destroy']);
+        Route::resource('features', PlatformFeatureController::class)->except(['show', 'destroy']);
     });
 
 require __DIR__.'/auth.php';

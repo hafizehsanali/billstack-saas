@@ -6,38 +6,46 @@
         <h1 class="mb-1">Platform Admin</h1>
         <p class="text-muted mb-0">Manage SaaS tenants, plans, paid features, and platform settings.</p>
     </div>
+    <div class="d-flex gap-2">
+        <a href="{{ route('platform.features.index') }}" class="btn btn-outline-secondary">
+            Features
+        </a>
+        <a href="{{ route('platform.plans.index') }}" class="btn btn-primary">
+            Plans
+        </a>
+    </div>
 </div>
 
 <div class="row g-3 mb-4">
     <div class="col-md-3">
         <div class="card">
             <div class="card-body">
-                <div class="text-muted small">Tenants</div>
-                <div class="h2 mb-0">{{ $tenantCount }}</div>
+                <div class="text-secondary small fw-semibold text-uppercase">Tenants</div>
+                <div class="h2 mb-0 text-dark">{{ $tenantCount }}</div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card">
             <div class="card-body">
-                <div class="text-muted small">Active Subscriptions</div>
-                <div class="h2 mb-0">{{ $activeTenantCount }}</div>
+                <div class="text-secondary small fw-semibold text-uppercase">Active Subscriptions</div>
+                <div class="h2 mb-0 text-dark">{{ $activeTenantCount }}</div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card">
             <div class="card-body">
-                <div class="text-muted small">Active Plans</div>
-                <div class="h2 mb-0">{{ $planCount }}</div>
+                <div class="text-secondary small fw-semibold text-uppercase">Active Plans</div>
+                <div class="h2 mb-0 text-dark">{{ $planCount }}</div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card">
             <div class="card-body">
-                <div class="text-muted small">Paid Features</div>
-                <div class="h2 mb-0">{{ $paidFeatureCount }}</div>
+                <div class="text-secondary small fw-semibold text-uppercase">Paid Features</div>
+                <div class="h2 mb-0 text-dark">{{ $paidFeatureCount }}</div>
             </div>
         </div>
     </div>
@@ -69,7 +77,7 @@
                                 <td>{{ $tenant->activeSubscription?->plan?->name ?? 'Not assigned' }}</td>
                                 <td>{{ $tenant->users->count() }}</td>
                                 <td>
-                                    <span class="badge bg-{{ $tenant->activeSubscription ? 'success' : 'secondary' }}">
+                                    <span class="badge {{ $tenant->activeSubscription ? 'bg-success text-white' : 'bg-light text-dark border' }}">
                                         {{ $tenant->activeSubscription?->status ?? 'pending' }}
                                     </span>
                                 </td>
@@ -89,6 +97,9 @@
         <div class="card">
             <div class="card-header">
                 <h2 class="card-title mb-0">Plans</h2>
+                <a href="{{ route('platform.plans.index') }}" class="btn btn-sm btn-outline-secondary ms-auto">
+                    Manage
+                </a>
             </div>
             <div class="card-body">
                 @foreach($plans as $plan)
@@ -97,7 +108,7 @@
                             <div class="fw-semibold">{{ $plan->name }}</div>
                             <div class="text-muted small">{{ $plan->features_count }} features, {{ $plan->user_limit ?? 'unlimited' }} users</div>
                         </div>
-                        <span class="badge bg-{{ $plan->monthly_price_cents > 0 ? 'primary' : 'secondary' }}">
+                        <span class="badge {{ $plan->monthly_price_cents > 0 ? 'bg-primary text-white' : 'bg-light text-dark border' }}">
                             {{ $plan->monthly_price_cents > 0 ? 'Paid' : 'Free' }}
                         </span>
                     </div>
