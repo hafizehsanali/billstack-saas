@@ -53,6 +53,11 @@
                             </option>
                         @endforeach
                     </select>
+                    <div class="form-hint">
+                        @foreach($roleDescriptions as $value => $description)
+                            <div><strong>{{ $roles[$value] }}:</strong> {{ $description }}</div>
+                        @endforeach
+                    </div>
                     @error('role')
                         <small class="text-danger">{{ $message }}</small>
                     @enderror

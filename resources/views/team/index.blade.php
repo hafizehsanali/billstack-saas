@@ -10,18 +10,28 @@
     <div>
         <h3 class="mb-1">Team Users</h3>
         <div class="text-muted">
-            Manage staff access for {{ $tenant->name }}.
+            Manage staff access for {{ $tenant->name }} on the {{ $tenant->activeSubscription?->plan?->name ?? 'current' }} plan.
         </div>
     </div>
 
     <a href="{{ route('team.create') }}"
-       class="btn btn-primary {{ $remainingSeats === 0 ? 'disabled' : '' }}">
+       class="btn btn-primary {{ $remainingSeats === 0 ? 'disabled' : '' }}"
+       @if($remainingSeats === 0) aria-disabled="true" @endif>
         Add User
     </a>
 </div>
 
 <div class="row row-cards mb-3">
-    <div class="col-md-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-muted">Total Users</div>
+                <div class="h2 mb-0">{{ number_format($totalUserCount) }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
         <div class="card">
             <div class="card-body">
                 <div class="text-muted">Active Users</div>
@@ -30,22 +40,23 @@
         </div>
     </div>
 
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="card">
             <div class="card-body">
-                <div class="text-muted">Plan User Limit</div>
-                <div class="h2 mb-0">{{ $userLimit ?? 'Unlimited' }}</div>
+                <div class="text-muted">Inactive Users</div>
+                <div class="h2 mb-0 text-secondary">{{ number_format($inactiveUserCount) }}</div>
             </div>
         </div>
     </div>
 
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="card">
             <div class="card-body">
                 <div class="text-muted">Available Seats</div>
                 <div class="h2 mb-0 {{ $remainingSeats === 0 ? 'text-danger' : 'text-success' }}">
                     {{ $remainingSeats ?? 'Unlimited' }}
                 </div>
+                <div class="text-muted small">Limit: {{ $userLimit ?? 'Unlimited' }}</div>
             </div>
         </div>
     </div>

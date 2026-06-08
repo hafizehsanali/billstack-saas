@@ -65,6 +65,34 @@ class TenantTeamManagementTest extends TestCase
         ]);
     }
 
+    public function test_inactive_staff_do_not_count_against_plan_user_limit(): void
+    {
+        $owner = $this->createOwnerWithTenant(userLimit: 2);
+
+        $inactiveStaff = User::factory()->create([
+            'tenant_id' => $owner->tenant_id,
+            'email' => 'inactive-staff@example.com',
+            'is_active' => false,
+        ]);
+        $inactiveStaff->assignRole('cashier');
+
+        $this->actingAs($owner)
+            ->post(route('team.store'), [
+                'name' => 'New Cashier',
+                'email' => 'new-cashier@example.com',
+                'role' => 'cashier',
+                'password' => 'password',
+                'password_confirmation' => 'password',
+            ])
+            ->assertRedirect(route('team.index'));
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'new-cashier@example.com',
+            'tenant_id' => $owner->tenant_id,
+            'is_active' => true,
+        ]);
+    }
+
     public function test_owner_cannot_manage_users_from_another_tenant(): void
     {
         $owner = $this->createOwnerWithTenant(userLimit: 3);

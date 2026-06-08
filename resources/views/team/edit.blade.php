@@ -57,6 +57,15 @@
                             </option>
                         @endforeach
                     </select>
+                    <div class="form-hint">
+                        @if($member->id === auth()->id())
+                            Your own owner role cannot be changed from this screen.
+                        @else
+                            @foreach($roleDescriptions as $value => $description)
+                                <div><strong>{{ $roles[$value] }}:</strong> {{ $description }}</div>
+                            @endforeach
+                        @endif
+                    </div>
                     @if($member->id === auth()->id())
                         <input type="hidden" name="role" value="{{ $currentRole }}">
                     @endif

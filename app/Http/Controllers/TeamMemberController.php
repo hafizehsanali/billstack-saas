@@ -19,17 +19,28 @@ class TeamMemberController extends Controller
         'inventory_staff' => 'Inventory Staff',
     ];
 
+    private const ROLE_DESCRIPTIONS = [
+        'manager' => 'Can help supervise day-to-day store operations.',
+        'accountant' => 'Can manage purchases, expenses, payments, and reports.',
+        'cashier' => 'Can handle POS billing, customers, and invoice payments.',
+        'inventory_staff' => 'Can manage products, stock, suppliers, and purchases.',
+    ];
+
     public function index(): View
     {
         $tenant = auth()->user()->tenant()->with('activeSubscription.plan')->firstOrFail();
         $members = $tenant->users()->with('roles')->latest()->paginate(10);
         $userLimit = $tenant->activeSubscription?->plan?->user_limit;
+        $activeUserCount = $tenant->users()->where('is_active', true)->count();
+        $inactiveUserCount = $tenant->users()->where('is_active', false)->count();
 
         return view('team.index', [
             'members' => $members,
             'tenant' => $tenant,
             'userLimit' => $userLimit,
-            'activeUserCount' => $tenant->users()->where('is_active', true)->count(),
+            'activeUserCount' => $activeUserCount,
+            'inactiveUserCount' => $inactiveUserCount,
+            'totalUserCount' => $activeUserCount + $inactiveUserCount,
         ]);
     }
 
@@ -37,6 +48,7 @@ class TeamMemberController extends Controller
     {
         return view('team.create', [
             'roles' => self::MANAGEABLE_ROLES,
+            'roleDescriptions' => self::ROLE_DESCRIPTIONS,
         ]);
     }
 
@@ -78,6 +90,7 @@ class TeamMemberController extends Controller
         return view('team.edit', [
             'member' => $teamMember,
             'roles' => self::MANAGEABLE_ROLES,
+            'roleDescriptions' => self::ROLE_DESCRIPTIONS,
             'currentRole' => $teamMember->roles()->first()?->name,
         ]);
     }
