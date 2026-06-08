@@ -30,6 +30,12 @@ class Tenant extends Model
             ->latestOfMany();
     }
 
+    public function currentSubscription(): HasOne
+    {
+        return $this->hasOne(TenantSubscription::class)
+            ->latestOfMany();
+    }
+
     public function subscriptions(): HasMany
     {
         return $this->hasMany(TenantSubscription::class);

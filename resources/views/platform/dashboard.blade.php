@@ -7,6 +7,9 @@
         <p class="text-muted mb-0">Manage SaaS tenants, plans, paid features, and platform settings.</p>
     </div>
     <div class="d-flex gap-2">
+        <a href="{{ route('platform.tenants.index') }}" class="btn btn-outline-secondary">
+            Tenants
+        </a>
         <a href="{{ route('platform.features.index') }}" class="btn btn-outline-secondary">
             Features
         </a>
@@ -56,6 +59,9 @@
         <div class="card">
             <div class="card-header">
                 <h2 class="card-title mb-0">Recent Tenants</h2>
+                <a href="{{ route('platform.tenants.index') }}" class="btn btn-sm btn-outline-secondary ms-auto">
+                    Manage
+                </a>
             </div>
             <div class="table-responsive">
                 <table class="table table-vcenter card-table">
@@ -77,7 +83,7 @@
                                 <td>{{ $tenant->activeSubscription?->plan?->name ?? 'Not assigned' }}</td>
                                 <td>{{ $tenant->users->count() }}</td>
                                 <td>
-                                    <span class="badge {{ $tenant->activeSubscription ? 'bg-success text-white' : 'bg-light text-dark border' }}">
+                                    <span class="badge {{ $tenant->activeSubscription?->status === 'active' ? 'bg-success text-white' : 'bg-light text-dark border' }}">
                                         {{ $tenant->activeSubscription?->status ?? 'pending' }}
                                     </span>
                                 </td>
