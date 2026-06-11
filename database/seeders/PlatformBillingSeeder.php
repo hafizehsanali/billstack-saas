@@ -61,12 +61,12 @@ class PlatformBillingSeeder extends Seeder
                     'discount_cents' => 0,
                     'tax_cents' => 0,
                     'total_cents' => 299900,
-                    'paid_cents' => 100000,
-                    'balance_cents' => 199900,
-                    'status' => 'partial',
+                    'paid_cents' => 0,
+                    'balance_cents' => 299900,
+                    'status' => 'unpaid',
                     'issued_on' => now()->subMonth()->startOfMonth()->toDateString(),
                     'due_on' => now()->subDays(7)->toDateString(),
-                    'notes' => 'Demo overdue balance for the platform operations dashboard.',
+                    'notes' => 'Demo overdue subscription invoice awaiting full payment.',
                 ]
             );
         }

@@ -67,8 +67,9 @@ class PlatformBillingLedgerTest extends TestCase
         $this->assertDatabaseHas('platform_subscription_invoices', [
             'tenant_id' => $tenant->id,
             'invoice_no' => 'PLAT-DEMO-OVERDUE',
-            'status' => 'partial',
-            'balance_cents' => 199900,
+            'status' => 'unpaid',
+            'paid_cents' => 0,
+            'balance_cents' => 299900,
         ]);
         $this->assertDatabaseHas('platform_subscription_payments', [
             'tenant_id' => $tenant->id,

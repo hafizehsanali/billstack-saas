@@ -38,8 +38,9 @@ class PlatformOperationalAlertSeederTest extends TestCase
         $this->assertDatabaseHas('platform_subscription_invoices', [
             'tenant_id' => $tenant->id,
             'invoice_no' => 'PLAT-DEMO-OVERDUE',
-            'balance_cents' => 199900,
-            'status' => 'partial',
+            'paid_cents' => 0,
+            'balance_cents' => 299900,
+            'status' => 'unpaid',
         ]);
     }
 }
