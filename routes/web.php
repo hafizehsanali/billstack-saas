@@ -121,7 +121,11 @@ Route::middleware(['auth', 'platform_admin'])
         Route::get('tenants/{tenant}/edit', [PlatformTenantController::class, 'edit'])->name('tenants.edit');
         Route::put('tenants/{tenant}', [PlatformTenantController::class, 'update'])->name('tenants.update');
         Route::get('billing', [PlatformBillingController::class, 'index'])->name('billing.index');
+        Route::get('billing/create', [PlatformBillingController::class, 'create'])->name('billing.create');
+        Route::post('billing', [PlatformBillingController::class, 'store'])->name('billing.store');
         Route::get('billing/{invoice}', [PlatformBillingController::class, 'show'])->name('billing.show');
+        Route::post('billing/{invoice}/payments', [PlatformBillingController::class, 'storePayment'])
+            ->name('billing.payments.store');
         Route::resource('plans', PlatformPlanController::class)->except(['show', 'destroy']);
         Route::resource('features', PlatformFeatureController::class)->except(['show', 'destroy']);
         Route::resource('offers', PlatformOfferController::class)->except(['show', 'destroy']);

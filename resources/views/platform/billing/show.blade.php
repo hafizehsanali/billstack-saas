@@ -4,7 +4,7 @@
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
     <div>
         <h1 class="mb-1">{{ $invoice->invoice_no }}</h1>
-        <div class="text-muted">{{ $invoice->tenant?->name }} · {{ $invoice->billing_period }}</div>
+        <div class="text-muted">{{ $invoice->tenant?->name }} | {{ $invoice->billing_period }}</div>
     </div>
 
     <a href="{{ route('platform.billing.index') }}" class="btn btn-secondary">
@@ -87,6 +87,90 @@
     </div>
 
     <div class="col-lg-7">
+        @if($invoice->balance_cents > 0)
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3 class="card-title">Record Payment</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ route('platform.billing.payments.store', $invoice) }}">
+                        @csrf
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Amount <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">Rs</span>
+                                    <input type="number"
+                                           name="amount"
+                                           class="form-control @error('amount') is-invalid @enderror"
+                                           value="{{ old('amount') }}"
+                                           min="0.01"
+                                           max="{{ number_format($invoice->balance_cents / 100, 2, '.', '') }}"
+                                           step="0.01"
+                                           required>
+                                    @error('amount')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Payment Method <span class="text-danger">*</span></label>
+                                <select name="payment_method"
+                                        class="form-select @error('payment_method') is-invalid @enderror"
+                                        required>
+                                    @foreach(['cash' => 'Cash', 'bank_transfer' => 'Bank Transfer', 'card' => 'Card', 'mobile_wallet' => 'Mobile Wallet', 'manual' => 'Manual'] as $value => $label)
+                                        <option value="{{ $value }}" @selected(old('payment_method', 'bank_transfer') === $value)>
+                                            {{ $label }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('payment_method')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Payment Date <span class="text-danger">*</span></label>
+                                <input type="date"
+                                       name="paid_on"
+                                       class="form-control @error('paid_on') is-invalid @enderror"
+                                       value="{{ old('paid_on', now()->toDateString()) }}"
+                                       required>
+                                @error('paid_on')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Reference</label>
+                                <input type="text"
+                                       name="reference_no"
+                                       class="form-control @error('reference_no') is-invalid @enderror"
+                                       value="{{ old('reference_no') }}">
+                                @error('reference_no')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label">Notes</label>
+                                <textarea name="notes"
+                                          rows="2"
+                                          class="form-control @error('notes') is-invalid @enderror">{{ old('notes') }}</textarea>
+                                @error('notes')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary mt-3">Record Payment</button>
+                    </form>
+                </div>
+            </div>
+        @endif
+
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title">Payments</h3>

@@ -7,9 +7,14 @@
         <div class="text-muted">Track subscription invoices, payments, and balances across tenants.</div>
     </div>
 
-    <a href="{{ route('platform.dashboard') }}" class="btn btn-outline-secondary">
-        Platform
-    </a>
+    <div class="d-flex gap-2">
+        <a href="{{ route('platform.dashboard') }}" class="btn btn-outline-secondary">
+            Platform
+        </a>
+        <a href="{{ route('platform.billing.create') }}" class="btn btn-primary">
+            Create Invoice
+        </a>
+    </div>
 </div>
 
 <div class="row row-cards mb-3">
@@ -68,7 +73,7 @@
                         <td>
                             <div class="fw-bold">{{ $invoice->invoice_no }}</div>
                             <div class="text-muted small">
-                                {{ $invoice->billing_period }} · Due {{ $invoice->due_on?->format('M d, Y') ?? '-' }}
+                                {{ $invoice->billing_period }} | Due {{ $invoice->due_on?->format('M d, Y') ?? '-' }}
                             </div>
                         </td>
                         <td>{{ $invoice->tenant?->name ?? '-' }}</td>
