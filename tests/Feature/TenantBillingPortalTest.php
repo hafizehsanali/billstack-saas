@@ -103,16 +103,16 @@ class TenantBillingPortalTest extends TestCase
             'discount_cents' => 0,
             'tax_cents' => 0,
             'total_cents' => 199900,
-            'paid_cents' => 100000,
-            'balance_cents' => 99900,
-            'status' => 'partial',
+            'paid_cents' => 199900,
+            'balance_cents' => 0,
+            'status' => 'paid',
             'issued_on' => now()->startOfMonth(),
             'due_on' => now()->startOfMonth()->addDays(10),
         ]);
 
         $invoice->payments()->create([
             'tenant_id' => $tenant->id,
-            'amount_cents' => 100000,
+            'amount_cents' => 199900,
             'payment_method' => 'manual',
             'reference_no' => 'TENANT-PAY-001',
             'paid_on' => now()->startOfMonth()->addDays(2),

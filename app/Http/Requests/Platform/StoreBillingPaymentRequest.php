@@ -15,7 +15,6 @@ class StoreBillingPaymentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'amount' => ['required', 'numeric', 'min:0.01', 'decimal:0,2'],
             'payment_method' => [
                 'required',
                 Rule::in(['cash', 'bank_transfer', 'card', 'mobile_wallet', 'manual']),

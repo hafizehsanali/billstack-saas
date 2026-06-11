@@ -38,8 +38,6 @@ class PlatformBillingSeeder extends Seeder
                 }
 
                 $total = $subscription->plan->monthly_price_cents;
-                $paid = (int) floor($total / 2);
-                $balance = $total - $paid;
 
                 $invoice = PlatformSubscriptionInvoice::updateOrCreate(
                     [
@@ -53,9 +51,9 @@ class PlatformBillingSeeder extends Seeder
                         'discount_cents' => 0,
                         'tax_cents' => 0,
                         'total_cents' => $total,
-                        'paid_cents' => $paid,
-                        'balance_cents' => $balance,
-                        'status' => $balance > 0 ? 'partial' : 'paid',
+                        'paid_cents' => $total,
+                        'balance_cents' => 0,
+                        'status' => 'paid',
                         'issued_on' => now()->startOfMonth()->toDateString(),
                         'due_on' => now()->startOfMonth()->addDays(10)->toDateString(),
                         'notes' => 'Demo platform subscription invoice.',
@@ -66,10 +64,10 @@ class PlatformBillingSeeder extends Seeder
                     ['reference_no' => 'PLAT-PAY-'.$tenant->id.'-'.now()->format('Ym')],
                     [
                         'tenant_id' => $tenant->id,
-                        'amount_cents' => $paid,
+                        'amount_cents' => $total,
                         'payment_method' => 'manual',
                         'paid_on' => now()->startOfMonth()->addDays(2)->toDateString(),
-                        'notes' => 'Demo partial subscription payment.',
+                        'notes' => 'Demo full subscription payment.',
                     ]
                 );
             });

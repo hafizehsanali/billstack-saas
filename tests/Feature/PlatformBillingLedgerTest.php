@@ -30,7 +30,7 @@ class PlatformBillingLedgerTest extends TestCase
             ->get(route('platform.billing.show', $invoice))
             ->assertOk()
             ->assertSee($invoice->invoice_no)
-            ->assertSee('Manual');
+            ->assertSee('No payments recorded');
     }
 
     public function test_store_owner_cannot_access_platform_billing(): void
@@ -89,13 +89,12 @@ class PlatformBillingLedgerTest extends TestCase
         $this->assertSame('unpaid', $invoice->status);
     }
 
-    public function test_platform_admin_can_record_partial_and_final_payments(): void
+    public function test_platform_admin_records_the_full_subscription_balance(): void
     {
         [$admin, $invoice] = $this->billingScenario();
 
         $this->actingAs($admin)
             ->post(route('platform.billing.payments.store', $invoice), [
-                'amount' => '999.00',
                 'payment_method' => 'bank_transfer',
                 'paid_on' => '2026-06-08',
                 'reference_no' => 'BANK-001',
@@ -103,39 +102,31 @@ class PlatformBillingLedgerTest extends TestCase
             ->assertRedirect(route('platform.billing.show', $invoice));
 
         $invoice->refresh();
-        $this->assertSame(199900, $invoice->paid_cents);
-        $this->assertSame(100000, $invoice->balance_cents);
-        $this->assertSame('partial', $invoice->status);
-
-        $this->actingAs($admin)
-            ->post(route('platform.billing.payments.store', $invoice), [
-                'amount' => '1000.00',
-                'payment_method' => 'cash',
-                'paid_on' => '2026-06-09',
-            ])
-            ->assertRedirect(route('platform.billing.show', $invoice));
-
-        $invoice->refresh();
         $this->assertSame(299900, $invoice->paid_cents);
         $this->assertSame(0, $invoice->balance_cents);
         $this->assertSame('paid', $invoice->status);
+        $this->assertDatabaseHas('platform_subscription_payments', [
+            'platform_subscription_invoice_id' => $invoice->id,
+            'amount_cents' => 299900,
+        ]);
     }
 
-    public function test_platform_payment_cannot_exceed_current_invoice_balance(): void
+    public function test_submitted_amount_cannot_override_the_full_subscription_balance(): void
     {
         [$admin, $invoice] = $this->billingScenario();
 
         $this->actingAs($admin)
-            ->from(route('platform.billing.show', $invoice))
             ->post(route('platform.billing.payments.store', $invoice), [
-                'amount' => '2000.00',
+                'amount' => '1.00',
                 'payment_method' => 'cash',
                 'paid_on' => '2026-06-08',
             ])
-            ->assertRedirect(route('platform.billing.show', $invoice))
-            ->assertSessionHasErrors('amount');
+            ->assertRedirect(route('platform.billing.show', $invoice));
 
+        $invoice->refresh();
         $this->assertSame(1, $invoice->payments()->count());
+        $this->assertSame(299900, $invoice->payments()->first()->amount_cents);
+        $this->assertSame('paid', $invoice->status);
     }
 
     public function test_billing_invoice_requires_a_tenant_subscription(): void
@@ -200,19 +191,11 @@ class PlatformBillingLedgerTest extends TestCase
             'discount_cents' => 0,
             'tax_cents' => 0,
             'total_cents' => 299900,
-            'paid_cents' => 100000,
-            'balance_cents' => 199900,
-            'status' => 'partial',
+            'paid_cents' => 0,
+            'balance_cents' => 299900,
+            'status' => 'unpaid',
             'issued_on' => now()->startOfMonth(),
             'due_on' => now()->startOfMonth()->addDays(10),
-        ]);
-
-        $invoice->payments()->create([
-            'tenant_id' => $tenant->id,
-            'amount_cents' => 100000,
-            'payment_method' => 'manual',
-            'reference_no' => 'PAY-TEST-001',
-            'paid_on' => now()->startOfMonth()->addDays(2),
         ]);
 
         return [$admin, $invoice, $tenant];

@@ -53,36 +53,26 @@ class PlatformBillingService
 
             $paidCents = (int) $lockedInvoice->payments()->sum('amount_cents');
             $balanceCents = max($lockedInvoice->total_cents - $paidCents, 0);
-            $amountCents = $this->toCents($data['amount']);
 
             if ($balanceCents === 0) {
                 throw ValidationException::withMessages([
-                    'amount' => 'This invoice is already fully paid.',
-                ]);
-            }
-
-            if ($amountCents > $balanceCents) {
-                throw ValidationException::withMessages([
-                    'amount' => 'Payment cannot be greater than the invoice balance.',
+                    'payment' => 'This invoice is already fully paid.',
                 ]);
             }
 
             $payment = $lockedInvoice->payments()->create([
                 'tenant_id' => $lockedInvoice->tenant_id,
-                'amount_cents' => $amountCents,
+                'amount_cents' => $balanceCents,
                 'payment_method' => $data['payment_method'],
                 'reference_no' => $data['reference_no'] ?? null,
                 'paid_on' => $data['paid_on'],
                 'notes' => $data['notes'] ?? null,
             ]);
 
-            $newPaidCents = $paidCents + $amountCents;
-            $newBalanceCents = max($lockedInvoice->total_cents - $newPaidCents, 0);
-
             $lockedInvoice->update([
-                'paid_cents' => $newPaidCents,
-                'balance_cents' => $newBalanceCents,
-                'status' => $newBalanceCents === 0 ? 'paid' : 'partial',
+                'paid_cents' => $lockedInvoice->total_cents,
+                'balance_cents' => 0,
+                'status' => 'paid',
             ]);
 
             return $payment;

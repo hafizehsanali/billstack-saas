@@ -98,20 +98,12 @@
 
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label">Amount <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <span class="input-group-text">Rs</span>
-                                    <input type="number"
-                                           name="amount"
-                                           class="form-control @error('amount') is-invalid @enderror"
-                                           value="{{ old('amount') }}"
-                                           min="0.01"
-                                           max="{{ number_format($invoice->balance_cents / 100, 2, '.', '') }}"
-                                           step="0.01"
-                                           required>
-                                    @error('amount')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                                <label class="form-label">Full Payment Required</label>
+                                <div class="form-control bg-light fw-bold">
+                                    Rs {{ number_format($invoice->balance_cents / 100, 2) }}
+                                </div>
+                                <div class="text-muted small mt-1">
+                                    Subscription invoices must be paid in full.
                                 </div>
                             </div>
 
