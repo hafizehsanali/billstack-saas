@@ -49,10 +49,12 @@ class SubscriptionPurchaseFlowTest extends TestCase
             ->assertSee('Create Purchase Invoice');
 
         $this->actingAs($owner)
-            ->post(route('subscription.checkout.store'))
+            ->post(route('subscription.checkout.store'), ['billing_cycle' => 'monthly'])
             ->assertRedirect(route('subscription.checkout'));
 
-        $this->actingAs($owner)->post(route('subscription.checkout.store'));
+        $this->actingAs($owner)->post(route('subscription.checkout.store'), [
+            'billing_cycle' => 'monthly',
+        ]);
 
         $this->assertSame(1, PlatformSubscriptionInvoice::where('tenant_id', $tenant->id)->count());
         $this->assertDatabaseHas('platform_subscription_invoices', [
@@ -96,11 +98,17 @@ class SubscriptionPurchaseFlowTest extends TestCase
         $offer = $this->offer('SAVE20', 'percent', 20, $plan);
 
         $this->actingAs($owner)
-            ->post(route('subscription.checkout.store'), ['promo_code' => 'save20'])
+            ->post(route('subscription.checkout.store'), [
+                'billing_cycle' => 'monthly',
+                'promo_code' => 'save20',
+            ])
             ->assertRedirect(route('subscription.checkout'));
 
         $this->actingAs($owner)
-            ->post(route('subscription.checkout.store'), ['promo_code' => 'save20']);
+            ->post(route('subscription.checkout.store'), [
+                'billing_cycle' => 'monthly',
+                'promo_code' => 'save20',
+            ]);
 
         $invoice = PlatformSubscriptionInvoice::where('tenant_subscription_id', $subscription->id)
             ->firstOrFail();
@@ -150,7 +158,10 @@ class SubscriptionPurchaseFlowTest extends TestCase
 
         $this->actingAs($owner)
             ->from(route('subscription.checkout'))
-            ->post(route('subscription.checkout.store'), ['promo_code' => 'OTHERONLY'])
+            ->post(route('subscription.checkout.store'), [
+                'billing_cycle' => 'monthly',
+                'promo_code' => 'OTHERONLY',
+            ])
             ->assertRedirect(route('subscription.checkout'))
             ->assertSessionHasErrors('promo_code');
 
@@ -175,13 +186,58 @@ class SubscriptionPurchaseFlowTest extends TestCase
 
         $this->actingAs($owner)
             ->from(route('subscription.checkout'))
-            ->post(route('subscription.checkout.store'), ['promo_code' => 'LIMITED'])
+            ->post(route('subscription.checkout.store'), [
+                'billing_cycle' => 'monthly',
+                'promo_code' => 'LIMITED',
+            ])
             ->assertRedirect(route('subscription.checkout'))
             ->assertSessionHasErrors('promo_code');
 
         $this->assertDatabaseMissing('platform_subscription_invoices', [
             'tenant_id' => $tenant->id,
         ]);
+    }
+
+    public function test_annual_offer_is_rejected_for_monthly_and_applied_to_annual_price(): void
+    {
+        [$tenant, $owner, $plan] = $this->scenario();
+        $subscription = $tenant->subscriptions()->create([
+            'subscription_plan_id' => $plan->id,
+            'status' => 'paused',
+            'starts_at' => now(),
+        ]);
+        $this->offer('YEARLYONLY', 'fixed', 500000, $plan, 'annual');
+
+        $this->actingAs($owner)
+            ->from(route('subscription.checkout'))
+            ->post(route('subscription.checkout.store'), [
+                'billing_cycle' => 'monthly',
+                'promo_code' => 'YEARLYONLY',
+            ])
+            ->assertRedirect(route('subscription.checkout'))
+            ->assertSessionHasErrors('promo_code');
+
+        $this->actingAs($owner)
+            ->post(route('subscription.checkout.store'), [
+                'billing_cycle' => 'annual',
+                'promo_code' => 'YEARLYONLY',
+            ])
+            ->assertRedirect(route('subscription.checkout'));
+
+        $invoice = PlatformSubscriptionInvoice::where('tenant_subscription_id', $subscription->id)
+            ->firstOrFail();
+
+        $this->assertSame('annual', $invoice->billing_cycle);
+        $this->assertSame(4999000, $invoice->subtotal_cents);
+        $this->assertSame(500000, $invoice->discount_cents);
+        $this->assertSame(4499000, $invoice->total_cents);
+
+        app(PlatformBillingService::class)->recordPayment($invoice, [
+            'payment_method' => 'bank_transfer',
+            'paid_on' => today()->toDateString(),
+        ]);
+
+        $this->assertTrue($subscription->fresh()->ends_at->isAfter(now()->addDays(364)));
     }
 
     private function scenario(int $trialDays = 0): array
@@ -213,13 +269,15 @@ class SubscriptionPurchaseFlowTest extends TestCase
         string $code,
         string $type,
         int $value,
-        SubscriptionPlan $plan
+        SubscriptionPlan $plan,
+        string $billingCycle = 'both'
     ): PlatformOffer {
         $offer = PlatformOffer::create([
             'name' => $code,
             'code' => $code,
             'discount_type' => $type,
             'discount_value' => $value,
+            'billing_cycle' => $billingCycle,
             'redemption_limit' => 10,
             'starts_at' => now()->subDay(),
             'ends_at' => now()->addWeek(),

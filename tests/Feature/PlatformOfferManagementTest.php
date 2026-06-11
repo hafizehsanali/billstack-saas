@@ -26,6 +26,7 @@ class PlatformOfferManagementTest extends TestCase
                 'description' => 'First month launch offer.',
                 'discount_type' => 'percent',
                 'discount_value' => '25',
+                'billing_cycle' => 'monthly',
                 'redemption_limit' => '100',
                 'starts_at' => now()->format('Y-m-d H:i:s'),
                 'ends_at' => now()->addMonth()->format('Y-m-d H:i:s'),
@@ -37,6 +38,7 @@ class PlatformOfferManagementTest extends TestCase
         $offer = PlatformOffer::where('code', 'LAUNCH25')->firstOrFail();
 
         $this->assertSame(25, $offer->discount_value);
+        $this->assertSame('monthly', $offer->billing_cycle);
         $this->assertSame(0, $offer->trial_days);
         $this->assertTrue($offer->plans()->whereKey($plan->id)->exists());
     }
@@ -51,6 +53,7 @@ class PlatformOfferManagementTest extends TestCase
                 'code' => 'CREDIT500',
                 'discount_type' => 'fixed',
                 'discount_value' => '500.50',
+                'billing_cycle' => 'both',
                 'trial_days' => '0',
                 'is_active' => '1',
             ])
@@ -72,6 +75,7 @@ class PlatformOfferManagementTest extends TestCase
                 'code' => 'INVALID',
                 'discount_type' => 'percent',
                 'discount_value' => '125',
+                'billing_cycle' => 'both',
                 'trial_days' => '0',
                 'is_active' => '1',
             ])
@@ -88,6 +92,7 @@ class PlatformOfferManagementTest extends TestCase
                 'code' => 'DATES',
                 'discount_type' => 'percent',
                 'discount_value' => '10',
+                'billing_cycle' => 'annual',
                 'trial_days' => '0',
                 'starts_at' => now()->addWeek()->format('Y-m-d H:i:s'),
                 'ends_at' => now()->format('Y-m-d H:i:s'),

@@ -67,6 +67,9 @@
                     <dt class="col-5">Plan</dt>
                     <dd class="col-7">{{ $invoice->subscription?->plan?->name ?? '-' }}</dd>
 
+                    <dt class="col-5">Billing Cycle</dt>
+                    <dd class="col-7">{{ str($invoice->billing_cycle)->title() }}</dd>
+
                     <dt class="col-5">Issued</dt>
                     <dd class="col-7">{{ $invoice->issued_on?->format('M d, Y') }}</dd>
 

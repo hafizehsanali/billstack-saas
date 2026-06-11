@@ -24,6 +24,7 @@
                 <tr>
                     <th>Offer</th>
                     <th>Discount</th>
+                    <th>Purchase Cycle</th>
                     <th>Validity</th>
                     <th>Usage</th>
                     <th>Plans</th>
@@ -37,6 +38,11 @@
                         <td>
                             <div class="fw-bold">{{ $offer->name }}</div>
                             <code>{{ $offer->code }}</code>
+                        </td>
+                        <td>
+                            {{ $offer->billing_cycle === 'both'
+                                ? 'Monthly & Annual'
+                                : str($offer->billing_cycle)->title() }}
                         </td>
                         <td>
                             @if($offer->discount_type === 'percent')
@@ -68,7 +74,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">
+                        <td colspan="8" class="text-center text-muted py-4">
                             No offers created yet.
                         </td>
                     </tr>

@@ -55,6 +55,26 @@
     </div>
 
     <div class="col-md-6 mb-3">
+        <label class="form-label">Purchase Cycle <span class="text-danger">*</span></label>
+        <select name="billing_cycle"
+                class="form-select @error('billing_cycle') is-invalid @enderror"
+                required>
+            <option value="monthly" @selected(old('billing_cycle', $offer?->billing_cycle ?? 'both') === 'monthly')>
+                Monthly purchases only
+            </option>
+            <option value="annual" @selected(old('billing_cycle', $offer?->billing_cycle ?? 'both') === 'annual')>
+                Annual purchases only
+            </option>
+            <option value="both" @selected(old('billing_cycle', $offer?->billing_cycle ?? 'both') === 'both')>
+                Monthly and annual purchases
+            </option>
+        </select>
+        @error('billing_cycle')
+            <small class="text-danger">{{ $message }}</small>
+        @enderror
+    </div>
+
+    <div class="col-md-6 mb-3">
         <label class="form-label">Redemption Limit</label>
         <input type="number"
                name="redemption_limit"

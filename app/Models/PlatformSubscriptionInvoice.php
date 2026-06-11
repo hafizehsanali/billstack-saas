@@ -15,6 +15,7 @@ class PlatformSubscriptionInvoice extends Model
         'offer_code',
         'invoice_no',
         'billing_period',
+        'billing_cycle',
         'subtotal_cents',
         'discount_cents',
         'tax_cents',

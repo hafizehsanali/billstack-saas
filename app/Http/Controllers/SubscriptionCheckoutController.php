@@ -42,7 +42,8 @@ class SubscriptionCheckoutController extends Controller
 
         $billing->createSubscriptionInvoice(
             $subscription,
-            $request->validated('promo_code')
+            $request->validated('promo_code'),
+            $request->validated('billing_cycle')
         );
 
         return redirect()

@@ -14,6 +14,7 @@ class PlatformOffer extends Model
         'description',
         'discount_type',
         'discount_value',
+        'billing_cycle',
         'trial_days',
         'redemption_limit',
         'redeemed_count',
@@ -45,6 +46,11 @@ class PlatformOffer extends Model
     public function appliesTo(SubscriptionPlan $plan): bool
     {
         return $this->plans->isEmpty() || $this->plans->contains('id', $plan->id);
+    }
+
+    public function appliesToBillingCycle(string $billingCycle): bool
+    {
+        return $this->billing_cycle === 'both' || $this->billing_cycle === $billingCycle;
     }
 
     public function discountFor(int $subtotalCents): int

@@ -71,6 +71,7 @@ class OfferController extends Controller
             'description' => $data['description'] ?? null,
             'discount_type' => $data['discount_type'],
             'discount_value' => $discountValue,
+            'billing_cycle' => $data['billing_cycle'],
             'trial_days' => 0,
             'redemption_limit' => $data['redemption_limit'] ?? null,
             'starts_at' => $data['starts_at'] ?? null,

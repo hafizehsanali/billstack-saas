@@ -48,10 +48,15 @@ class PlatformBillingService
 
     public function createSubscriptionInvoice(
         TenantSubscription $subscription,
-        ?string $promoCode = null
+        ?string $promoCode = null,
+        string $billingCycle = 'monthly'
     ): PlatformSubscriptionInvoice
     {
-        return DB::transaction(function () use ($subscription, $promoCode): PlatformSubscriptionInvoice {
+        return DB::transaction(function () use (
+            $subscription,
+            $promoCode,
+            $billingCycle
+        ): PlatformSubscriptionInvoice {
             $subscription->loadMissing(['tenant', 'plan']);
 
             $existingInvoice = PlatformSubscriptionInvoice::query()
@@ -65,8 +70,17 @@ class PlatformBillingService
                 return $existingInvoice;
             }
 
-            $offer = $this->validatedOffer($subscription, $promoCode);
-            $subtotalCents = $subscription->plan->monthly_price_cents;
+            $subtotalCents = $billingCycle === 'annual'
+                ? $subscription->plan->annual_price_cents
+                : $subscription->plan->monthly_price_cents;
+
+            if ($subtotalCents <= 0) {
+                throw ValidationException::withMessages([
+                    'billing_cycle' => 'The selected billing cycle is not available for this package.',
+                ]);
+            }
+
+            $offer = $this->validatedOffer($subscription, $promoCode, $billingCycle);
             $discountCents = $offer?->discountFor($subtotalCents) ?? 0;
             $totalCents = $subtotalCents - $discountCents;
 
@@ -76,7 +90,10 @@ class PlatformBillingService
                 'platform_offer_id' => $offer?->id,
                 'offer_code' => $offer?->code,
                 'invoice_no' => $this->nextInvoiceNumber(),
-                'billing_period' => now()->format('F Y'),
+                'billing_period' => $billingCycle === 'annual'
+                    ? now()->format('M Y').' - '.now()->addYear()->subDay()->format('M Y')
+                    : now()->format('F Y'),
+                'billing_cycle' => $billingCycle,
                 'subtotal_cents' => $subtotalCents,
                 'discount_cents' => $discountCents,
                 'tax_cents' => 0,
@@ -98,7 +115,9 @@ class PlatformBillingService
                     'status' => 'active',
                     'starts_at' => now(),
                     'trial_ends_at' => null,
-                    'ends_at' => now()->addMonth(),
+                    'ends_at' => $billingCycle === 'annual'
+                        ? now()->addYear()
+                        : now()->addMonth(),
                 ]);
             }
 
@@ -142,7 +161,9 @@ class PlatformBillingService
                     'status' => 'active',
                     'starts_at' => now(),
                     'trial_ends_at' => null,
-                    'ends_at' => now()->addMonth(),
+                    'ends_at' => $lockedInvoice->billing_cycle === 'annual'
+                        ? now()->addYear()
+                        : now()->addMonth(),
                 ]);
             }
 
@@ -161,7 +182,8 @@ class PlatformBillingService
 
     private function validatedOffer(
         TenantSubscription $subscription,
-        ?string $promoCode
+        ?string $promoCode,
+        string $billingCycle
     ): ?PlatformOffer {
         if (! $promoCode) {
             return null;
@@ -181,6 +203,12 @@ class PlatformBillingService
         if (! $offer->appliesTo($subscription->plan)) {
             throw ValidationException::withMessages([
                 'promo_code' => 'This promotion code does not apply to the selected package.',
+            ]);
+        }
+
+        if (! $offer->appliesToBillingCycle($billingCycle)) {
+            throw ValidationException::withMessages([
+                'promo_code' => 'This promotion code does not apply to the selected billing cycle.',
             ]);
         }
 

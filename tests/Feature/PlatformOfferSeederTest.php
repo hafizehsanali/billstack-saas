@@ -23,9 +23,12 @@ class PlatformOfferSeederTest extends TestCase
 
         $growth = SubscriptionPlan::where('slug', 'growth')->firstOrFail();
         $launchOffer = PlatformOffer::where('code', 'LAUNCH25')->firstOrFail();
+        $annualOffer = PlatformOffer::where('code', 'YEARLYSAVE')->firstOrFail();
 
         $this->assertTrue($launchOffer->plans()->whereKey($growth->id)->exists());
         $this->assertSame(0, $launchOffer->trial_days);
+        $this->assertSame('monthly', $launchOffer->billing_cycle);
+        $this->assertSame('annual', $annualOffer->billing_cycle);
         $this->assertDatabaseMissing('platform_offers', ['code' => 'TRY14']);
     }
 }

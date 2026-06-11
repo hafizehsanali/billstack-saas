@@ -97,6 +97,9 @@
                                                 @else
                                                     Rs {{ number_format($offer->discount_value / 100, 0) }} off
                                                 @endif
+                                                | {{ $offer->billing_cycle === 'both'
+                                                    ? 'monthly or annual'
+                                                    : $offer->billing_cycle }}
                                             </span>
                                         </div>
                                     @endforeach
