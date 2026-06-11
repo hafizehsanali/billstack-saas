@@ -8,11 +8,12 @@ use App\Models\PlatformSubscriptionInvoice;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\PlatformOperationalAlertService;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function index(): View
+    public function index(PlatformOperationalAlertService $alerts): View
     {
         $tenants = Tenant::with(['activeSubscription.plan', 'users'])
             ->latest()
@@ -28,6 +29,9 @@ class DashboardController extends Controller
             'platformAdminCount' => User::where('is_platform_admin', true)->count(),
             'tenants' => $tenants,
             'plans' => SubscriptionPlan::withCount('features')->orderBy('monthly_price_cents')->get(),
+            'usageAlerts' => $alerts->usageAlerts(),
+            'expiringSubscriptions' => $alerts->expiringSubscriptions(),
+            'overdueInvoices' => $alerts->overdueInvoices(),
         ]);
     }
 }

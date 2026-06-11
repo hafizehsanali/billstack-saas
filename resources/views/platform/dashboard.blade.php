@@ -60,6 +60,95 @@
     </div>
 </div>
 
+<div class="card mb-4">
+    <div class="card-header">
+        <div>
+            <h2 class="card-title mb-1">Needs Attention</h2>
+            <div class="text-muted small">Usage limits, upcoming subscription expiries, and overdue billing.</div>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-vcenter card-table">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Business</th>
+                    <th>Details</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($usageAlerts as $alert)
+                    <tr>
+                        <td>
+                            <span class="badge {{ $alert['at_limit'] ? 'bg-danger text-white' : 'bg-warning text-dark' }}">
+                                Plan usage
+                            </span>
+                        </td>
+                        <td class="fw-semibold">{{ $alert['tenant']->name }}</td>
+                        <td>
+                            {{ $alert['metric'] }}: {{ $alert['used'] }} of {{ $alert['limit'] }}
+                            <span class="text-muted">({{ $alert['percentage'] }}%)</span>
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ route('platform.tenants.edit', $alert['tenant']) }}"
+                               class="btn btn-sm btn-outline-secondary">
+                                Review plan
+                            </a>
+                        </td>
+                    </tr>
+                @endforeach
+
+                @foreach($expiringSubscriptions as $alert)
+                    <tr>
+                        <td><span class="badge bg-warning text-dark">Expiring</span></td>
+                        <td class="fw-semibold">{{ $alert['subscription']->tenant?->name ?? '-' }}</td>
+                        <td>
+                            {{ $alert['label'] }} ends {{ $alert['expires_at']->format('M d, Y') }}
+                            <span class="text-muted">
+                                ({{ $alert['subscription']->plan?->name ?? 'No plan' }})
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ route('platform.tenants.edit', $alert['subscription']->tenant) }}"
+                               class="btn btn-sm btn-outline-secondary">
+                                Subscription
+                            </a>
+                        </td>
+                    </tr>
+                @endforeach
+
+                @foreach($overdueInvoices as $invoice)
+                    <tr>
+                        <td><span class="badge bg-danger text-white">Overdue</span></td>
+                        <td class="fw-semibold">{{ $invoice->tenant?->name ?? '-' }}</td>
+                        <td>
+                            {{ $invoice->invoice_no }} has
+                            <span class="text-danger fw-semibold">
+                                Rs {{ number_format($invoice->balance_cents / 100, 2) }} due
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ route('platform.billing.show', $invoice) }}"
+                               class="btn btn-sm btn-outline-secondary">
+                                View invoice
+                            </a>
+                        </td>
+                    </tr>
+                @endforeach
+
+                @if($usageAlerts->isEmpty() && $expiringSubscriptions->isEmpty() && $overdueInvoices->isEmpty())
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">
+                            No platform issues need attention.
+                        </td>
+                    </tr>
+                @endif
+            </tbody>
+        </table>
+    </div>
+</div>
+
 <div class="row g-4">
     <div class="col-lg-7">
         <div class="card">
