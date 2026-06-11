@@ -34,6 +34,7 @@
 
     $settingsLinks = [
         ['label' => 'Team Users', 'route' => 'team.index', 'active' => ['team.*']],
+        ['label' => 'Plan & Billing', 'route' => 'billing.index', 'active' => ['billing.*']],
         ['label' => 'Business Settings', 'route' => 'settings.business', 'active' => ['settings.*']],
     ];
 

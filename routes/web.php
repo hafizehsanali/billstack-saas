@@ -29,6 +29,7 @@ use App\Http\Controllers\SupplierAccountController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SupplierPaymentController;
 use App\Http\Controllers\TeamMemberController;
+use App\Http\Controllers\TenantBillingController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -49,6 +50,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/alerts', [AlertController::class, 'index'])->name('alerts.index');
         Route::get('/settings/business', [SettingsController::class, 'business'])->name('settings.business');
         Route::put('/settings/business', [SettingsController::class, 'updateBusiness'])->name('settings.business.update');
+        Route::get('/billing', [TenantBillingController::class, 'index'])
+            ->middleware('role:owner|accountant')
+            ->name('billing.index');
 
         Route::middleware('role:owner')->group(function () {
             Route::get('/team', [TeamMemberController::class, 'index'])->name('team.index');
