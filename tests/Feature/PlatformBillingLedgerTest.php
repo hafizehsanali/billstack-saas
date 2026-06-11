@@ -64,6 +64,107 @@ class PlatformBillingLedgerTest extends TestCase
         ]);
     }
 
+    public function test_platform_admin_can_create_subscription_invoice(): void
+    {
+        [$admin, $existingInvoice, $tenant] = $this->billingScenario();
+
+        $this->actingAs($admin)
+            ->post(route('platform.billing.store'), [
+                'tenant_id' => $tenant->id,
+                'billing_period' => 'July 2026',
+                'subtotal' => '3000.00',
+                'discount' => '250.00',
+                'tax' => '100.00',
+                'issued_on' => '2026-07-01',
+                'due_on' => '2026-07-10',
+                'notes' => 'Monthly Growth plan.',
+            ])
+            ->assertRedirect();
+
+        $invoice = PlatformSubscriptionInvoice::where('billing_period', 'July 2026')->firstOrFail();
+
+        $this->assertSame(300000, $invoice->subtotal_cents);
+        $this->assertSame(285000, $invoice->total_cents);
+        $this->assertSame(285000, $invoice->balance_cents);
+        $this->assertSame('unpaid', $invoice->status);
+    }
+
+    public function test_platform_admin_can_record_partial_and_final_payments(): void
+    {
+        [$admin, $invoice] = $this->billingScenario();
+
+        $this->actingAs($admin)
+            ->post(route('platform.billing.payments.store', $invoice), [
+                'amount' => '999.00',
+                'payment_method' => 'bank_transfer',
+                'paid_on' => '2026-06-08',
+                'reference_no' => 'BANK-001',
+            ])
+            ->assertRedirect(route('platform.billing.show', $invoice));
+
+        $invoice->refresh();
+        $this->assertSame(199900, $invoice->paid_cents);
+        $this->assertSame(100000, $invoice->balance_cents);
+        $this->assertSame('partial', $invoice->status);
+
+        $this->actingAs($admin)
+            ->post(route('platform.billing.payments.store', $invoice), [
+                'amount' => '1000.00',
+                'payment_method' => 'cash',
+                'paid_on' => '2026-06-09',
+            ])
+            ->assertRedirect(route('platform.billing.show', $invoice));
+
+        $invoice->refresh();
+        $this->assertSame(299900, $invoice->paid_cents);
+        $this->assertSame(0, $invoice->balance_cents);
+        $this->assertSame('paid', $invoice->status);
+    }
+
+    public function test_platform_payment_cannot_exceed_current_invoice_balance(): void
+    {
+        [$admin, $invoice] = $this->billingScenario();
+
+        $this->actingAs($admin)
+            ->from(route('platform.billing.show', $invoice))
+            ->post(route('platform.billing.payments.store', $invoice), [
+                'amount' => '2000.00',
+                'payment_method' => 'cash',
+                'paid_on' => '2026-06-08',
+            ])
+            ->assertRedirect(route('platform.billing.show', $invoice))
+            ->assertSessionHasErrors('amount');
+
+        $this->assertSame(1, $invoice->payments()->count());
+    }
+
+    public function test_billing_invoice_requires_a_tenant_subscription(): void
+    {
+        $admin = User::factory()->create([
+            'tenant_id' => null,
+            'is_platform_admin' => true,
+        ]);
+        $tenant = Tenant::create([
+            'name' => 'Unsubscribed Tenant',
+            'slug' => 'unsubscribed-tenant',
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('platform.billing.store'), [
+                'tenant_id' => $tenant->id,
+                'billing_period' => 'July 2026',
+                'subtotal' => '1000.00',
+                'discount' => '0.00',
+                'tax' => '0.00',
+                'issued_on' => '2026-07-01',
+            ])
+            ->assertSessionHasErrors('tenant_id');
+
+        $this->assertDatabaseMissing('platform_subscription_invoices', [
+            'tenant_id' => $tenant->id,
+        ]);
+    }
+
     private function billingScenario(): array
     {
         $admin = User::factory()->create([
