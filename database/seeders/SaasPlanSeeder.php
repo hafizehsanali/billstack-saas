@@ -34,6 +34,7 @@ class SaasPlanSeeder extends Seeder
                 'annual_price_cents' => 0,
                 'user_limit' => 2,
                 'trial_days' => 0,
+                'free_access_days' => 30,
                 'is_public' => true,
                 'is_active' => true,
             ]
@@ -48,6 +49,7 @@ class SaasPlanSeeder extends Seeder
                 'annual_price_cents' => 2999000,
                 'user_limit' => 8,
                 'trial_days' => 14,
+                'free_access_days' => null,
                 'is_public' => true,
                 'is_active' => true,
             ]
@@ -62,6 +64,7 @@ class SaasPlanSeeder extends Seeder
                 'annual_price_cents' => 4999000,
                 'user_limit' => 15,
                 'trial_days' => 0,
+                'free_access_days' => null,
                 'is_public' => true,
                 'is_active' => true,
             ]

@@ -32,9 +32,12 @@
                 Full payment is required to activate paid access.
             </div>
         @else
-            <p class="text-muted mb-0">
-                Please contact platform support or the account administrator to reactivate access.
-            </p>
+            <a href="{{ route('plans.index') }}" class="btn btn-primary">
+                Choose Another Package
+            </a>
+            <div class="text-muted small mt-3">
+                Free access has ended. Select an available package to continue.
+            </div>
         @endif
     </div>
 </div>

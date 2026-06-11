@@ -4,7 +4,7 @@
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
     <div>
         <h1 class="mb-1">Plans</h1>
-        <div class="text-muted">Control pricing, user limits, visibility, and enabled features.</div>
+        <div class="text-muted">Control pricing, access periods, user limits, visibility, and enabled features.</div>
     </div>
 
     <div class="d-flex gap-2">
@@ -27,6 +27,7 @@
                     <th class="text-end">Annual</th>
                     <th class="text-end">Users</th>
                     <th class="text-end">Trial</th>
+                    <th class="text-end">Free Access</th>
                     <th>Features</th>
                     <th>Status</th>
                     <th class="text-end">Actions</th>
@@ -44,6 +45,13 @@
                         <td class="text-end">{{ $plan->user_limit ?? 'Unlimited' }}</td>
                         <td class="text-end">
                             {{ $plan->monthly_price_cents > 0 && $plan->trial_days > 0 ? $plan->trial_days.' days' : 'None' }}
+                        </td>
+                        <td class="text-end">
+                            @if($plan->monthly_price_cents === 0)
+                                {{ $plan->free_access_days ? $plan->free_access_days.' days' : 'Permanent' }}
+                            @else
+                                -
+                            @endif
                         </td>
                         <td>{{ $plan->features_count }} features</td>
                         <td>
@@ -63,7 +71,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="text-center text-muted py-4">
+                        <td colspan="9" class="text-center text-muted py-4">
                             No plans found.
                         </td>
                     </tr>

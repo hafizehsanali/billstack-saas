@@ -20,6 +20,8 @@ class TenantSubscriptionService
                 'monthly_price_cents' => 0,
                 'annual_price_cents' => 0,
                 'user_limit' => 2,
+                'trial_days' => 0,
+                'free_access_days' => 30,
             ]);
         }
 
@@ -31,6 +33,9 @@ class TenantSubscriptionService
             [
                 'subscription_plan_id' => $plan->id,
                 'starts_at' => now(),
+                'ends_at' => $plan->free_access_days
+                    ? now()->addDays($plan->free_access_days)
+                    : null,
             ]
         );
     }
@@ -38,6 +43,7 @@ class TenantSubscriptionService
     public function subscribe(Tenant $tenant, SubscriptionPlan $plan): TenantSubscription
     {
         $trialDays = $plan->monthly_price_cents > 0 ? $plan->trial_days : 0;
+        $freeAccessDays = $plan->monthly_price_cents === 0 ? $plan->free_access_days : null;
         $isImmediatelyActive = $plan->monthly_price_cents === 0 || $trialDays > 0;
 
         return TenantSubscription::create([
@@ -46,6 +52,7 @@ class TenantSubscriptionService
             'status' => $isImmediatelyActive ? 'active' : 'paused',
             'starts_at' => now(),
             'trial_ends_at' => $trialDays > 0 ? now()->addDays($trialDays) : null,
+            'ends_at' => $freeAccessDays ? now()->addDays($freeAccessDays) : null,
         ]);
     }
 }

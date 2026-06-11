@@ -75,7 +75,11 @@
                                     @endif
                                 @else
                                     <span class="h1 mb-0">Free</span>
-                                    <div class="text-muted small mt-1">No subscription charge</div>
+                                    <div class="text-muted small mt-1">
+                                        {{ $plan->free_access_days
+                                            ? $plan->free_access_days.' days of free access'
+                                            : 'Permanent free access' }}
+                                    </div>
                                 @endif
                             </div>
 
@@ -112,6 +116,10 @@
                                 @if($isPaid && $trialDays === 0)
                                     <div class="text-muted small text-center mt-2">
                                         Full payment is required before paid access starts.
+                                    </div>
+                                @elseif(! $isPaid && $plan->free_access_days)
+                                    <div class="text-muted small text-center mt-2">
+                                        Access ends after {{ $plan->free_access_days }} days. You can then choose a paid package.
                                     </div>
                                 @endif
                             </div>

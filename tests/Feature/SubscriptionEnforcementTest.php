@@ -62,6 +62,24 @@ class SubscriptionEnforcementTest extends TestCase
             ->assertSee('cancelled');
     }
 
+    public function test_expired_free_access_is_paused(): void
+    {
+        [$tenant, $user, $plan] = $this->tenantUserAndPlan();
+
+        $subscription = $tenant->subscriptions()->create([
+            'subscription_plan_id' => $plan->id,
+            'status' => 'active',
+            'starts_at' => now()->subDays(31),
+            'ends_at' => now()->subDay(),
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertRedirect(route('subscription.status'));
+
+        $this->assertSame('paused', $subscription->fresh()->status);
+    }
+
     public function test_platform_admin_can_still_access_platform_area(): void
     {
         $admin = User::factory()->create([

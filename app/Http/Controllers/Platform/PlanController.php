@@ -75,6 +75,9 @@ class PlanController extends Controller
             'annual_price_cents' => (int) round(((float) $data['annual_price']) * 100),
             'user_limit' => $data['user_limit'] ?? null,
             'trial_days' => $monthlyPriceCents > 0 ? $data['trial_days'] : 0,
+            'free_access_days' => $monthlyPriceCents === 0
+                ? ($data['free_access_days'] ?? null)
+                : null,
             'is_public' => (bool) ($data['is_public'] ?? false),
             'is_active' => (bool) ($data['is_active'] ?? false),
         ];

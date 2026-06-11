@@ -82,6 +82,8 @@
                                     {{ $selectedPlan->user_limit ? $selectedPlan->user_limit.' users' : 'Unlimited users' }}
                                     @if($trialDays > 0)
                                         | {{ $trialDays }}-day trial
+                                    @elseif(! $isPaidPlan && $selectedPlan->free_access_days)
+                                        | {{ $selectedPlan->free_access_days }} days access
                                     @endif
                                 </div>
                             </div>

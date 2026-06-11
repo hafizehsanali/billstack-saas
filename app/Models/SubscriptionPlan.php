@@ -16,6 +16,7 @@ class SubscriptionPlan extends Model
         'annual_price_cents',
         'user_limit',
         'trial_days',
+        'free_access_days',
         'is_public',
         'is_active',
     ];

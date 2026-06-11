@@ -36,8 +36,10 @@ class EnsureTenantSubscriptionIsActive
 
         if (
             $subscription?->status === 'active'
-            && $subscription->trial_ends_at
-            && $subscription->trial_ends_at->isPast()
+            && (
+                ($subscription->trial_ends_at && $subscription->trial_ends_at->isPast())
+                || ($subscription->ends_at && $subscription->ends_at->isPast())
+            )
         ) {
             $subscription->update([
                 'status' => 'paused',

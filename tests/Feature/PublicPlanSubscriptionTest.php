@@ -49,6 +49,7 @@ class PublicPlanSubscriptionTest extends TestCase
     public function test_free_package_is_activated_during_registration(): void
     {
         $plan = $this->plan('Starter', 'starter', 0);
+        $plan->update(['free_access_days' => 30]);
 
         $this->post(route('register'), $this->registrationData($plan))
             ->assertRedirect(route('dashboard', absolute: false));
@@ -59,6 +60,21 @@ class PublicPlanSubscriptionTest extends TestCase
             'subscription_plan_id' => $plan->id,
             'status' => 'active',
         ]);
+
+        $subscription = $tenant->subscriptions()->firstOrFail();
+        $this->assertNotNull($subscription->ends_at);
+        $this->assertTrue($subscription->ends_at->isAfter(now()->addDays(29)));
+    }
+
+    public function test_free_package_can_be_configured_as_permanent(): void
+    {
+        $plan = $this->plan('Community', 'community', 0);
+
+        $this->post(route('register'), $this->registrationData($plan))
+            ->assertRedirect(route('dashboard', absolute: false));
+
+        $tenant = Tenant::where('name', 'Public Test Store')->firstOrFail();
+        $this->assertNull($tenant->subscriptions()->firstOrFail()->ends_at);
     }
 
     public function test_paid_package_with_configured_trial_starts_a_trial(): void
@@ -111,6 +127,7 @@ class PublicPlanSubscriptionTest extends TestCase
             'annual_price_cents' => $monthlyPrice * 10,
             'user_limit' => 5,
             'trial_days' => 0,
+            'free_access_days' => null,
             'is_public' => $isPublic,
             'is_active' => true,
         ]);

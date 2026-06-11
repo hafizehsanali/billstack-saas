@@ -77,6 +77,20 @@
         @enderror
     </div>
 
+    <div class="col-md-3 mb-3">
+        <label class="form-label">Free Access Days</label>
+        <input type="number"
+               min="1"
+               max="3650"
+               name="free_access_days"
+               value="{{ old('free_access_days', $plan?->free_access_days) }}"
+               class="form-control @error('free_access_days') is-invalid @enderror">
+        <div class="text-muted small mt-1">Free plans only. Leave blank for permanent access.</div>
+        @error('free_access_days')
+            <small class="text-danger">{{ $message }}</small>
+        @enderror
+    </div>
+
     <div class="col-md-12 mb-3">
         <label class="form-label">Description</label>
         <textarea name="description"
