@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
             ExpenseSeeder::class,
             SupplierPaymentSeeder::class,
             PlatformBillingSeeder::class,
+            SubscriptionLifecycleSeeder::class,
         ]);
     }
 }

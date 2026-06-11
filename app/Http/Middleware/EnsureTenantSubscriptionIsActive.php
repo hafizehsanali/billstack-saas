@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Services\TenantSubscriptionService;
+use App\Services\SubscriptionLifecycleService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -34,17 +35,7 @@ class EnsureTenantSubscriptionIsActive
 
         $subscription = $tenant->currentSubscription;
 
-        if (
-            $subscription?->status === 'active'
-            && (
-                ($subscription->trial_ends_at && $subscription->trial_ends_at->isPast())
-                || ($subscription->ends_at && $subscription->ends_at->isPast())
-            )
-        ) {
-            $subscription->update([
-                'status' => 'paused',
-                'ends_at' => now(),
-            ]);
+        if (app(SubscriptionLifecycleService::class)->pauseIfExpired($subscription)) {
             $tenant->unsetRelation('activeSubscription');
         }
 
