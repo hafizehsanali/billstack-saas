@@ -15,8 +15,8 @@ class RegistrationTest extends TestCase
 
         $response
             ->assertStatus(200)
-            ->assertSee('Create your BillStack workspace')
-            ->assertSee('inventory, billing, customers, and suppliers');
+            ->assertSee('Create your account')
+            ->assertSee('billing, stock, customers, suppliers, expenses, and reports');
     }
 
     public function test_new_users_can_register(): void
