@@ -58,6 +58,52 @@
     </div>
 </div>
 
+<div class="card mb-3">
+    <div class="card-header">
+        <div>
+            <h3 class="card-title mb-1">Plan Usage</h3>
+            <div class="text-muted small">Invoice usage resets at the beginning of each calendar month.</div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row g-4">
+            @foreach([
+                'products' => 'Products',
+                'monthly_invoices' => 'Invoices This Month',
+            ] as $usageKey => $label)
+                @php
+                    $item = $usage[$usageKey];
+                    $barClass = match ($item['status']) {
+                        'limit' => 'bg-danger',
+                        'warning' => 'bg-warning',
+                        default => 'bg-primary',
+                    };
+                @endphp
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="fw-semibold">{{ $label }}</div>
+                        <div class="{{ $item['status'] === 'limit' ? 'text-danger fw-semibold' : 'text-muted' }}">
+                            {{ $item['used'] }} of {{ $item['limit'] ?? 'Unlimited' }}
+                        </div>
+                    </div>
+                    @if($item['limit'] !== null)
+                        <div class="progress" style="height: 8px;" role="progressbar"
+                             aria-label="{{ $label }} usage"
+                             aria-valuenow="{{ $item['percentage'] }}"
+                             aria-valuemin="0"
+                             aria-valuemax="100">
+                            <div class="progress-bar {{ $barClass }}"
+                                 style="width: {{ $item['percentage'] }}%"></div>
+                        </div>
+                    @else
+                        <div class="text-success small">No usage limit on this plan.</div>
+                    @endif
+                </div>
+            @endforeach
+        </div>
+    </div>
+</div>
+
 <div class="card">
     <div class="table-responsive">
         <table class="table table-vcenter card-table">

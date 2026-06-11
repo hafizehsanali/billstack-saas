@@ -6,18 +6,27 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Platform\UpdateTenantSubscriptionRequest;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
+use App\Services\TenantUsageLimitService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class TenantController extends Controller
 {
-    public function index(): View
+    public function index(TenantUsageLimitService $usageLimits): View
     {
+        $tenants = Tenant::with(['currentSubscription.plan', 'activeSubscription.plan'])
+            ->withCount(['users'])
+            ->latest()
+            ->paginate(15);
+
+        $usage = $tenants->getCollection()
+            ->mapWithKeys(fn (Tenant $tenant) => [
+                $tenant->id => $usageLimits->summary($tenant),
+            ]);
+
         return view('platform.tenants.index', [
-            'tenants' => Tenant::with(['currentSubscription.plan'])
-                ->withCount(['users'])
-                ->latest()
-                ->paginate(15),
+            'tenants' => $tenants,
+            'usage' => $usage,
         ]);
     }
 

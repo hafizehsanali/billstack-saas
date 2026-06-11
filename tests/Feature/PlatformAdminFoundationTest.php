@@ -2,7 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\Category;
+use App\Models\Customer;
+use App\Models\Invoice;
 use App\Models\PlanFeature;
+use App\Models\Product;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\TenantSubscription;
@@ -94,5 +98,59 @@ class PlatformAdminFoundationTest extends TestCase
         $starter = SubscriptionPlan::where('slug', 'starter')->firstOrFail();
         $this->assertTrue($starter->features()->where('is_paid', false)->exists());
         $this->assertFalse($starter->features()->where('is_paid', true)->exists());
+    }
+
+    public function test_platform_tenant_list_shows_usage_for_each_business(): void
+    {
+        Role::findOrCreate('owner');
+
+        $tenant = Tenant::create(['name' => 'Usage Store', 'slug' => 'usage-store']);
+        $owner = User::factory()->create(['tenant_id' => $tenant->id]);
+        $owner->assignRole('owner');
+        $plan = SubscriptionPlan::create([
+            'name' => 'Usage Plan',
+            'slug' => 'usage-plan',
+            'monthly_price_cents' => 1000,
+            'annual_price_cents' => 10000,
+            'product_limit' => 10,
+            'monthly_invoice_limit' => 20,
+        ]);
+        $tenant->subscriptions()->create([
+            'subscription_plan_id' => $plan->id,
+            'status' => 'active',
+            'starts_at' => now(),
+        ]);
+
+        $this->actingAs($owner);
+        $category = Category::create(['name' => 'Platform Usage Category']);
+        Product::create([
+            'category_id' => $category->id,
+            'name' => 'Platform Usage Product',
+            'sku' => 'PLATFORM-USAGE-001',
+            'purchase_price' => 100,
+            'selling_price' => 150,
+            'stock_quantity' => 10,
+            'low_stock_alert' => 2,
+        ]);
+        $customer = Customer::create(['name' => 'Platform Usage Customer']);
+        Invoice::create([
+            'tenant_id' => $tenant->id,
+            'customer_id' => $customer->id,
+            'invoice_no' => 'PLATFORM-USAGE-INV-001',
+            'sale_date' => now()->toDateString(),
+        ]);
+
+        $admin = User::factory()->create([
+            'tenant_id' => null,
+            'is_platform_admin' => true,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('platform.tenants.index'))
+            ->assertOk()
+            ->assertSee('Products:')
+            ->assertSee('1/10')
+            ->assertSee('Invoices this month:')
+            ->assertSee('1/20');
     }
 }

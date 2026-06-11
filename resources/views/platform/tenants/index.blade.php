@@ -21,6 +21,7 @@
                     <th>Plan</th>
                     <th>Status</th>
                     <th class="text-end">Users</th>
+                    <th>Usage</th>
                     <th>Created</th>
                     <th class="text-end">Actions</th>
                 </tr>
@@ -42,6 +43,23 @@
                             </span>
                         </td>
                         <td class="text-end">{{ $tenant->users_count }}</td>
+                        <td>
+                            @php
+                                $tenantUsage = $usage[$tenant->id];
+                            @endphp
+                            <div class="small">
+                                Products:
+                                <span class="{{ $tenantUsage['products']['status'] === 'limit' ? 'text-danger fw-semibold' : '' }}">
+                                    {{ $tenantUsage['products']['used'] }}/{{ $tenantUsage['products']['limit'] ?? 'Unlimited' }}
+                                </span>
+                            </div>
+                            <div class="small text-muted">
+                                Invoices this month:
+                                <span class="{{ $tenantUsage['monthly_invoices']['status'] === 'limit' ? 'text-danger fw-semibold' : '' }}">
+                                    {{ $tenantUsage['monthly_invoices']['used'] }}/{{ $tenantUsage['monthly_invoices']['limit'] ?? 'Unlimited' }}
+                                </span>
+                            </div>
+                        </td>
                         <td>{{ $tenant->created_at?->format('M d, Y') }}</td>
                         <td class="text-end">
                             <a href="{{ route('platform.tenants.edit', $tenant) }}"
@@ -52,7 +70,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="text-center text-muted py-4">
+                        <td colspan="7" class="text-center text-muted py-4">
                             No tenants found.
                         </td>
                     </tr>

@@ -2,7 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\Category;
+use App\Models\Customer;
+use App\Models\Invoice;
 use App\Models\PlatformSubscriptionInvoice;
+use App\Models\Product;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\User;
@@ -66,6 +70,41 @@ class TenantBillingPortalTest extends TestCase
         $this->actingAs($cashier)
             ->get(route('billing.index'))
             ->assertForbidden();
+    }
+
+    public function test_owner_can_review_current_plan_usage(): void
+    {
+        [$owner, , $tenant] = $this->tenantBillingScenario();
+        $tenant->activeSubscription->plan->update([
+            'product_limit' => 10,
+            'monthly_invoice_limit' => 20,
+        ]);
+
+        $this->actingAs($owner);
+
+        $category = Category::create(['name' => 'Usage Category']);
+        Product::create([
+            'category_id' => $category->id,
+            'name' => 'Usage Product',
+            'sku' => 'USAGE-001',
+            'purchase_price' => 100,
+            'selling_price' => 150,
+            'stock_quantity' => 10,
+            'low_stock_alert' => 2,
+        ]);
+        $customer = Customer::create(['name' => 'Usage Customer']);
+        Invoice::create([
+            'tenant_id' => $tenant->id,
+            'customer_id' => $customer->id,
+            'invoice_no' => 'USAGE-INV-001',
+            'sale_date' => now()->toDateString(),
+        ]);
+
+        $this->get(route('billing.index'))
+            ->assertOk()
+            ->assertSee('Plan Usage')
+            ->assertSee('1 of 10')
+            ->assertSee('1 of 20');
     }
 
     private function tenantBillingScenario(): array

@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\PlatformSubscriptionInvoice;
+use App\Services\TenantUsageLimitService;
 use Illuminate\Contracts\View\View;
 
 class TenantBillingController extends Controller
 {
-    public function index(): View
+    public function index(TenantUsageLimitService $usageLimits): View
     {
         $tenant = auth()->user()->tenant()->with('activeSubscription.plan')->firstOrFail();
 
@@ -28,6 +29,7 @@ class TenantBillingController extends Controller
             'subscription' => $tenant->activeSubscription,
             'invoices' => $invoices,
             'billingSummary' => $billingSummary,
+            'usage' => $usageLimits->summary($tenant),
         ]);
     }
 }
