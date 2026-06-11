@@ -15,6 +15,6 @@ class PublicLandingTest extends TestCase
             ->assertSee('Inventory and billing SaaS')
             ->assertSee('A business management system')
             ->assertSee('Built for real shop workflows')
-            ->assertSee('Create Demo Account');
+            ->assertSee('View Packages');
     }
 }

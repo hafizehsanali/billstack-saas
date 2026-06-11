@@ -19,6 +19,7 @@ use App\Http\Controllers\Platform\PlanController as PlatformPlanController;
 use App\Http\Controllers\Platform\TenantController as PlatformTenantController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicPlanController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\PurchaseReturnController;
 use App\Http\Controllers\ReportController;
@@ -35,6 +36,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+Route::get('/plans', [PublicPlanController::class, 'index'])->name('plans.index');
 
 Route::middleware('auth')->group(function () {
     Route::get('/subscription/status', [SubscriptionStatusController::class, 'show'])->name('subscription.status');

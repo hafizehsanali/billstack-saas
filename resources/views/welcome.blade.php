@@ -44,11 +44,9 @@
                         Sign In
                     </a>
 
-                    @if(Route::has('register'))
-                        <a href="{{ route('register') }}" class="btn btn-outline-secondary btn-lg">
-                            Create Demo Account
-                        </a>
-                    @endif
+                    <a href="{{ route('plans.index') }}" class="btn btn-outline-secondary btn-lg">
+                        View Packages
+                    </a>
                 </div>
             @endauth
         </div>
