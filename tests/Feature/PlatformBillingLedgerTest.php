@@ -57,7 +57,19 @@ class PlatformBillingLedgerTest extends TestCase
         $this->seed(PlatformBillingSeeder::class);
         $this->seed(PlatformBillingSeeder::class);
 
-        $this->assertSame(1, PlatformSubscriptionInvoice::where('tenant_id', $tenant->id)->count());
+        $this->assertSame(2, PlatformSubscriptionInvoice::where('tenant_id', $tenant->id)->count());
+        $this->assertDatabaseHas('subscription_plans', [
+            'slug' => 'demo-monitoring',
+            'is_public' => false,
+            'product_limit' => 5,
+            'monthly_invoice_limit' => 5,
+        ]);
+        $this->assertDatabaseHas('platform_subscription_invoices', [
+            'tenant_id' => $tenant->id,
+            'invoice_no' => 'PLAT-DEMO-OVERDUE',
+            'status' => 'partial',
+            'balance_cents' => 199900,
+        ]);
         $this->assertDatabaseHas('platform_subscription_payments', [
             'tenant_id' => $tenant->id,
             'payment_method' => 'manual',
