@@ -11,6 +11,8 @@ class PlatformSubscriptionInvoice extends Model
     protected $fillable = [
         'tenant_id',
         'tenant_subscription_id',
+        'platform_offer_id',
+        'offer_code',
         'invoice_no',
         'billing_period',
         'subtotal_cents',
@@ -46,5 +48,10 @@ class PlatformSubscriptionInvoice extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(PlatformSubscriptionPayment::class);
+    }
+
+    public function offer(): BelongsTo
+    {
+        return $this->belongsTo(PlatformOffer::class, 'platform_offer_id');
     }
 }

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\PlanFeature;
+use App\Models\PlatformOffer;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -33,6 +34,27 @@ class PublicPlanSubscriptionTest extends TestCase
             ->assertSee('Core POS')
             ->assertDontSee('Private Plan')
             ->assertDontSee('Inactive Plan');
+    }
+
+    public function test_public_page_displays_available_offer_for_eligible_plan(): void
+    {
+        $plan = $this->plan('Growth', 'growth', 299900);
+        $offer = PlatformOffer::create([
+            'name' => 'Launch Discount',
+            'code' => 'LAUNCH25',
+            'discount_type' => 'percent',
+            'discount_value' => 25,
+            'starts_at' => now()->subDay(),
+            'ends_at' => now()->addWeek(),
+            'is_active' => true,
+        ]);
+        $offer->plans()->attach($plan);
+
+        $this->get(route('plans.index'))
+            ->assertOk()
+            ->assertSee('Available Offers')
+            ->assertSee('LAUNCH25')
+            ->assertSee('25% off');
     }
 
     public function test_registration_preserves_selected_package(): void

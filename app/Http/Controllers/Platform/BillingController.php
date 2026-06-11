@@ -58,7 +58,7 @@ class BillingController extends Controller
     public function show(PlatformSubscriptionInvoice $invoice): View
     {
         return view('platform.billing.show', [
-            'invoice' => $invoice->load(['tenant', 'subscription.plan', 'payments']),
+            'invoice' => $invoice->load(['tenant', 'subscription.plan', 'payments', 'offer']),
         ]);
     }
 

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\PlatformSubscriptionInvoice;
+use App\Models\PlatformOffer;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\User;
@@ -84,6 +85,105 @@ class SubscriptionPurchaseFlowTest extends TestCase
         $this->assertTrue($subscription->ends_at->isAfter(now()->addDays(29)));
     }
 
+    public function test_percentage_offer_reduces_subscription_invoice_once(): void
+    {
+        [$tenant, $owner, $plan] = $this->scenario();
+        $subscription = $tenant->subscriptions()->create([
+            'subscription_plan_id' => $plan->id,
+            'status' => 'paused',
+            'starts_at' => now(),
+        ]);
+        $offer = $this->offer('SAVE20', 'percent', 20, $plan);
+
+        $this->actingAs($owner)
+            ->post(route('subscription.checkout.store'), ['promo_code' => 'save20'])
+            ->assertRedirect(route('subscription.checkout'));
+
+        $this->actingAs($owner)
+            ->post(route('subscription.checkout.store'), ['promo_code' => 'save20']);
+
+        $invoice = PlatformSubscriptionInvoice::where('tenant_subscription_id', $subscription->id)
+            ->firstOrFail();
+
+        $this->assertSame(99980, $invoice->discount_cents);
+        $this->assertSame(399920, $invoice->total_cents);
+        $this->assertSame('SAVE20', $invoice->offer_code);
+        $this->assertSame(1, $offer->fresh()->redeemed_count);
+    }
+
+    public function test_fixed_offer_is_capped_at_subscription_price(): void
+    {
+        [$tenant, $owner, $plan] = $this->scenario();
+        $subscription = $tenant->subscriptions()->create([
+            'subscription_plan_id' => $plan->id,
+            'status' => 'paused',
+            'starts_at' => now(),
+        ]);
+        $this->offer('FULLCREDIT', 'fixed', 900000, $plan);
+
+        $invoice = app(PlatformBillingService::class)
+            ->createSubscriptionInvoice($subscription, 'FULLCREDIT');
+
+        $this->assertSame(499900, $invoice->discount_cents);
+        $this->assertSame(0, $invoice->total_cents);
+        $this->assertSame(0, $invoice->balance_cents);
+        $this->assertSame('paid', $invoice->status);
+        $this->assertSame('active', $subscription->fresh()->status);
+    }
+
+    public function test_offer_for_another_plan_is_rejected(): void
+    {
+        [$tenant, $owner, $plan] = $this->scenario();
+        $tenant->subscriptions()->create([
+            'subscription_plan_id' => $plan->id,
+            'status' => 'paused',
+            'starts_at' => now(),
+        ]);
+        $otherPlan = SubscriptionPlan::create([
+            'name' => 'Other',
+            'slug' => 'other',
+            'monthly_price_cents' => 100000,
+            'annual_price_cents' => 1000000,
+            'trial_days' => 0,
+        ]);
+        $this->offer('OTHERONLY', 'percent', 10, $otherPlan);
+
+        $this->actingAs($owner)
+            ->from(route('subscription.checkout'))
+            ->post(route('subscription.checkout.store'), ['promo_code' => 'OTHERONLY'])
+            ->assertRedirect(route('subscription.checkout'))
+            ->assertSessionHasErrors('promo_code');
+
+        $this->assertDatabaseMissing('platform_subscription_invoices', [
+            'tenant_id' => $tenant->id,
+        ]);
+    }
+
+    public function test_offer_at_redemption_limit_is_rejected(): void
+    {
+        [$tenant, $owner, $plan] = $this->scenario();
+        $tenant->subscriptions()->create([
+            'subscription_plan_id' => $plan->id,
+            'status' => 'paused',
+            'starts_at' => now(),
+        ]);
+        $offer = $this->offer('LIMITED', 'percent', 10, $plan);
+        $offer->update([
+            'redemption_limit' => 1,
+            'redeemed_count' => 1,
+        ]);
+
+        $this->actingAs($owner)
+            ->from(route('subscription.checkout'))
+            ->post(route('subscription.checkout.store'), ['promo_code' => 'LIMITED'])
+            ->assertRedirect(route('subscription.checkout'))
+            ->assertSessionHasErrors('promo_code');
+
+        $this->assertDatabaseMissing('platform_subscription_invoices', [
+            'tenant_id' => $tenant->id,
+        ]);
+    }
+
     private function scenario(int $trialDays = 0): array
     {
         Role::findOrCreate('owner');
@@ -107,5 +207,26 @@ class SubscriptionPurchaseFlowTest extends TestCase
         ]);
 
         return [$tenant, $owner, $plan];
+    }
+
+    private function offer(
+        string $code,
+        string $type,
+        int $value,
+        SubscriptionPlan $plan
+    ): PlatformOffer {
+        $offer = PlatformOffer::create([
+            'name' => $code,
+            'code' => $code,
+            'discount_type' => $type,
+            'discount_value' => $value,
+            'redemption_limit' => 10,
+            'starts_at' => now()->subDay(),
+            'ends_at' => now()->addWeek(),
+            'is_active' => true,
+        ]);
+        $offer->plans()->attach($plan);
+
+        return $offer;
     }
 }

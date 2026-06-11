@@ -81,6 +81,13 @@
 
                     <dt class="col-5">Tax</dt>
                     <dd class="col-7">Rs {{ number_format($invoice->tax_cents / 100, 2) }}</dd>
+
+                    @if($invoice->offer_code)
+                        <dt class="col-5">Promotion</dt>
+                        <dd class="col-7">
+                            <span class="badge bg-warning text-dark">{{ $invoice->offer_code }}</span>
+                        </dd>
+                    @endif
                 </dl>
             </div>
         </div>

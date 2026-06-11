@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PlatformOffer extends Model
 {
@@ -34,6 +35,25 @@ class PlatformOffer extends Model
     {
         return $this->belongsToMany(SubscriptionPlan::class, 'offer_subscription_plan')
             ->withTimestamps();
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(PlatformSubscriptionInvoice::class);
+    }
+
+    public function appliesTo(SubscriptionPlan $plan): bool
+    {
+        return $this->plans->isEmpty() || $this->plans->contains('id', $plan->id);
+    }
+
+    public function discountFor(int $subtotalCents): int
+    {
+        $discount = $this->discount_type === 'percent'
+            ? (int) round($subtotalCents * ($this->discount_value / 100))
+            : $this->discount_value;
+
+        return min($discount, $subtotalCents);
     }
 
     public function isCurrentlyAvailable(): bool

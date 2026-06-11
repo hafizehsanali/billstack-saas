@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreSubscriptionCheckoutRequest;
+use App\Models\PlatformOffer;
 use App\Models\PlatformSubscriptionInvoice;
 use App\Services\PlatformBillingService;
 use Illuminate\Http\RedirectResponse;
@@ -20,17 +22,28 @@ class SubscriptionCheckoutController extends Controller
             'tenant' => $tenant,
             'subscription' => $subscription,
             'invoice' => $this->openInvoice($subscription->id),
+            'offers' => PlatformOffer::with('plans')
+                ->where('is_active', true)
+                ->get()
+                ->filter(fn (PlatformOffer $offer) => $offer->isCurrentlyAvailable()
+                    && $offer->appliesTo($subscription->plan)),
         ]);
     }
 
-    public function store(PlatformBillingService $billing): RedirectResponse
+    public function store(
+        StoreSubscriptionCheckoutRequest $request,
+        PlatformBillingService $billing
+    ): RedirectResponse
     {
         $tenant = auth()->user()->tenant()->with('currentSubscription.plan')->firstOrFail();
         $subscription = $tenant->currentSubscription;
 
         abort_if(! $subscription?->plan || $subscription->plan->monthly_price_cents === 0, 404);
 
-        $billing->createSubscriptionInvoice($subscription);
+        $billing->createSubscriptionInvoice(
+            $subscription,
+            $request->validated('promo_code')
+        );
 
         return redirect()
             ->route('subscription.checkout')

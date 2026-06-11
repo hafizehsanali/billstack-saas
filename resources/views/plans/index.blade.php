@@ -85,6 +85,24 @@
 
                             <p class="text-muted">{{ $plan->description }}</p>
 
+                            @if($plan->availableOffers->isNotEmpty())
+                                <div class="border rounded p-3 mb-3">
+                                    <div class="text-uppercase text-secondary fw-semibold small mb-2">Available Offers</div>
+                                    @foreach($plan->availableOffers as $offer)
+                                        <div class="{{ ! $loop->last ? 'mb-2' : '' }}">
+                                            <span class="badge bg-warning text-dark">{{ $offer->code }}</span>
+                                            <span class="small ms-1">
+                                                @if($offer->discount_type === 'percent')
+                                                    {{ $offer->discount_value }}% off
+                                                @else
+                                                    Rs {{ number_format($offer->discount_value / 100, 0) }} off
+                                                @endif
+                                            </span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+
                             <div class="border-top pt-3 mb-4">
                                 <div class="fw-semibold mb-2">Included features</div>
                                 <ul class="list-unstyled mb-0">

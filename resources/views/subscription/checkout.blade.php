@@ -53,6 +53,17 @@
                                 Rs {{ number_format($invoice->balance_cents / 100, 2) }}
                             </div>
                         </div>
+                        @if($invoice->offer_code)
+                            <div class="col-sm-6">
+                                <div class="text-muted">Promotion</div>
+                                <div>
+                                    <span class="badge bg-warning text-dark">{{ $invoice->offer_code }}</span>
+                                    <span class="text-success ms-1">
+                                        - Rs {{ number_format($invoice->discount_cents / 100, 2) }}
+                                    </span>
+                                </div>
+                            </div>
+                        @endif
                         <div class="col-sm-6">
                             <div class="text-muted">Issued</div>
                             <div>{{ $invoice->issued_on?->format('M d, Y') }}</div>
@@ -69,10 +80,37 @@
                     </div>
                 @else
                     <p class="text-muted">
-                        Create the full-price subscription invoice to begin the purchase process.
+                        Create the subscription invoice to begin the purchase process.
+                        An eligible promotion code will be applied before the amount is finalized.
                     </p>
                     <form method="POST" action="{{ route('subscription.checkout.store') }}">
                         @csrf
+                        <div class="mb-3">
+                            <label for="promo_code" class="form-label">Promotion Code</label>
+                            <div class="input-group">
+                                <input id="promo_code"
+                                       type="text"
+                                       name="promo_code"
+                                       value="{{ old('promo_code') }}"
+                                       class="form-control text-uppercase @error('promo_code') is-invalid @enderror"
+                                       placeholder="Optional">
+                                @error('promo_code')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            @if($offers->isNotEmpty())
+                                <div class="mt-2 d-flex flex-wrap gap-2">
+                                    @foreach($offers as $offer)
+                                        <span class="badge bg-light text-dark border">
+                                            {{ $offer->code }}:
+                                            {{ $offer->discount_type === 'percent'
+                                                ? $offer->discount_value.'% off'
+                                                : 'Rs '.number_format($offer->discount_value / 100, 0).' off' }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
                         <button class="btn btn-primary">Create Purchase Invoice</button>
                     </form>
                 @endif

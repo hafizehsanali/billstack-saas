@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\PlatformSubscriptionInvoice;
 use App\Models\PlatformSubscriptionPayment;
+use App\Models\PlatformOffer;
 use App\Models\Tenant;
 use App\Models\TenantSubscription;
 use Illuminate\Support\Facades\DB;
@@ -45,36 +46,64 @@ class PlatformBillingService
         ]);
     }
 
-    public function createSubscriptionInvoice(TenantSubscription $subscription): PlatformSubscriptionInvoice
+    public function createSubscriptionInvoice(
+        TenantSubscription $subscription,
+        ?string $promoCode = null
+    ): PlatformSubscriptionInvoice
     {
-        $subscription->loadMissing(['tenant', 'plan']);
+        return DB::transaction(function () use ($subscription, $promoCode): PlatformSubscriptionInvoice {
+            $subscription->loadMissing(['tenant', 'plan']);
 
-        $existingInvoice = PlatformSubscriptionInvoice::query()
-            ->where('tenant_subscription_id', $subscription->id)
-            ->where('status', '!=', 'paid')
-            ->latest()
-            ->first();
+            $existingInvoice = PlatformSubscriptionInvoice::query()
+                ->where('tenant_subscription_id', $subscription->id)
+                ->where('status', '!=', 'paid')
+                ->lockForUpdate()
+                ->latest()
+                ->first();
 
-        if ($existingInvoice) {
-            return $existingInvoice;
-        }
+            if ($existingInvoice) {
+                return $existingInvoice;
+            }
 
-        return PlatformSubscriptionInvoice::create([
-            'tenant_id' => $subscription->tenant_id,
-            'tenant_subscription_id' => $subscription->id,
-            'invoice_no' => $this->nextInvoiceNumber(),
-            'billing_period' => now()->format('F Y'),
-            'subtotal_cents' => $subscription->plan->monthly_price_cents,
-            'discount_cents' => 0,
-            'tax_cents' => 0,
-            'total_cents' => $subscription->plan->monthly_price_cents,
-            'paid_cents' => 0,
-            'balance_cents' => $subscription->plan->monthly_price_cents,
-            'status' => 'unpaid',
-            'issued_on' => today(),
-            'due_on' => today()->addDays(3),
-            'notes' => 'Subscription purchase invoice.',
-        ]);
+            $offer = $this->validatedOffer($subscription, $promoCode);
+            $subtotalCents = $subscription->plan->monthly_price_cents;
+            $discountCents = $offer?->discountFor($subtotalCents) ?? 0;
+            $totalCents = $subtotalCents - $discountCents;
+
+            $invoice = PlatformSubscriptionInvoice::create([
+                'tenant_id' => $subscription->tenant_id,
+                'tenant_subscription_id' => $subscription->id,
+                'platform_offer_id' => $offer?->id,
+                'offer_code' => $offer?->code,
+                'invoice_no' => $this->nextInvoiceNumber(),
+                'billing_period' => now()->format('F Y'),
+                'subtotal_cents' => $subtotalCents,
+                'discount_cents' => $discountCents,
+                'tax_cents' => 0,
+                'total_cents' => $totalCents,
+                'paid_cents' => 0,
+                'balance_cents' => $totalCents,
+                'status' => $totalCents === 0 ? 'paid' : 'unpaid',
+                'issued_on' => today(),
+                'due_on' => today()->addDays(3),
+                'notes' => 'Subscription purchase invoice.',
+            ]);
+
+            if ($offer) {
+                $offer->increment('redeemed_count');
+            }
+
+            if ($totalCents === 0) {
+                $subscription->update([
+                    'status' => 'active',
+                    'starts_at' => now(),
+                    'trial_ends_at' => null,
+                    'ends_at' => now()->addMonth(),
+                ]);
+            }
+
+            return $invoice;
+        });
     }
 
     public function recordPayment(PlatformSubscriptionInvoice $invoice, array $data): PlatformSubscriptionPayment
@@ -128,6 +157,34 @@ class PlatformBillingService
         } while (PlatformSubscriptionInvoice::where('invoice_no', $invoiceNumber)->exists());
 
         return $invoiceNumber;
+    }
+
+    private function validatedOffer(
+        TenantSubscription $subscription,
+        ?string $promoCode
+    ): ?PlatformOffer {
+        if (! $promoCode) {
+            return null;
+        }
+
+        $offer = PlatformOffer::with('plans')
+            ->where('code', Str::upper($promoCode))
+            ->lockForUpdate()
+            ->first();
+
+        if (! $offer || ! $offer->isCurrentlyAvailable()) {
+            throw ValidationException::withMessages([
+                'promo_code' => 'This promotion code is invalid or no longer available.',
+            ]);
+        }
+
+        if (! $offer->appliesTo($subscription->plan)) {
+            throw ValidationException::withMessages([
+                'promo_code' => 'This promotion code does not apply to the selected package.',
+            ]);
+        }
+
+        return $offer;
     }
 
     private function toCents(int|float|string $amount): int
