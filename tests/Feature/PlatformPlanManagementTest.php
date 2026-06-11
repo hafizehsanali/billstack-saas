@@ -40,6 +40,7 @@ class PlatformPlanManagementTest extends TestCase
                 'monthly_price' => '4999.00',
                 'annual_price' => '49990.00',
                 'user_limit' => '10',
+                'trial_days' => '14',
                 'is_public' => '1',
                 'is_active' => '1',
                 'features' => [$feature->id],
@@ -50,6 +51,7 @@ class PlatformPlanManagementTest extends TestCase
 
         $this->assertSame(499900, $plan->monthly_price_cents);
         $this->assertSame(4999000, $plan->annual_price_cents);
+        $this->assertSame(14, $plan->trial_days);
         $this->assertTrue($plan->features()->whereKey($feature->id)->exists());
     }
 
@@ -82,6 +84,7 @@ class PlatformPlanManagementTest extends TestCase
                 'monthly_price' => '0.00',
                 'annual_price' => '0.00',
                 'user_limit' => '3',
+                'trial_days' => '30',
                 'is_public' => '1',
                 'is_active' => '1',
                 'features' => [$feature->id],
@@ -89,6 +92,7 @@ class PlatformPlanManagementTest extends TestCase
             ->assertRedirect(route('platform.plans.index'));
 
         $this->assertSame(3, $plan->fresh()->user_limit);
+        $this->assertSame(0, $plan->fresh()->trial_days);
         $this->assertTrue($plan->features()->whereKey($feature->id)->exists());
     }
 

@@ -27,7 +27,6 @@ class UpdateOfferRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:1000'],
             'discount_type' => ['required', Rule::in(['percent', 'fixed'])],
             'discount_value' => $discountRules,
-            'trial_days' => ['nullable', 'integer', 'min:0'],
             'redemption_limit' => ['nullable', 'integer', 'min:1'],
             'starts_at' => ['nullable', 'date'],
             'ends_at' => ['nullable', 'date', 'after_or_equal:starts_at'],

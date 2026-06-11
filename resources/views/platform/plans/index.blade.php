@@ -26,6 +26,7 @@
                     <th class="text-end">Monthly</th>
                     <th class="text-end">Annual</th>
                     <th class="text-end">Users</th>
+                    <th class="text-end">Trial</th>
                     <th>Features</th>
                     <th>Status</th>
                     <th class="text-end">Actions</th>
@@ -41,6 +42,9 @@
                         <td class="text-end">Rs {{ number_format($plan->monthly_price_cents / 100, 2) }}</td>
                         <td class="text-end">Rs {{ number_format($plan->annual_price_cents / 100, 2) }}</td>
                         <td class="text-end">{{ $plan->user_limit ?? 'Unlimited' }}</td>
+                        <td class="text-end">
+                            {{ $plan->monthly_price_cents > 0 && $plan->trial_days > 0 ? $plan->trial_days.' days' : 'None' }}
+                        </td>
                         <td>{{ $plan->features_count }} features</td>
                         <td>
                             <span class="badge {{ $plan->is_active ? 'bg-success text-white' : 'bg-light text-dark border' }}">
@@ -59,7 +63,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">
+                        <td colspan="8" class="text-center text-muted py-4">
                             No plans found.
                         </td>
                     </tr>

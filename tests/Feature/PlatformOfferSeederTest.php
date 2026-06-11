@@ -19,14 +19,13 @@ class PlatformOfferSeederTest extends TestCase
         $this->seed(PlatformOfferSeeder::class);
         $this->seed(PlatformOfferSeeder::class);
 
-        $this->assertSame(3, PlatformOffer::count());
+        $this->assertSame(2, PlatformOffer::count());
 
         $growth = SubscriptionPlan::where('slug', 'growth')->firstOrFail();
         $launchOffer = PlatformOffer::where('code', 'LAUNCH25')->firstOrFail();
-        $trialOffer = PlatformOffer::where('code', 'TRY14')->firstOrFail();
 
         $this->assertTrue($launchOffer->plans()->whereKey($growth->id)->exists());
-        $this->assertSame(14, $trialOffer->trial_days);
-        $this->assertTrue($trialOffer->is_active);
+        $this->assertSame(0, $launchOffer->trial_days);
+        $this->assertDatabaseMissing('platform_offers', ['code' => 'TRY14']);
     }
 }

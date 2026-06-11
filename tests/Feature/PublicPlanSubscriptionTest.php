@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\PlatformOffer;
 use App\Models\PlanFeature;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
@@ -62,18 +61,10 @@ class PublicPlanSubscriptionTest extends TestCase
         ]);
     }
 
-    public function test_paid_package_with_offer_starts_a_trial(): void
+    public function test_paid_package_with_configured_trial_starts_a_trial(): void
     {
         $plan = $this->plan('Growth', 'growth', 299900);
-        $offer = PlatformOffer::create([
-            'name' => 'Trial',
-            'code' => 'TRIAL14',
-            'discount_type' => 'percent',
-            'discount_value' => 0,
-            'trial_days' => 14,
-            'is_active' => true,
-        ]);
-        $offer->plans()->attach($plan);
+        $plan->update(['trial_days' => 14]);
 
         $this->post(route('register'), $this->registrationData($plan))
             ->assertRedirect(route('dashboard', absolute: false));
@@ -114,6 +105,7 @@ class PublicPlanSubscriptionTest extends TestCase
             'monthly_price_cents' => $monthlyPrice,
             'annual_price_cents' => $monthlyPrice * 10,
             'user_limit' => 5,
+            'trial_days' => 0,
             'is_public' => $isPublic,
             'is_active' => true,
         ]);

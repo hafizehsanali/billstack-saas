@@ -26,7 +26,6 @@ class PlatformOfferManagementTest extends TestCase
                 'description' => 'First month launch offer.',
                 'discount_type' => 'percent',
                 'discount_value' => '25',
-                'trial_days' => '7',
                 'redemption_limit' => '100',
                 'starts_at' => now()->format('Y-m-d H:i:s'),
                 'ends_at' => now()->addMonth()->format('Y-m-d H:i:s'),
@@ -38,7 +37,7 @@ class PlatformOfferManagementTest extends TestCase
         $offer = PlatformOffer::where('code', 'LAUNCH25')->firstOrFail();
 
         $this->assertSame(25, $offer->discount_value);
-        $this->assertSame(7, $offer->trial_days);
+        $this->assertSame(0, $offer->trial_days);
         $this->assertTrue($offer->plans()->whereKey($plan->id)->exists());
     }
 

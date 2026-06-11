@@ -4,7 +4,7 @@
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
     <div>
         <h1 class="mb-1">Offers</h1>
-        <div class="text-muted">Manage discounts, promotional codes, and trial extensions.</div>
+        <div class="text-muted">Manage discounts and promotional codes for subscription plans.</div>
     </div>
 
     <div class="d-flex gap-2">
@@ -45,9 +45,6 @@
                                 Rs {{ number_format($offer->discount_value / 100, 2) }}
                             @endif
 
-                            @if($offer->trial_days > 0)
-                                <div class="text-muted small">+ {{ $offer->trial_days }} trial days</div>
-                            @endif
                         </td>
                         <td>
                             <div>{{ $offer->starts_at?->format('M d, Y') ?? 'Immediately' }}</div>

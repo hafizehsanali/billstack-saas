@@ -23,6 +23,7 @@ class UpdatePlanRequest extends FormRequest
             'monthly_price' => ['required', 'numeric', 'min:0'],
             'annual_price' => ['required', 'numeric', 'min:0'],
             'user_limit' => ['nullable', 'integer', 'min:1'],
+            'trial_days' => ['required', 'integer', 'min:0', 'max:365'],
             'is_public' => ['nullable', 'boolean'],
             'is_active' => ['nullable', 'boolean'],
             'features' => ['nullable', 'array'],

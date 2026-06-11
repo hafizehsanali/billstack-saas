@@ -42,7 +42,7 @@
             @forelse($plans as $plan)
                 @php
                     $isPaid = $plan->monthly_price_cents > 0;
-                    $trialDays = (int) $plan->available_trial_days;
+                    $trialDays = $isPaid ? (int) $plan->trial_days : 0;
                     $isCurrentPlan = auth()->check()
                         && auth()->user()->tenant?->activeSubscription?->subscription_plan_id === $plan->id;
                 @endphp

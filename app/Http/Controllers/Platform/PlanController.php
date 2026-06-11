@@ -65,14 +65,16 @@ class PlanController extends Controller
     private function validatedPlanData(array $data, ?SubscriptionPlan $plan = null): array
     {
         $slug = $data['slug'] ?: Str::slug($data['name']);
+        $monthlyPriceCents = (int) round(((float) $data['monthly_price']) * 100);
 
         return [
             'name' => $data['name'],
             'slug' => $slug,
             'description' => $data['description'] ?? null,
-            'monthly_price_cents' => (int) round(((float) $data['monthly_price']) * 100),
+            'monthly_price_cents' => $monthlyPriceCents,
             'annual_price_cents' => (int) round(((float) $data['annual_price']) * 100),
             'user_limit' => $data['user_limit'] ?? null,
+            'trial_days' => $monthlyPriceCents > 0 ? $data['trial_days'] : 0,
             'is_public' => (bool) ($data['is_public'] ?? false),
             'is_active' => (bool) ($data['is_active'] ?? false),
         ];

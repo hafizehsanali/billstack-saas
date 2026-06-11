@@ -22,7 +22,7 @@
         @enderror
     </div>
 
-    <div class="col-md-4 mb-3">
+    <div class="col-md-3 mb-3">
         <label class="form-label">Monthly Price <span class="text-danger">*</span></label>
         <input type="number"
                step="0.01"
@@ -36,7 +36,7 @@
         @enderror
     </div>
 
-    <div class="col-md-4 mb-3">
+    <div class="col-md-3 mb-3">
         <label class="form-label">Annual Price <span class="text-danger">*</span></label>
         <input type="number"
                step="0.01"
@@ -50,7 +50,7 @@
         @enderror
     </div>
 
-    <div class="col-md-4 mb-3">
+    <div class="col-md-3 mb-3">
         <label class="form-label">Active User Limit</label>
         <input type="number"
                min="1"
@@ -58,6 +58,21 @@
                value="{{ old('user_limit', $plan?->user_limit) }}"
                class="form-control @error('user_limit') is-invalid @enderror">
         @error('user_limit')
+            <small class="text-danger">{{ $message }}</small>
+        @enderror
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <label class="form-label">Trial Days <span class="text-danger">*</span></label>
+        <input type="number"
+               min="0"
+               max="365"
+               name="trial_days"
+               value="{{ old('trial_days', $plan?->trial_days ?? 0) }}"
+               class="form-control @error('trial_days') is-invalid @enderror"
+               required>
+        <div class="text-muted small mt-1">Paid plans only. Free plans always use 0.</div>
+        @error('trial_days')
             <small class="text-danger">{{ $message }}</small>
         @enderror
     </div>

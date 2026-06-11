@@ -54,19 +54,7 @@
         @enderror
     </div>
 
-    <div class="col-md-4 mb-3">
-        <label class="form-label">Extra Trial Days</label>
-        <input type="number"
-               name="trial_days"
-               min="0"
-               value="{{ old('trial_days', $offer?->trial_days ?? 0) }}"
-               class="form-control @error('trial_days') is-invalid @enderror">
-        @error('trial_days')
-            <small class="text-danger">{{ $message }}</small>
-        @enderror
-    </div>
-
-    <div class="col-md-4 mb-3">
+    <div class="col-md-6 mb-3">
         <label class="form-label">Redemption Limit</label>
         <input type="number"
                name="redemption_limit"
@@ -78,7 +66,7 @@
         @enderror
     </div>
 
-    <div class="col-md-4 mb-3">
+    <div class="col-md-6 mb-3">
         <label class="form-check mt-4">
             <input type="hidden" name="is_active" value="0">
             <input type="checkbox"
