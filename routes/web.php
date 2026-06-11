@@ -26,6 +26,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SalesReturnController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SubscriptionStatusController;
+use App\Http\Controllers\SubscriptionCheckoutController;
 use App\Http\Controllers\SupplierAccountController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SupplierPaymentController;
@@ -40,6 +41,12 @@ Route::get('/plans', [PublicPlanController::class, 'index'])->name('plans.index'
 
 Route::middleware('auth')->group(function () {
     Route::get('/subscription/status', [SubscriptionStatusController::class, 'show'])->name('subscription.status');
+    Route::get('/subscription/checkout', [SubscriptionCheckoutController::class, 'show'])
+        ->middleware('role:owner')
+        ->name('subscription.checkout');
+    Route::post('/subscription/checkout', [SubscriptionCheckoutController::class, 'store'])
+        ->middleware('role:owner')
+        ->name('subscription.checkout.store');
     Route::get('/features/unavailable', [FeatureUnavailableController::class, 'show'])->name('features.unavailable');
 
     Route::middleware('active_subscription')->group(function () {

@@ -13,6 +13,7 @@ class SubscriptionStatusController extends Controller
         return view('subscription.status', [
             'tenant' => $tenant,
             'subscription' => $tenant?->currentSubscription,
+            'requiresPayment' => $tenant?->currentSubscription?->plan?->monthly_price_cents > 0,
         ]);
     }
 }

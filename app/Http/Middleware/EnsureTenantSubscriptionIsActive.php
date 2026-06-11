@@ -17,7 +17,7 @@ class EnsureTenantSubscriptionIsActive
             return $next($request);
         }
 
-        if ($request->routeIs('subscription.status', 'profile.*', 'logout')) {
+        if ($request->routeIs('subscription.*', 'profile.*', 'logout')) {
             return $next($request);
         }
 
@@ -30,6 +30,20 @@ class EnsureTenantSubscriptionIsActive
         if (! $tenant->currentSubscription) {
             app(TenantSubscriptionService::class)->assignDefaultPlan($tenant);
             $tenant->refresh();
+        }
+
+        $subscription = $tenant->currentSubscription;
+
+        if (
+            $subscription?->status === 'active'
+            && $subscription->trial_ends_at
+            && $subscription->trial_ends_at->isPast()
+        ) {
+            $subscription->update([
+                'status' => 'paused',
+                'ends_at' => now(),
+            ]);
+            $tenant->unsetRelation('activeSubscription');
         }
 
         if ($tenant->activeSubscription) {

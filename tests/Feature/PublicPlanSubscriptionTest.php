@@ -90,6 +90,11 @@ class PublicPlanSubscriptionTest extends TestCase
             'subscription_plan_id' => $plan->id,
             'status' => 'paused',
         ]);
+
+        $this->actingAs($tenant->users()->first())
+            ->get(route('subscription.status'))
+            ->assertOk()
+            ->assertSee('Purchase Professional');
     }
 
     private function plan(

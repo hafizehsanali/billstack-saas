@@ -1,0 +1,48 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\PlatformSubscriptionInvoice;
+use App\Services\PlatformBillingService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
+
+class SubscriptionCheckoutController extends Controller
+{
+    public function show(): View
+    {
+        $tenant = auth()->user()->tenant()->with('currentSubscription.plan')->firstOrFail();
+        $subscription = $tenant->currentSubscription;
+
+        abort_if(! $subscription?->plan || $subscription->plan->monthly_price_cents === 0, 404);
+
+        return view('subscription.checkout', [
+            'tenant' => $tenant,
+            'subscription' => $subscription,
+            'invoice' => $this->openInvoice($subscription->id),
+        ]);
+    }
+
+    public function store(PlatformBillingService $billing): RedirectResponse
+    {
+        $tenant = auth()->user()->tenant()->with('currentSubscription.plan')->firstOrFail();
+        $subscription = $tenant->currentSubscription;
+
+        abort_if(! $subscription?->plan || $subscription->plan->monthly_price_cents === 0, 404);
+
+        $billing->createSubscriptionInvoice($subscription);
+
+        return redirect()
+            ->route('subscription.checkout')
+            ->with('success', 'Subscription invoice created. Complete the full payment to activate the plan.');
+    }
+
+    private function openInvoice(int $subscriptionId): ?PlatformSubscriptionInvoice
+    {
+        return PlatformSubscriptionInvoice::with('payments')
+            ->where('tenant_subscription_id', $subscriptionId)
+            ->where('status', '!=', 'paid')
+            ->latest()
+            ->first();
+    }
+}

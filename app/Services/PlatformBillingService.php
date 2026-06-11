@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\PlatformSubscriptionInvoice;
 use App\Models\PlatformSubscriptionPayment;
 use App\Models\Tenant;
+use App\Models\TenantSubscription;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -44,6 +45,38 @@ class PlatformBillingService
         ]);
     }
 
+    public function createSubscriptionInvoice(TenantSubscription $subscription): PlatformSubscriptionInvoice
+    {
+        $subscription->loadMissing(['tenant', 'plan']);
+
+        $existingInvoice = PlatformSubscriptionInvoice::query()
+            ->where('tenant_subscription_id', $subscription->id)
+            ->where('status', '!=', 'paid')
+            ->latest()
+            ->first();
+
+        if ($existingInvoice) {
+            return $existingInvoice;
+        }
+
+        return PlatformSubscriptionInvoice::create([
+            'tenant_id' => $subscription->tenant_id,
+            'tenant_subscription_id' => $subscription->id,
+            'invoice_no' => $this->nextInvoiceNumber(),
+            'billing_period' => now()->format('F Y'),
+            'subtotal_cents' => $subscription->plan->monthly_price_cents,
+            'discount_cents' => 0,
+            'tax_cents' => 0,
+            'total_cents' => $subscription->plan->monthly_price_cents,
+            'paid_cents' => 0,
+            'balance_cents' => $subscription->plan->monthly_price_cents,
+            'status' => 'unpaid',
+            'issued_on' => today(),
+            'due_on' => today()->addDays(3),
+            'notes' => 'Subscription purchase invoice.',
+        ]);
+    }
+
     public function recordPayment(PlatformSubscriptionInvoice $invoice, array $data): PlatformSubscriptionPayment
     {
         return DB::transaction(function () use ($invoice, $data): PlatformSubscriptionPayment {
@@ -74,6 +107,15 @@ class PlatformBillingService
                 'balance_cents' => 0,
                 'status' => 'paid',
             ]);
+
+            if ($lockedInvoice->subscription) {
+                $lockedInvoice->subscription->update([
+                    'status' => 'active',
+                    'starts_at' => now(),
+                    'trial_ends_at' => null,
+                    'ends_at' => now()->addMonth(),
+                ]);
+            }
 
             return $payment;
         });

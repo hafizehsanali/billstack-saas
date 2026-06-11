@@ -53,8 +53,23 @@ class SaasPlanSeeder extends Seeder
             ]
         );
 
+        $professional = SubscriptionPlan::updateOrCreate(
+            ['slug' => 'professional'],
+            [
+                'name' => 'Professional',
+                'description' => 'Full paid package for established businesses ready to activate immediately.',
+                'monthly_price_cents' => 499900,
+                'annual_price_cents' => 4999000,
+                'user_limit' => 15,
+                'trial_days' => 0,
+                'is_public' => true,
+                'is_active' => true,
+            ]
+        );
+
         $starter->features()->sync($features->where('is_paid', false)->pluck('id')->all());
         $growth->features()->sync($features->pluck('id')->all());
+        $professional->features()->sync($features->pluck('id')->all());
 
         $subscriptions = app(TenantSubscriptionService::class);
 

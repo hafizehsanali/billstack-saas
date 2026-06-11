@@ -24,9 +24,18 @@
             </div>
         </div>
 
-        <p class="text-muted mb-0">
-            Please contact platform support or the account administrator to reactivate access.
-        </p>
+        @if($requiresPayment)
+            <a href="{{ route('subscription.checkout') }}" class="btn btn-primary">
+                Purchase {{ $subscription->plan->name }}
+            </a>
+            <div class="text-muted small mt-3">
+                Full payment is required to activate paid access.
+            </div>
+        @else
+            <p class="text-muted mb-0">
+                Please contact platform support or the account administrator to reactivate access.
+            </p>
+        @endif
     </div>
 </div>
 @endsection
