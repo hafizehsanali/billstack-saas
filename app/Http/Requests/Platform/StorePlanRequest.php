@@ -23,6 +23,8 @@ class StorePlanRequest extends FormRequest
             'user_limit' => ['nullable', 'integer', 'min:1'],
             'trial_days' => ['required', 'integer', 'min:0', 'max:365'],
             'free_access_days' => ['nullable', 'integer', 'min:1', 'max:3650'],
+            'product_limit' => ['nullable', 'integer', 'min:1'],
+            'monthly_invoice_limit' => ['nullable', 'integer', 'min:1'],
             'is_public' => ['nullable', 'boolean'],
             'is_active' => ['nullable', 'boolean'],
             'features' => ['nullable', 'array'],

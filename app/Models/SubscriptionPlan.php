@@ -17,6 +17,8 @@ class SubscriptionPlan extends Model
         'user_limit',
         'trial_days',
         'free_access_days',
+        'product_limit',
+        'monthly_invoice_limit',
         'is_public',
         'is_active',
     ];

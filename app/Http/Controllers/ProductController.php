@@ -11,6 +11,7 @@ use App\Models\PurchaseReturnItem;
 use App\Models\SalesReturnItem;
 use App\Models\StockMovement;
 use App\Services\StockLedgerService;
+use App\Services\TenantUsageLimitService;
 
 class ProductController extends Controller
 {
@@ -128,8 +129,13 @@ class ProductController extends Controller
             : null;
     }
 
-    public function store(StoreProductRequest $request)
+    public function store(
+        StoreProductRequest $request,
+        TenantUsageLimitService $usageLimits
+    )
     {
+        $usageLimits->assertCanCreateProduct(auth()->user()->tenant);
+
         $data = $request->validated();
 
         $product = Product::create([

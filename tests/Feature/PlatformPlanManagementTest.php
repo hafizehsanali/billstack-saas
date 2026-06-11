@@ -42,6 +42,8 @@ class PlatformPlanManagementTest extends TestCase
                 'user_limit' => '10',
                 'trial_days' => '14',
                 'free_access_days' => '30',
+                'product_limit' => '500',
+                'monthly_invoice_limit' => '750',
                 'is_public' => '1',
                 'is_active' => '1',
                 'features' => [$feature->id],
@@ -54,6 +56,8 @@ class PlatformPlanManagementTest extends TestCase
         $this->assertSame(4999000, $plan->annual_price_cents);
         $this->assertSame(14, $plan->trial_days);
         $this->assertNull($plan->free_access_days);
+        $this->assertSame(500, $plan->product_limit);
+        $this->assertSame(750, $plan->monthly_invoice_limit);
         $this->assertTrue($plan->features()->whereKey($feature->id)->exists());
     }
 
@@ -88,6 +92,8 @@ class PlatformPlanManagementTest extends TestCase
                 'user_limit' => '3',
                 'trial_days' => '30',
                 'free_access_days' => '30',
+                'product_limit' => '50',
+                'monthly_invoice_limit' => '80',
                 'is_public' => '1',
                 'is_active' => '1',
                 'features' => [$feature->id],
@@ -97,6 +103,8 @@ class PlatformPlanManagementTest extends TestCase
         $this->assertSame(3, $plan->fresh()->user_limit);
         $this->assertSame(0, $plan->fresh()->trial_days);
         $this->assertSame(30, $plan->fresh()->free_access_days);
+        $this->assertSame(50, $plan->fresh()->product_limit);
+        $this->assertSame(80, $plan->fresh()->monthly_invoice_limit);
         $this->assertTrue($plan->features()->whereKey($feature->id)->exists());
     }
 

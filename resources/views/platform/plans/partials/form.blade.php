@@ -91,6 +91,32 @@
         @enderror
     </div>
 
+    <div class="col-md-3 mb-3">
+        <label class="form-label">Product Limit</label>
+        <input type="number"
+               min="1"
+               name="product_limit"
+               value="{{ old('product_limit', $plan?->product_limit) }}"
+               class="form-control @error('product_limit') is-invalid @enderror">
+        <div class="text-muted small mt-1">Leave blank for unlimited products.</div>
+        @error('product_limit')
+            <small class="text-danger">{{ $message }}</small>
+        @enderror
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <label class="form-label">Monthly Invoice Limit</label>
+        <input type="number"
+               min="1"
+               name="monthly_invoice_limit"
+               value="{{ old('monthly_invoice_limit', $plan?->monthly_invoice_limit) }}"
+               class="form-control @error('monthly_invoice_limit') is-invalid @enderror">
+        <div class="text-muted small mt-1">Leave blank for unlimited invoices.</div>
+        @error('monthly_invoice_limit')
+            <small class="text-danger">{{ $message }}</small>
+        @enderror
+    </div>
+
     <div class="col-md-12 mb-3">
         <label class="form-label">Description</label>
         <textarea name="description"

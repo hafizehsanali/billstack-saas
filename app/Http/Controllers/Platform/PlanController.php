@@ -78,6 +78,8 @@ class PlanController extends Controller
             'free_access_days' => $monthlyPriceCents === 0
                 ? ($data['free_access_days'] ?? null)
                 : null,
+            'product_limit' => $data['product_limit'] ?? null,
+            'monthly_invoice_limit' => $data['monthly_invoice_limit'] ?? null,
             'is_public' => (bool) ($data['is_public'] ?? false),
             'is_active' => (bool) ($data['is_active'] ?? false),
         ];

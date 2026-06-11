@@ -109,6 +109,14 @@
                             <div class="border-top pt-3 mb-4">
                                 <div class="fw-semibold mb-2">Included features</div>
                                 <ul class="list-unstyled mb-0">
+                                    <li class="d-flex gap-2 mb-2">
+                                        <span class="text-success fw-bold" aria-hidden="true">&#10003;</span>
+                                        <span>{{ $plan->product_limit ?? 'Unlimited' }} products</span>
+                                    </li>
+                                    <li class="d-flex gap-2 mb-2">
+                                        <span class="text-success fw-bold" aria-hidden="true">&#10003;</span>
+                                        <span>{{ $plan->monthly_invoice_limit ?? 'Unlimited' }} invoices per month</span>
+                                    </li>
                                     @forelse($plan->features as $feature)
                                         <li class="d-flex gap-2 mb-2">
                                             <span class="text-success fw-bold" aria-hidden="true">&#10003;</span>

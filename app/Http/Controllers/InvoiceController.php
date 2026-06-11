@@ -9,6 +9,7 @@ use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Product;
 use App\Services\StockLedgerService;
+use App\Services\TenantUsageLimitService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -49,8 +50,13 @@ class InvoiceController extends Controller
         ));
     }
 
-    public function store(StoreInvoiceRequest $request)
+    public function store(
+        StoreInvoiceRequest $request,
+        TenantUsageLimitService $usageLimits
+    )
     {
+        $usageLimits->assertCanCreateInvoice(auth()->user()->tenant);
+
         $data = $request->validated();
 
         DB::transaction(function () use ($data) {

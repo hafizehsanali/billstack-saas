@@ -22,6 +22,8 @@ class TenantSubscriptionService
                 'user_limit' => 2,
                 'trial_days' => 0,
                 'free_access_days' => 30,
+                'product_limit' => 100,
+                'monthly_invoice_limit' => 100,
             ]);
         }
 

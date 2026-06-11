@@ -35,6 +35,8 @@ class SaasPlanSeeder extends Seeder
                 'user_limit' => 2,
                 'trial_days' => 0,
                 'free_access_days' => 30,
+                'product_limit' => 100,
+                'monthly_invoice_limit' => 100,
                 'is_public' => true,
                 'is_active' => true,
             ]
@@ -50,6 +52,8 @@ class SaasPlanSeeder extends Seeder
                 'user_limit' => 8,
                 'trial_days' => 14,
                 'free_access_days' => null,
+                'product_limit' => 1000,
+                'monthly_invoice_limit' => 1000,
                 'is_public' => true,
                 'is_active' => true,
             ]
@@ -65,6 +69,8 @@ class SaasPlanSeeder extends Seeder
                 'user_limit' => 15,
                 'trial_days' => 0,
                 'free_access_days' => null,
+                'product_limit' => null,
+                'monthly_invoice_limit' => null,
                 'is_public' => true,
                 'is_active' => true,
             ]
