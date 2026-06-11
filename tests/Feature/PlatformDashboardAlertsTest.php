@@ -36,7 +36,7 @@ class PlatformDashboardAlertsTest extends TestCase
             'subscription_plan_id' => $plan->id,
             'status' => 'active',
             'starts_at' => now()->subMonth(),
-            'trial_ends_at' => now()->subWeek(),
+            'trial_ends_at' => null,
             'ends_at' => now()->addDays(5),
         ]);
 

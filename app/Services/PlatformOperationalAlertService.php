@@ -76,7 +76,10 @@ class PlatformOperationalAlertService
                 $dates = collect([
                     'Trial' => $subscription->trial_ends_at,
                     'Subscription' => $subscription->ends_at,
-                ])->filter(fn ($date) => $date->between(now(), $deadline))->sort();
+                ])
+                    ->filter()
+                    ->filter(fn ($date) => $date->between(now(), $deadline))
+                    ->sort();
 
                 return [
                     'subscription' => $subscription,
