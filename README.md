@@ -154,6 +154,8 @@ npm run build
 
 For production, set `APP_ENV=production`, `APP_DEBUG=false`, a strong generated
 `APP_KEY`, the correct `APP_URL`, and the business timezone in `APP_TIMEZONE`.
+Run `php artisan app:production-check` before making a release live. The full
+server checklist is in [Production Deployment](docs/DEPLOYMENT.md).
 
 ## Public vs Private Usage
 
