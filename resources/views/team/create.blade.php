@@ -63,28 +63,15 @@
                     @enderror
                 </div>
 
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Password <span class="text-danger">*</span></label>
-                    <input type="password"
-                           name="password"
-                           class="form-control @error('password') is-invalid @enderror"
-                           required>
-                    @error('password')
-                        <small class="text-danger">{{ $message }}</small>
-                    @enderror
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
-                    <input type="password"
-                           name="password_confirmation"
-                           class="form-control"
-                           required>
+                <div class="col-12 mb-3">
+                    <div class="alert alert-info mb-0">
+                        The staff member will receive a secure email link to create their password.
+                    </div>
                 </div>
             </div>
 
             <button class="btn btn-primary">
-                Save User
+                Create User and Send Invitation
             </button>
         </form>
     </div>

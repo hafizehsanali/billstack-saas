@@ -4,7 +4,6 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Password;
 
 class StoreTeamMemberRequest extends FormRequest
 {
@@ -19,7 +18,6 @@ class StoreTeamMemberRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'role' => ['required', Rule::in(['manager', 'accountant', 'cashier', 'inventory_staff'])],
-            'password' => ['required', 'confirmed', Password::defaults()],
         ];
     }
 }

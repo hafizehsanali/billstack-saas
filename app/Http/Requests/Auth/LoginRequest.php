@@ -59,6 +59,15 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if (Auth::user()->requires_password_setup) {
+            Auth::logout();
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'Please use the password setup link sent to your email before signing in.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

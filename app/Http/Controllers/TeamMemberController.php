@@ -6,7 +6,11 @@ use App\Http\Requests\StoreTeamMemberRequest;
 use App\Http\Requests\UpdateTeamMemberRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
+use Throwable;
 use Illuminate\View\View;
 use Spatie\Permission\Models\Role;
 
@@ -33,11 +37,17 @@ class TeamMemberController extends Controller
         $userLimit = $tenant->activeSubscription?->plan?->user_limit;
         $activeUserCount = $tenant->users()->where('is_active', true)->count();
         $inactiveUserCount = $tenant->users()->where('is_active', false)->count();
+        $validInvitationEmails = DB::table('password_reset_tokens')
+            ->whereIn('email', $members->getCollection()->pluck('email'))
+            ->where('created_at', '>=', now()->subMinutes((int) config('auth.passwords.users.expire', 60)))
+            ->pluck('email')
+            ->all();
 
         return view('team.index', [
             'members' => $members,
             'tenant' => $tenant,
             'roleDescriptions' => self::ROLE_DESCRIPTIONS,
+            'validInvitationEmails' => $validInvitationEmails,
             'userLimit' => $userLimit,
             'activeUserCount' => $activeUserCount,
             'inactiveUserCount' => $inactiveUserCount,
@@ -72,16 +82,24 @@ class TeamMemberController extends Controller
             'tenant_id' => $tenant->id,
             'name' => $data['name'],
             'email' => $data['email'],
-            'password' => Hash::make($data['password']),
+            'password' => Str::random(48),
             'is_active' => true,
+            'requires_password_setup' => true,
         ]);
 
         Role::findOrCreate($data['role']);
         $member->assignRole($data['role']);
 
+        $status = $this->sendPasswordSetupLink($member);
+
         return redirect()
             ->route('team.index')
-            ->with('success', 'Team member created successfully.');
+            ->with(
+                $status === Password::RESET_LINK_SENT ? 'success' : 'warning',
+                $status === Password::RESET_LINK_SENT
+                    ? 'Team member created. A password setup link was sent to '.$member->email.'.'
+                    : 'Team member created, but the password setup email could not be sent. Use Resend Invitation after checking the mail settings.'
+            );
     }
 
     public function edit(User $teamMember): View
@@ -156,9 +174,34 @@ class TeamMemberController extends Controller
         return back()->with('success', 'Team member activated successfully.');
     }
 
+    public function resendInvitation(User $teamMember): RedirectResponse
+    {
+        $this->authorizeTenantMember($teamMember);
+
+        $teamMember->update(['requires_password_setup' => true]);
+        $status = $this->sendPasswordSetupLink($teamMember);
+
+        return $status === Password::RESET_LINK_SENT
+            ? back()->with('success', 'A new password setup link was sent to '.$teamMember->email.'.')
+            : back()->withErrors([
+                'team' => 'The password setup email could not be sent. Check the mail settings and try again.',
+            ]);
+    }
+
     private function authorizeTenantMember(User $member): void
     {
         abort_if($member->tenant_id !== auth()->user()->tenant_id, 403);
         abort_if($member->hasRole('owner') && (int) $member->id !== (int) auth()->id(), 403);
+    }
+
+    private function sendPasswordSetupLink(User $member): ?string
+    {
+        try {
+            return Password::sendResetLink(['email' => $member->email]);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return null;
+        }
     }
 }

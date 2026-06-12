@@ -9,6 +9,8 @@ use Database\Seeders\RolePermissionSeeder;
 use Database\Seeders\SaasPlanSeeder;
 use Database\Seeders\TenantTeamSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -18,6 +20,7 @@ class TenantTeamManagementTest extends TestCase
 
     public function test_owner_can_create_staff_user_with_role(): void
     {
+        Notification::fake();
         $owner = $this->createOwnerWithTenant(userLimit: 3);
 
         $this->actingAs($owner)
@@ -34,6 +37,8 @@ class TenantTeamManagementTest extends TestCase
 
         $this->assertSame($owner->tenant_id, $staff->tenant_id);
         $this->assertTrue($staff->hasRole('cashier'));
+        $this->assertTrue($staff->requires_password_setup);
+        Notification::assertSentTo($staff, ResetPassword::class);
     }
 
     public function test_staff_user_cannot_manage_team(): void
@@ -185,6 +190,33 @@ class TenantTeamManagementTest extends TestCase
             'email' => 'manager@test.com',
             'is_active' => false,
         ]);
+    }
+
+    public function test_owner_can_resend_staff_password_setup_invitation(): void
+    {
+        Notification::fake();
+        $owner = $this->createOwnerWithTenant(userLimit: 3);
+        $staff = User::factory()->create(['tenant_id' => $owner->tenant_id]);
+        $staff->assignRole('cashier');
+
+        $this->actingAs($owner)
+            ->post(route('team.resend-invitation', $staff))
+            ->assertSessionHas('success');
+
+        Notification::assertSentTo($staff, ResetPassword::class);
+    }
+
+    public function test_owner_cannot_resend_invitation_to_user_from_another_tenant(): void
+    {
+        Notification::fake();
+        $owner = $this->createOwnerWithTenant(userLimit: 3);
+        $otherOwner = $this->createOwnerWithTenant('Other Store', 'other-owner@example.com', 3);
+
+        $this->actingAs($owner)
+            ->post(route('team.resend-invitation', $otherOwner))
+            ->assertForbidden();
+
+        Notification::assertNothingSent();
     }
 
     private function createOwnerWithTenant(

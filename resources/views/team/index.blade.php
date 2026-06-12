@@ -99,7 +99,11 @@
                             @endif
                         </td>
                         <td>
-                            @if($member->is_active)
+                            @if($member->requires_password_setup && in_array($member->email, $validInvitationEmails, true))
+                                <span class="badge bg-warning text-dark">Invitation Pending</span>
+                            @elseif($member->requires_password_setup)
+                                <span class="badge bg-danger text-white">Invitation Expired</span>
+                            @elseif($member->is_active)
                                 <span class="badge bg-success text-white">Active</span>
                             @else
                                 <span class="badge bg-light text-dark border">Inactive</span>
@@ -114,6 +118,16 @@
                                 </a>
 
                                 @if($member->id !== auth()->id())
+                                    <form method="POST"
+                                          action="{{ route('team.resend-invitation', $member) }}"
+                                          class="m-0">
+                                        @csrf
+
+                                        <button class="btn btn-sm btn-outline-primary text-nowrap">
+                                            Resend Invitation
+                                        </button>
+                                    </form>
+
                                     @if($member->is_active)
                                         <form method="POST"
                                               action="{{ route('team.deactivate', $member) }}"

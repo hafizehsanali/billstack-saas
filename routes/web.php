@@ -86,6 +86,8 @@ Route::middleware('auth')->group(function () {
             Route::put('/team/{teamMember}', [TeamMemberController::class, 'update'])->name('team.update');
             Route::patch('/team/{teamMember}/activate', [TeamMemberController::class, 'activate'])->name('team.activate');
             Route::patch('/team/{teamMember}/deactivate', [TeamMemberController::class, 'deactivate'])->name('team.deactivate');
+            Route::post('/team/{teamMember}/resend-invitation', [TeamMemberController::class, 'resendInvitation'])
+                ->name('team.resend-invitation');
         });
 
         Route::middleware('permission:products.view')->group(function () {
