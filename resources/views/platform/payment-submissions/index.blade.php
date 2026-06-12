@@ -11,6 +11,39 @@
     </span>
 </div>
 
+<form method="GET" class="card card-body mb-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-7">
+            <label for="payment-review-search" class="form-label">Search payment reviews</label>
+            <input id="payment-review-search"
+                   type="search"
+                   name="search"
+                   value="{{ request('search') }}"
+                   class="form-control"
+                   placeholder="Business, invoice, or transaction reference">
+        </div>
+        <div class="col-sm-7 col-md-3">
+            <label for="payment-review-status" class="form-label">Status</label>
+            <select id="payment-review-status" name="status" class="form-select">
+                <option value="">All statuses</option>
+                @foreach(['pending', 'approved', 'rejected'] as $status)
+                    <option value="{{ $status }}" @selected(request('status') === $status)>
+                        {{ str($status)->title() }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-sm-5 col-md-2 d-flex gap-2">
+            <button class="btn btn-primary flex-fill"><i data-lucide="search"></i> Filter</button>
+            <a href="{{ route('platform.payment-submissions.index') }}"
+               class="btn btn-icon btn-outline-secondary"
+               title="Clear filters">
+                <i data-lucide="x"></i>
+            </a>
+        </div>
+    </div>
+</form>
+
 <div class="card">
     <div class="table-responsive">
         <table class="table table-vcenter card-table">
@@ -58,7 +91,7 @@
                         </td>
                         <td class="text-end">
                             @if($submission->status === 'pending')
-                                <div class="d-flex justify-content-end gap-2">
+                                <div class="platform-review-actions">
                                     <form method="POST"
                                           action="{{ route('platform.payment-submissions.approve', $submission) }}">
                                         @csrf

@@ -10,7 +10,7 @@
     $customersWithBalance = $customerRows->filter(fn ($customer) => $customer->remainingAmount() > 0)->count();
 @endphp
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="page-heading">
     <div>
         <h3 class="mb-1">Customers</h3>
         <div class="text-muted">
@@ -20,6 +20,7 @@
 
     <a href="{{ route('customers.create') }}"
        class="btn btn-primary">
+        <i data-lucide="user-plus"></i>
         Add Customer
     </a>
 </div>

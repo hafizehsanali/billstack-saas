@@ -12,7 +12,7 @@
         ->count();
 @endphp
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="page-heading">
     <div>
         <h3 class="mb-1">Purchases</h3>
         <div class="text-muted">
@@ -22,6 +22,7 @@
 
     <a href="{{ route('purchases.create') }}"
        class="btn btn-primary">
+        <i data-lucide="shopping-cart"></i>
         Create Purchase
     </a>
 </div>

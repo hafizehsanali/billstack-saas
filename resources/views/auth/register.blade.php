@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Create Account | BillStack</title>
+    <title>Create Account | {{ platform_name() }}</title>
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
     <link rel="icon" type="image/png" href="{{ asset('favicon-64.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -16,7 +16,7 @@
             <div class="p-4 p-md-5 d-flex flex-column w-100">
                 <a href="{{ url('/') }}" class="d-inline-flex align-items-center gap-2 text-white text-decoration-none">
                     <img src="{{ asset('favicon-64.png') }}" alt="" width="40" height="40">
-                    <span class="h2 mb-0">BillStack</span>
+                    <span class="h2 mb-0">{{ platform_name() }}</span>
                 </a>
 
                 <div class="my-auto py-5 d-none d-lg-block">
@@ -54,7 +54,7 @@
                     </div>
                 </div>
 
-                <div class="small text-white-50 d-none d-lg-block">BillStack business management</div>
+                <div class="small text-white-50 d-none d-lg-block">{{ platform_name() }} business management</div>
             </div>
         </section>
 
@@ -92,7 +92,9 @@
                                     {{ $isPaidPlan ? 'Rs '.number_format($selectedPlan->monthly_price_cents / 100, 0) : 'Free' }}
                                 </div>
                                 @if($isPaidPlan)
-                                    <div class="text-muted small">per month</div>
+                                    <div class="text-muted small">
+                                        {{ $selectedCycle === 'annual' ? 'annual billing selected' : 'monthly billing selected' }}
+                                    </div>
                                 @endif
                                 <a href="{{ route('plans.index') }}" class="small">Change package</a>
                             </div>
@@ -108,6 +110,10 @@
                         @csrf
                         @if($selectedPlan)
                             <input type="hidden" name="plan" value="{{ $selectedPlan->slug }}">
+                            <input type="hidden" name="billing_cycle" value="{{ $selectedCycle }}">
+                            @if($selectedPromo)
+                                <input type="hidden" name="promo_code" value="{{ $selectedPromo }}">
+                            @endif
                         @endif
 
                         <div class="row g-3">

@@ -80,6 +80,67 @@ class SubscriptionEnforcementTest extends TestCase
         $this->assertSame('paused', $subscription->fresh()->status);
     }
 
+    public function test_pending_upgrade_does_not_remove_access_from_current_active_plan(): void
+    {
+        [$tenant, $user, $currentPlan] = $this->tenantUserAndPlan();
+        $currentSubscription = $tenant->subscriptions()->create([
+            'subscription_plan_id' => $currentPlan->id,
+            'status' => 'active',
+            'starts_at' => now()->subMonth(),
+            'ends_at' => now()->addMonth(),
+        ]);
+        $upgradePlan = SubscriptionPlan::create([
+            'name' => 'Growth',
+            'slug' => 'growth',
+            'monthly_price_cents' => 299900,
+            'annual_price_cents' => 2999000,
+            'user_limit' => 8,
+            'is_public' => true,
+            'is_active' => true,
+        ]);
+        $tenant->subscriptions()->create([
+            'subscription_plan_id' => $upgradePlan->id,
+            'status' => 'paused',
+            'starts_at' => now(),
+        ]);
+
+        $tenant->refresh();
+        $this->assertSame($currentSubscription->id, $tenant->activeSubscription?->id);
+        $this->assertSame($upgradePlan->id, $tenant->currentSubscription?->subscription_plan_id);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk();
+    }
+
+    public function test_expired_active_plan_is_paused_even_when_newer_upgrade_is_pending(): void
+    {
+        [$tenant, $user, $currentPlan] = $this->tenantUserAndPlan();
+        $currentSubscription = $tenant->subscriptions()->create([
+            'subscription_plan_id' => $currentPlan->id,
+            'status' => 'active',
+            'starts_at' => now()->subMonth(),
+            'ends_at' => now()->subDay(),
+        ]);
+        $upgradePlan = SubscriptionPlan::create([
+            'name' => 'Growth',
+            'slug' => 'growth-expiry-test',
+            'monthly_price_cents' => 299900,
+            'annual_price_cents' => 2999000,
+        ]);
+        $tenant->subscriptions()->create([
+            'subscription_plan_id' => $upgradePlan->id,
+            'status' => 'paused',
+            'starts_at' => now(),
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertRedirect(route('subscription.status'));
+
+        $this->assertSame('paused', $currentSubscription->fresh()->status);
+    }
+
     public function test_platform_admin_can_still_access_platform_area(): void
     {
         $admin = User::factory()->create([

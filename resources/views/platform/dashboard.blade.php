@@ -44,6 +44,15 @@
             </div>
         </div>
     </div>
+
+    <div class="col-md-4 col-xl">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-secondary small fw-semibold text-uppercase">Revenue This Month</div>
+                <div class="h2 mb-0 text-success">Rs {{ number_format($monthlyRevenueCents / 100, 2) }}</div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="card mb-4">

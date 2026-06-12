@@ -120,7 +120,9 @@ class PublicPlanSubscriptionTest extends TestCase
         $plan = $this->plan('Professional', 'professional', 499900);
 
         $this->post(route('register'), $this->registrationData($plan))
-            ->assertRedirect(route('subscription.status', absolute: false));
+            ->assertRedirect(route('subscription.checkout', [
+                'billing_cycle' => 'monthly',
+            ], absolute: false));
 
         $tenant = Tenant::where('name', 'Public Test Store')->firstOrFail();
         $this->assertDatabaseHas('tenant_subscriptions', [
@@ -130,9 +132,25 @@ class PublicPlanSubscriptionTest extends TestCase
         ]);
 
         $this->actingAs($tenant->users()->first())
-            ->get(route('subscription.status'))
+            ->get(route('subscription.checkout'))
             ->assertOk()
-            ->assertSee('Purchase Professional');
+            ->assertSee('Purchase Subscription')
+            ->assertSee('Professional');
+    }
+
+    public function test_registration_preserves_annual_cycle_and_promotion_for_checkout(): void
+    {
+        $plan = $this->plan('Professional', 'professional', 499900);
+        $data = $this->registrationData($plan) + [
+            'billing_cycle' => 'annual',
+            'promo_code' => 'YEARLY20',
+        ];
+
+        $this->post(route('register'), $data)
+            ->assertRedirect(route('subscription.checkout', [
+                'billing_cycle' => 'annual',
+                'promo_code' => 'YEARLY20',
+            ], absolute: false));
     }
 
     private function plan(

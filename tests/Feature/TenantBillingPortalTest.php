@@ -107,6 +107,65 @@ class TenantBillingPortalTest extends TestCase
             ->assertSee('1 of 20');
     }
 
+    public function test_trial_owner_can_pay_early_and_view_available_packages(): void
+    {
+        [$owner, , $tenant] = $this->tenantBillingScenario();
+        $tenant->activeSubscription->update([
+            'trial_ends_at' => now()->addDays(8),
+        ]);
+        SubscriptionPlan::create([
+            'name' => 'Professional',
+            'slug' => 'professional',
+            'description' => 'A larger package for growing businesses.',
+            'monthly_price_cents' => 499900,
+            'annual_price_cents' => 4999000,
+            'user_limit' => 15,
+            'is_public' => true,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($owner)
+            ->get(route('billing.index'))
+            ->assertOk()
+            ->assertSee('Pay Early')
+            ->assertSee('Available Packages')
+            ->assertSee('Professional')
+            ->assertSee('Upgrade Package')
+            ->assertSee('Trial ends')
+            ->assertSee('subscription-navbar-badge is-trial', false)
+            ->assertSee('Trial:', false);
+    }
+
+    public function test_paused_owner_can_still_access_plan_and_billing(): void
+    {
+        [$owner, , $tenant] = $this->tenantBillingScenario();
+        $tenant->activeSubscription->update([
+            'status' => 'paused',
+            'ends_at' => now(),
+        ]);
+
+        $this->actingAs($owner)
+            ->get(route('billing.index'))
+            ->assertOk()
+            ->assertSee('Plan &amp; Billing', false)
+            ->assertSee('Continue Payment')
+            ->assertSee('subscription-navbar-badge is-warning', false)
+            ->assertSee('Payment due');
+    }
+
+    public function test_active_package_is_visible_in_navbar_and_links_to_billing(): void
+    {
+        [$owner] = $this->tenantBillingScenario();
+
+        $this->actingAs($owner)
+            ->get(route('billing.index'))
+            ->assertOk()
+            ->assertSee('subscription-navbar-badge is-active', false)
+            ->assertSee('Growth')
+            ->assertSee('Active')
+            ->assertSee('href="'.route('billing.index').'"', false);
+    }
+
     private function tenantBillingScenario(): array
     {
         Role::findOrCreate('owner');

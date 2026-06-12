@@ -12,6 +12,45 @@
     </a>
 </div>
 
+<form method="GET" class="card card-body mb-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-lg-5">
+            <label for="tenant-search" class="form-label">Search businesses</label>
+            <input id="tenant-search"
+                   type="search"
+                   name="search"
+                   value="{{ request('search') }}"
+                   class="form-control"
+                   placeholder="Business name, slug, or owner email">
+        </div>
+        <div class="col-sm-5 col-lg-3">
+            <label for="tenant-plan" class="form-label">Plan</label>
+            <select id="tenant-plan" name="plan" class="form-select">
+                <option value="">All plans</option>
+                @foreach($plans as $plan)
+                    <option value="{{ $plan->id }}" @selected((string) request('plan') === (string) $plan->id)>
+                        {{ $plan->name }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-sm-4 col-lg-2">
+            <label for="tenant-status" class="form-label">Access</label>
+            <select id="tenant-status" name="status" class="form-select">
+                <option value="">All statuses</option>
+                <option value="active" @selected(request('status') === 'active')>Active</option>
+                <option value="inactive" @selected(request('status') === 'inactive')>Inactive</option>
+            </select>
+        </div>
+        <div class="col-sm-3 col-lg-2 d-flex gap-2">
+            <button class="btn btn-primary flex-fill"><i data-lucide="search"></i> Filter</button>
+            <a href="{{ route('platform.tenants.index') }}" class="btn btn-icon btn-outline-secondary" title="Clear filters">
+                <i data-lucide="x"></i>
+            </a>
+        </div>
+    </div>
+</form>
+
 <div class="card">
     <div class="table-responsive">
         <table class="table table-vcenter card-table">

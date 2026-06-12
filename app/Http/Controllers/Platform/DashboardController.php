@@ -30,7 +30,12 @@ class DashboardController extends Controller
             'pendingPaymentCount' => SubscriptionPaymentSubmission::where('status', 'pending')->count(),
             'planCount' => SubscriptionPlan::where('is_active', true)->count(),
             'paidFeatureCount' => PlanFeature::where('is_paid', true)->count(),
-            'platformDueCents' => PlatformSubscriptionInvoice::sum('balance_cents'),
+            'platformDueCents' => PlatformSubscriptionInvoice::where('status', '!=', 'cancelled')
+                ->sum('balance_cents'),
+            'monthlyRevenueCents' => PlatformSubscriptionInvoice::where('status', 'paid')
+                ->whereMonth('updated_at', now()->month)
+                ->whereYear('updated_at', now()->year)
+                ->sum('paid_cents'),
             'platformAdminCount' => User::where('is_platform_admin', true)->count(),
             'tenants' => $tenants,
             'plans' => SubscriptionPlan::withCount('features')->orderBy('monthly_price_cents')->get(),

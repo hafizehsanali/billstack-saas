@@ -8,19 +8,38 @@ use App\Models\SubscriptionPaymentSubmission;
 use App\Services\PlatformBillingService;
 use App\Services\SubscriptionPaymentSubmissionService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 use App\Services\PlatformActivityService;
 
 class PaymentSubmissionController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        return view('platform.payment-submissions.index', [
-            'submissions' => SubscriptionPaymentSubmission::with([
+        $submissions = SubscriptionPaymentSubmission::query()
+            ->with([
                 'tenant',
                 'invoice.subscription.plan',
                 'submitter',
-            ])->latest()->paginate(20),
+            ])
+            ->when($request->filled('search'), function ($query) use ($request): void {
+                $search = $request->string('search')->toString();
+                $query->where(function ($query) use ($search): void {
+                    $query->where('reference_no', 'like', "%{$search}%")
+                        ->orWhereHas('tenant', fn ($tenants) => $tenants->where('name', 'like', "%{$search}%"))
+                        ->orWhereHas('invoice', fn ($invoices) => $invoices->where('invoice_no', 'like', "%{$search}%"));
+                });
+            })
+            ->when($request->filled('status'), fn ($query) => $query->where(
+                'status',
+                $request->string('status')->toString()
+            ))
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('platform.payment-submissions.index', [
+            'submissions' => $submissions,
             'pendingCount' => SubscriptionPaymentSubmission::where('status', 'pending')->count(),
         ]);
     }

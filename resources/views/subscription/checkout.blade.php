@@ -209,6 +209,18 @@
                             <button class="btn btn-primary mt-3">Submit Payment for Review</button>
                         </form>
                     @endif
+
+                    @if($paymentSubmission?->status !== 'pending')
+                        <form method="POST"
+                              action="{{ route('subscription.invoices.cancel', $invoice) }}"
+                              class="mt-3"
+                              onsubmit="return confirm('Cancel this unpaid checkout and start again?')">
+                            @csrf
+                            <button class="btn btn-link text-danger px-0">
+                                Cancel checkout and choose again
+                            </button>
+                        </form>
+                    @endif
                 @else
                     <p class="text-muted">
                         Create the subscription invoice to begin the purchase process.
@@ -224,7 +236,7 @@
                                        name="billing_cycle"
                                        id="billing_monthly"
                                        value="monthly"
-                                       @checked(old('billing_cycle', 'monthly') === 'monthly')>
+                                       @checked(old('billing_cycle', $selectedCycle) === 'monthly')>
                                 <label class="btn btn-outline-primary" for="billing_monthly">
                                     Monthly - Rs {{ number_format($subscription->plan->monthly_price_cents / 100, 0) }}
                                 </label>
@@ -234,7 +246,8 @@
                                        name="billing_cycle"
                                        id="billing_annual"
                                        value="annual"
-                                       @checked(old('billing_cycle') === 'annual')>
+                                       @checked(old('billing_cycle', $selectedCycle) === 'annual')
+                                       @disabled($subscription->plan->annual_price_cents <= 0)>
                                 <label class="btn btn-outline-primary" for="billing_annual">
                                     Annual - Rs {{ number_format($subscription->plan->annual_price_cents / 100, 0) }}
                                 </label>
@@ -249,7 +262,7 @@
                                 <input id="promo_code"
                                        type="text"
                                        name="promo_code"
-                                       value="{{ old('promo_code') }}"
+                                       value="{{ old('promo_code', $selectedPromo) }}"
                                        class="form-control text-uppercase @error('promo_code') is-invalid @enderror"
                                        placeholder="Optional">
                                 @error('promo_code')

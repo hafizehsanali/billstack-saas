@@ -71,6 +71,31 @@ class PlatformBillingSeeder extends Seeder
             );
         }
 
+        $cancelledTenant = Tenant::where('slug', 'demo-store-1')->first();
+        $cancelledSubscription = $cancelledTenant?->currentSubscription;
+
+        if ($cancelledTenant && $cancelledSubscription) {
+            PlatformSubscriptionInvoice::updateOrCreate(
+                ['invoice_no' => 'PLAT-DEMO-CANCELLED'],
+                [
+                    'tenant_id' => $cancelledTenant->id,
+                    'tenant_subscription_id' => $cancelledSubscription->id,
+                    'billing_period' => now()->format('F Y'),
+                    'billing_cycle' => 'annual',
+                    'subtotal_cents' => 1999000,
+                    'discount_cents' => 200000,
+                    'tax_cents' => 0,
+                    'total_cents' => 1799000,
+                    'paid_cents' => 0,
+                    'balance_cents' => 0,
+                    'status' => 'cancelled',
+                    'issued_on' => today()->subDays(4),
+                    'due_on' => today()->subDay(),
+                    'notes' => 'Demo checkout cancelled before payment.',
+                ]
+            );
+        }
+
         Tenant::with('currentSubscription.plan')
             ->get()
             ->each(function (Tenant $tenant): void {

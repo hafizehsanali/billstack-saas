@@ -10,7 +10,7 @@
     $suppliersToPay = $supplierRows->filter(fn ($supplier) => $supplier->remainingAmount() > 0)->count();
 @endphp
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="page-heading">
     <div>
         <h3 class="mb-1">Suppliers</h3>
         <div class="text-muted">
@@ -20,6 +20,7 @@
 
     <a href="{{ route('suppliers.create') }}"
        class="btn btn-primary">
+        <i data-lucide="contact-round"></i>
         Add Supplier
     </a>
 </div>

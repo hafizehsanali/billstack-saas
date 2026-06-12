@@ -75,6 +75,31 @@ class TenantFeatureGateTest extends TestCase
             ->assertSee(route('features.unavailable', ['feature' => 'pro.barcode']), false);
     }
 
+    public function test_pending_upgrade_does_not_change_features_before_payment(): void
+    {
+        [$tenant, $user, $currentPlan] = $this->tenantWithPlan(hasBarcode: true);
+        $pendingPlan = SubscriptionPlan::create([
+            'name' => 'Pending Basic',
+            'slug' => 'pending-basic',
+            'monthly_price_cents' => 199900,
+            'annual_price_cents' => 1999000,
+        ]);
+        $tenant->subscriptions()->create([
+            'subscription_plan_id' => $pendingPlan->id,
+            'status' => 'paused',
+            'starts_at' => now(),
+        ]);
+
+        $tenant->refresh();
+
+        $this->assertSame($currentPlan->id, $tenant->activeSubscription?->subscription_plan_id);
+        $this->assertTrue(app(TenantFeatureService::class)->hasFeature($tenant, 'pro.barcode'));
+
+        $this->actingAs($user)
+            ->get(route('barcode.index'))
+            ->assertOk();
+    }
+
     private function tenantWithPlan(bool $hasBarcode): array
     {
         $this->seed(RolePermissionSeeder::class);

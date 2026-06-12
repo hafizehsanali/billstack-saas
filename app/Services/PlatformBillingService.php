@@ -61,7 +61,7 @@ class PlatformBillingService
 
             $existingInvoice = PlatformSubscriptionInvoice::query()
                 ->where('tenant_subscription_id', $subscription->id)
-                ->where('status', '!=', 'paid')
+                ->whereIn('status', ['unpaid', 'overdue'])
                 ->lockForUpdate()
                 ->latest()
                 ->first();
@@ -111,13 +111,23 @@ class PlatformBillingService
             }
 
             if ($totalCents === 0) {
+                $paidAccessStartsAt = $subscription->trial_ends_at?->isFuture()
+                    ? $subscription->trial_ends_at->copy()
+                    : now();
+                $subscription->tenant->subscriptions()
+                    ->where('id', '!=', $subscription->id)
+                    ->where('status', 'active')
+                    ->update([
+                        'status' => 'cancelled',
+                        'ends_at' => now(),
+                    ]);
                 $subscription->update([
                     'status' => 'active',
                     'starts_at' => now(),
                     'trial_ends_at' => null,
                     'ends_at' => $billingCycle === 'annual'
-                        ? now()->addYear()
-                        : now()->addMonth(),
+                        ? $paidAccessStartsAt->copy()->addYear()
+                        : $paidAccessStartsAt->copy()->addMonth(),
                 ]);
             }
 
@@ -166,13 +176,23 @@ class PlatformBillingService
                 ]);
 
             if ($lockedInvoice->subscription) {
+                $paidAccessStartsAt = $lockedInvoice->subscription->trial_ends_at?->isFuture()
+                    ? $lockedInvoice->subscription->trial_ends_at->copy()
+                    : now();
+                $lockedInvoice->subscription->tenant->subscriptions()
+                    ->where('id', '!=', $lockedInvoice->subscription->id)
+                    ->where('status', 'active')
+                    ->update([
+                        'status' => 'cancelled',
+                        'ends_at' => now(),
+                    ]);
                 $lockedInvoice->subscription->update([
                     'status' => 'active',
                     'starts_at' => now(),
                     'trial_ends_at' => null,
                     'ends_at' => $lockedInvoice->billing_cycle === 'annual'
-                        ? now()->addYear()
-                        : now()->addMonth(),
+                        ? $paidAccessStartsAt->copy()->addYear()
+                        : $paidAccessStartsAt->copy()->addMonth(),
                 ]);
             }
 

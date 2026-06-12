@@ -2,6 +2,17 @@
 
 @section('content')
 
+<div class="page-heading">
+    <div>
+        <h1>Expenses</h1>
+        <div class="text-muted">Track operating costs that affect business profit.</div>
+    </div>
+    <a href="{{ route('expenses.create') }}" class="btn btn-primary">
+        <i data-lucide="circle-dollar-sign"></i>
+        Add Expense
+    </a>
+</div>
+
 <div class="row g-3 mb-3">
     <div class="col-md-4">
         <div class="card">
@@ -37,10 +48,6 @@
             Expenses
         </h3>
 
-        <a href="{{ route('expenses.create') }}"
-           class="btn btn-primary ms-auto">
-            Add Expense
-        </a>
     </div>
 
     <div class="table-responsive">
@@ -68,6 +75,7 @@
                             <div class="d-inline-flex gap-1 flex-nowrap">
                                 <a href="{{ route('expenses.edit', $expense) }}"
                                    class="btn btn-sm btn-outline-secondary text-nowrap">
+                                    <i data-lucide="pencil"></i>
                                     Edit
                                 </a>
 
@@ -79,6 +87,7 @@
                                     @method('DELETE')
 
                                     <button class="btn btn-sm btn-outline-danger text-nowrap">
+                                        <i data-lucide="trash-2"></i>
                                         Delete
                                     </button>
                                 </form>

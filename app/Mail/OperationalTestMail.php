@@ -10,7 +10,7 @@ class OperationalTestMail extends Mailable
 {
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'BillStack mail test');
+        return new Envelope(subject: platform_name().' mail test');
     }
 
     public function content(): Content

@@ -17,6 +17,45 @@
     </div>
 </div>
 
+<form method="GET" class="card card-body mb-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-lg-5">
+            <label for="billing-search" class="form-label">Search billing</label>
+            <input id="billing-search"
+                   type="search"
+                   name="search"
+                   value="{{ request('search') }}"
+                   class="form-control"
+                   placeholder="Invoice number or business name">
+        </div>
+        <div class="col-sm-5 col-lg-3">
+            <label for="billing-status" class="form-label">Invoice status</label>
+            <select id="billing-status" name="status" class="form-select">
+                <option value="">All statuses</option>
+                @foreach(['unpaid', 'paid', 'overdue', 'cancelled'] as $status)
+                    <option value="{{ $status }}" @selected(request('status') === $status)>
+                        {{ str($status)->title() }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-sm-4 col-lg-2">
+            <label for="billing-cycle" class="form-label">Cycle</label>
+            <select id="billing-cycle" name="billing_cycle" class="form-select">
+                <option value="">All cycles</option>
+                <option value="monthly" @selected(request('billing_cycle') === 'monthly')>Monthly</option>
+                <option value="annual" @selected(request('billing_cycle') === 'annual')>Annual</option>
+            </select>
+        </div>
+        <div class="col-sm-3 col-lg-2 d-flex gap-2">
+            <button class="btn btn-primary flex-fill"><i data-lucide="search"></i> Filter</button>
+            <a href="{{ route('platform.billing.index') }}" class="btn btn-icon btn-outline-secondary" title="Clear filters">
+                <i data-lucide="x"></i>
+            </a>
+        </div>
+    </div>
+</form>
+
 <div class="row row-cards mb-3">
     <div class="col-md-3">
         <div class="card">
@@ -84,7 +123,12 @@
                             Rs {{ number_format($invoice->balance_cents / 100, 2) }}
                         </td>
                         <td>
-                            <span class="badge {{ $invoice->status === 'paid' ? 'bg-success text-white' : 'bg-light text-dark border' }}">
+                            <span class="badge {{ match($invoice->status) {
+                                'paid' => 'bg-success text-white',
+                                'overdue' => 'bg-danger text-white',
+                                'cancelled' => 'bg-secondary text-white',
+                                default => 'bg-light text-dark border',
+                            } }}">
                                 {{ str($invoice->status)->replace('_', ' ')->title() }}
                             </span>
                             @if($invoice->paymentSubmission?->status === 'pending')

@@ -12,9 +12,9 @@ class PublicLandingTest extends TestCase
             ->get('/')
             ->assertOk()
             ->assertSee('BillStack')
-            ->assertSee('Inventory and billing SaaS')
-            ->assertSee('A business management system')
-            ->assertSee('Built for real shop workflows')
+            ->assertSee('Built for everyday business operations')
+            ->assertSee('Billing, inventory, purchases, customer accounts')
+            ->assertSee('Know what is selling, what is due, and what needs attention')
             ->assertSee('View Packages');
     }
 }

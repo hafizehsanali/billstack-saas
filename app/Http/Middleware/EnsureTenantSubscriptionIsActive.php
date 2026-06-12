@@ -33,7 +33,7 @@ class EnsureTenantSubscriptionIsActive
             $tenant->refresh();
         }
 
-        $subscription = $tenant->currentSubscription;
+        $subscription = $tenant->activeSubscription;
 
         if (app(SubscriptionLifecycleService::class)->pauseIfExpired($subscription)) {
             $tenant->unsetRelation('activeSubscription');

@@ -1,54 +1,74 @@
 <x-guest-layout>
-    <div class="mb-5">
-        <h1 class="text-xl font-semibold text-gray-900">Sign in to BillStack</h1>
-        <p class="mt-1 text-sm text-gray-600">
-            Access your inventory, invoices, purchases, reports, and business accounts.
+    <div class="mb-4">
+        <div class="d-inline-flex align-items-center gap-2 text-success fw-semibold small mb-3">
+            <i data-lucide="shield-check"></i>
+            Secure business access
+        </div>
+        <h1 class="h2 fw-bold mb-2">Sign in to {{ platform_name() }}</h1>
+        <p class="text-muted mb-0">
+            Manage inventory, invoices, purchases, reports, and business accounts from one workspace.
         </p>
     </div>
 
-    <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
     <form method="POST" action="{{ route('login') }}">
         @csrf
 
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
+        <div class="mb-3">
+            <label for="email" class="form-label">Email address</label>
+            <div class="input-group">
+                <span class="input-group-text"><i data-lucide="mail"></i></span>
+                <input id="email"
+                       class="form-control"
+                       type="email"
+                       name="email"
+                       value="{{ old('email') }}"
+                       placeholder="you@business.com"
+                       required
+                       autofocus
+                       autocomplete="username">
+            </div>
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
-
+        <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <label for="password" class="form-label">Password</label>
+                @if (Route::has('password.request'))
+                    <a class="small" href="{{ route('password.request') }}">
+                        Forgot password?
+                    </a>
+                @endif
+            </div>
+            <div class="input-group">
+                <span class="input-group-text"><i data-lucide="lock-keyhole"></i></span>
+                <input id="password"
+                       class="form-control"
+                       type="password"
+                       name="password"
+                       placeholder="Enter your password"
+                       required
+                       autocomplete="current-password">
+            </div>
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
-                <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
+        <div class="mb-4">
+            <label for="remember_me" class="form-check">
+                <input id="remember_me" type="checkbox" class="form-check-input" name="remember">
+                <span class="form-check-label">Keep me signed in on this device</span>
             </label>
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
-                </a>
-            @endif
+        <button class="btn btn-primary w-100">
+            <i data-lucide="log-in"></i>
+            Sign In
+        </button>
 
-            <x-primary-button class="ms-3">
-                {{ __('Sign In') }}
-            </x-primary-button>
+        <div class="text-center text-muted small mt-4">
+            New to {{ platform_name() }}?
+            <a href="{{ route('plans.index') }}" class="fw-semibold">View packages</a>
         </div>
     </form>
 </x-guest-layout>

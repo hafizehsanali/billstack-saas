@@ -28,6 +28,12 @@ class PublicPlanController extends Controller
                 );
             });
 
-        return view('plans.index', compact('plans'));
+        $comparisonFeatures = $plans
+            ->flatMap->features
+            ->unique('id')
+            ->sortBy('name')
+            ->values();
+
+        return view('plans.index', compact('plans', 'comparisonFeatures'));
     }
 }

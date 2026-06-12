@@ -26,8 +26,10 @@ class Tenant extends Model
     public function activeSubscription(): HasOne
     {
         return $this->hasOne(TenantSubscription::class)
-            ->where('status', 'active')
-            ->latestOfMany();
+            ->ofMany(
+                ['id' => 'max'],
+                fn ($query) => $query->where('status', 'active')
+            );
     }
 
     public function currentSubscription(): HasOne

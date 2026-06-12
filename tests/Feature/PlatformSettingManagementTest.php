@@ -63,17 +63,48 @@ class PlatformSettingManagementTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_configured_platform_name_is_used_across_public_and_guest_pages(): void
+    {
+        PlatformSetting::current()->update([
+            'platform_name' => 'TradeFlow Cloud',
+            'support_email' => 'support@tradeflow.test',
+        ]);
+
+        foreach ([
+            '/',
+            route('plans.index'),
+            route('legal.terms'),
+            route('legal.privacy'),
+            route('legal.refunds'),
+            route('login'),
+        ] as $url) {
+            $this->get($url)
+                ->assertOk()
+                ->assertSee('TradeFlow Cloud');
+        }
+
+        $this->get(route('legal.terms'))
+            ->assertSee('support@tradeflow.test');
+    }
+
     public function test_disabled_registration_blocks_form_and_submission(): void
     {
         PlatformSetting::current()->update([
+            'platform_name' => 'Business Grower',
             'support_email' => 'support@example.com',
+            'support_phone' => '+92 300 1234567',
             'allow_registration' => false,
         ]);
 
         $this->get(route('register'))
             ->assertOk()
             ->assertSee('New registrations are temporarily unavailable')
-            ->assertSee('support@example.com');
+            ->assertSee('Business Grower')
+            ->assertSee('support@example.com')
+            ->assertSee('mailto:support@example.com', false)
+            ->assertSee('tel:+923001234567', false)
+            ->assertSee(route('login'), false)
+            ->assertSee(route('plans.index'), false);
 
         $this->post(route('register'), [
             'name' => 'Blocked User',

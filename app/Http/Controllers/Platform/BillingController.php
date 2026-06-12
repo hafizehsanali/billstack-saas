@@ -9,27 +9,45 @@ use App\Models\PlatformSubscriptionInvoice;
 use App\Models\Tenant;
 use App\Services\PlatformBillingService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 use App\Services\PlatformActivityService;
 
 class BillingController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $invoices = PlatformSubscriptionInvoice::with([
-            'tenant',
-            'subscription.plan',
-            'paymentSubmission',
-        ])
+        $invoices = PlatformSubscriptionInvoice::query()
+            ->with([
+                'tenant',
+                'subscription.plan',
+                'paymentSubmission',
+            ])
+            ->when($request->filled('search'), function ($query) use ($request): void {
+                $search = $request->string('search')->toString();
+                $query->where(function ($query) use ($search): void {
+                    $query->where('invoice_no', 'like', "%{$search}%")
+                        ->orWhereHas('tenant', fn ($tenants) => $tenants->where('name', 'like', "%{$search}%"));
+                });
+            })
+            ->when($request->filled('status'), fn ($query) => $query->where(
+                'status',
+                $request->string('status')->toString()
+            ))
+            ->when($request->filled('billing_cycle'), fn ($query) => $query->where(
+                'billing_cycle',
+                $request->string('billing_cycle')->toString()
+            ))
             ->latest('issued_on')
             ->latest()
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
 
         return view('platform.billing.index', [
             'invoices' => $invoices,
-            'totalBilledCents' => PlatformSubscriptionInvoice::sum('total_cents'),
-            'totalPaidCents' => PlatformSubscriptionInvoice::sum('paid_cents'),
-            'totalDueCents' => PlatformSubscriptionInvoice::sum('balance_cents'),
+            'totalBilledCents' => PlatformSubscriptionInvoice::where('status', '!=', 'cancelled')->sum('total_cents'),
+            'totalPaidCents' => PlatformSubscriptionInvoice::where('status', '!=', 'cancelled')->sum('paid_cents'),
+            'totalDueCents' => PlatformSubscriptionInvoice::where('status', '!=', 'cancelled')->sum('balance_cents'),
             'overdueCount' => PlatformSubscriptionInvoice::where('status', '!=', 'paid')
                 ->whereDate('due_on', '<', today())
                 ->count(),

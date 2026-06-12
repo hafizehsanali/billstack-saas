@@ -16,7 +16,7 @@ class SubscriptionPaymentSubmissionController extends Controller
     ): RedirectResponse {
         $submissions->submit($invoice, $request->user(), $request->validated());
 
-        return back()->with(
+        return redirect()->route('subscription.outcome')->with(
             'success',
             'Payment reference submitted. The platform team will review the full payment.'
         );

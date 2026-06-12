@@ -250,6 +250,214 @@ class SubscriptionPurchaseFlowTest extends TestCase
         $this->assertTrue($subscription->fresh()->ends_at->isAfter(now()->addDays(364)));
     }
 
+    public function test_owner_can_cancel_unpaid_checkout_and_reuse_offer(): void
+    {
+        [$tenant, $owner, $plan] = $this->scenario();
+        $subscription = $tenant->subscriptions()->create([
+            'subscription_plan_id' => $plan->id,
+            'status' => 'paused',
+            'starts_at' => now(),
+        ]);
+        $offer = $this->offer('RESTART20', 'percent', 20, $plan);
+        $invoice = app(PlatformBillingService::class)
+            ->createSubscriptionInvoice($subscription, 'RESTART20');
+
+        $this->actingAs($owner)
+            ->post(route('subscription.invoices.cancel', $invoice))
+            ->assertRedirect(route('subscription.checkout'));
+
+        $this->assertSame('cancelled', $invoice->fresh()->status);
+        $this->assertSame(0, $invoice->fresh()->balance_cents);
+        $this->assertSame(0, $offer->fresh()->redeemed_count);
+
+        $replacement = app(PlatformBillingService::class)
+            ->createSubscriptionInvoice($subscription, 'RESTART20', 'annual');
+
+        $this->assertNotSame($invoice->id, $replacement->id);
+        $this->assertSame('annual', $replacement->billing_cycle);
+        $this->assertSame(1, $offer->fresh()->redeemed_count);
+    }
+
+    public function test_subscription_outcome_reflects_server_side_payment_state(): void
+    {
+        [$tenant, $owner, $plan] = $this->scenario();
+        $subscription = $tenant->subscriptions()->create([
+            'subscription_plan_id' => $plan->id,
+            'status' => 'paused',
+            'starts_at' => now(),
+        ]);
+        $invoice = app(PlatformBillingService::class)->createSubscriptionInvoice($subscription);
+
+        $this->actingAs($owner)
+            ->get(route('subscription.outcome'))
+            ->assertOk()
+            ->assertSee('Payment details required')
+            ->assertDontSee('Subscription activated');
+
+        app(PlatformBillingService::class)->recordPayment($invoice, [
+            'payment_method' => 'bank_transfer',
+            'paid_on' => today()->toDateString(),
+        ]);
+
+        $this->actingAs($owner)
+            ->get(route('subscription.outcome'))
+            ->assertOk()
+            ->assertSee('Subscription activated')
+            ->assertSee($invoice->invoice_no);
+    }
+
+    public function test_owner_can_select_upgrade_and_old_plan_remains_active_until_full_payment(): void
+    {
+        [$tenant, $owner, $currentPlan] = $this->scenario();
+        $currentSubscription = $tenant->subscriptions()->create([
+            'subscription_plan_id' => $currentPlan->id,
+            'status' => 'active',
+            'starts_at' => now()->subMonth(),
+            'ends_at' => now()->addMonth(),
+        ]);
+        $upgrade = SubscriptionPlan::create([
+            'name' => 'Business',
+            'slug' => 'business',
+            'monthly_price_cents' => 799900,
+            'annual_price_cents' => 7999000,
+            'is_public' => true,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($owner)
+            ->post(route('subscription.plans.select', $upgrade), [
+                'billing_cycle' => 'annual',
+            ])
+            ->assertRedirect(route('subscription.checkout', ['billing_cycle' => 'annual']));
+
+        $upgradeSubscription = $tenant->subscriptions()
+            ->where('subscription_plan_id', $upgrade->id)
+            ->firstOrFail();
+
+        $this->assertSame('active', $currentSubscription->fresh()->status);
+        $this->assertSame('paused', $upgradeSubscription->status);
+
+        $invoice = app(PlatformBillingService::class)
+            ->createSubscriptionInvoice($upgradeSubscription, billingCycle: 'annual');
+        app(PlatformBillingService::class)->recordPayment($invoice, [
+            'payment_method' => 'bank_transfer',
+            'paid_on' => today()->toDateString(),
+        ]);
+
+        $this->assertSame('cancelled', $currentSubscription->fresh()->status);
+        $this->assertSame('active', $upgradeSubscription->fresh()->status);
+    }
+
+    public function test_owner_can_switch_to_public_free_package_immediately(): void
+    {
+        [$tenant, $owner, $currentPlan] = $this->scenario();
+        $currentSubscription = $tenant->subscriptions()->create([
+            'subscription_plan_id' => $currentPlan->id,
+            'status' => 'active',
+            'starts_at' => now()->subMonth(),
+        ]);
+        $freePlan = SubscriptionPlan::create([
+            'name' => 'Starter',
+            'slug' => 'starter-free',
+            'monthly_price_cents' => 0,
+            'annual_price_cents' => 0,
+            'free_access_days' => 30,
+            'is_public' => true,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($owner)
+            ->post(route('subscription.plans.select', $freePlan), [
+                'billing_cycle' => 'monthly',
+            ])
+            ->assertRedirect(route('dashboard'));
+
+        $this->assertSame('cancelled', $currentSubscription->fresh()->status);
+        $this->assertDatabaseHas('tenant_subscriptions', [
+            'tenant_id' => $tenant->id,
+            'subscription_plan_id' => $freePlan->id,
+            'status' => 'active',
+        ]);
+    }
+
+    public function test_active_trial_can_open_early_payment_for_same_package(): void
+    {
+        [$tenant, $owner, $plan] = $this->scenario(trialDays: 14);
+        $tenant->subscriptions()->create([
+            'subscription_plan_id' => $plan->id,
+            'status' => 'active',
+            'starts_at' => now(),
+            'trial_ends_at' => now()->addDays(14),
+        ]);
+
+        $this->actingAs($owner)
+            ->post(route('subscription.plans.select', $plan), [
+                'billing_cycle' => 'annual',
+            ])
+            ->assertRedirect(route('subscription.checkout', ['billing_cycle' => 'annual']));
+
+        $this->actingAs($owner)
+            ->get(route('subscription.checkout', ['billing_cycle' => 'annual']))
+            ->assertOk()
+            ->assertSee('Purchase Subscription')
+            ->assertSee('Annual - Rs 49,990');
+    }
+
+    public function test_early_trial_payment_preserves_unused_trial_days(): void
+    {
+        [$tenant, , $plan] = $this->scenario(trialDays: 14);
+        $subscription = $tenant->subscriptions()->create([
+            'subscription_plan_id' => $plan->id,
+            'status' => 'active',
+            'starts_at' => now(),
+            'trial_ends_at' => now()->addDays(10),
+        ]);
+        $invoice = app(PlatformBillingService::class)->createSubscriptionInvoice($subscription);
+
+        app(PlatformBillingService::class)->recordPayment($invoice, [
+            'payment_method' => 'bank_transfer',
+            'paid_on' => today()->toDateString(),
+        ]);
+
+        $subscription->refresh();
+        $this->assertNull($subscription->trial_ends_at);
+        $this->assertTrue($subscription->ends_at->isAfter(now()->addDays(39)));
+    }
+
+    public function test_selecting_another_package_cancels_abandoned_invoice_and_subscription(): void
+    {
+        [$tenant, $owner, $firstPlan] = $this->scenario();
+        $firstSelection = $tenant->subscriptions()->create([
+            'subscription_plan_id' => $firstPlan->id,
+            'status' => 'paused',
+            'starts_at' => now(),
+        ]);
+        $invoice = app(PlatformBillingService::class)->createSubscriptionInvoice($firstSelection);
+        $secondPlan = SubscriptionPlan::create([
+            'name' => 'Second Plan',
+            'slug' => 'second-plan',
+            'monthly_price_cents' => 699900,
+            'annual_price_cents' => 6999000,
+            'is_public' => true,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($owner)
+            ->post(route('subscription.plans.select', $secondPlan), [
+                'billing_cycle' => 'monthly',
+            ])
+            ->assertRedirect(route('subscription.checkout', ['billing_cycle' => 'monthly']));
+
+        $this->assertSame('cancelled', $firstSelection->fresh()->status);
+        $this->assertSame('cancelled', $invoice->fresh()->status);
+        $this->assertSame(0, $invoice->fresh()->balance_cents);
+        $this->assertDatabaseHas('tenant_subscriptions', [
+            'tenant_id' => $tenant->id,
+            'subscription_plan_id' => $secondPlan->id,
+            'status' => 'paused',
+        ]);
+    }
+
     private function scenario(int $trialDays = 0): array
     {
         Role::findOrCreate('owner');

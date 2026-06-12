@@ -1,4 +1,4 @@
-BillStack mail delivery is configured correctly.
+{{ platform_name() }} mail delivery is configured correctly.
 
 Application: {{ config('app.name') }}
 URL: {{ config('app.url') }}

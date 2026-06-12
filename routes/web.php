@@ -54,10 +54,22 @@ Route::middleware('auth')->group(function () {
     Route::post('/subscription/checkout', [SubscriptionCheckoutController::class, 'store'])
         ->middleware(['verified', 'role:owner'])
         ->name('subscription.checkout.store');
+    Route::post('/subscription/plans/{plan}/select', [SubscriptionCheckoutController::class, 'selectPlan'])
+        ->middleware(['verified', 'role:owner'])
+        ->name('subscription.plans.select');
+    Route::post('/subscription/invoices/{invoice}/cancel', [SubscriptionCheckoutController::class, 'cancel'])
+        ->middleware(['verified', 'role:owner'])
+        ->name('subscription.invoices.cancel');
+    Route::get('/subscription/outcome', [SubscriptionStatusController::class, 'outcome'])
+        ->middleware(['verified', 'role:owner'])
+        ->name('subscription.outcome');
     Route::post('/subscription/invoices/{invoice}/payment-submission', [SubscriptionPaymentSubmissionController::class, 'store'])
         ->middleware(['verified', 'role:owner'])
         ->name('subscription.payment-submissions.store');
     Route::get('/features/unavailable', [FeatureUnavailableController::class, 'show'])->name('features.unavailable');
+    Route::get('/billing', [TenantBillingController::class, 'index'])
+        ->middleware(['verified', 'role:owner'])
+        ->name('billing.index');
 
     Route::middleware(['verified', 'active_subscription'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -77,10 +89,6 @@ Route::middleware('auth')->group(function () {
         Route::put('/settings/business', [SettingsController::class, 'updateBusiness'])
             ->middleware('permission:settings.manage')
             ->name('settings.business.update');
-        Route::get('/billing', [TenantBillingController::class, 'index'])
-            ->middleware('permission:payments.view')
-            ->name('billing.index');
-
         Route::middleware('permission:team.manage')->group(function () {
             Route::get('/team', [TeamMemberController::class, 'index'])->name('team.index');
             Route::get('/team/create', [TeamMemberController::class, 'create'])->name('team.create');

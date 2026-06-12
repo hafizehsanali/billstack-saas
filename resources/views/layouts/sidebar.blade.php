@@ -2,155 +2,228 @@
     $isActive = fn (array $patterns): bool => request()->routeIs(...$patterns);
 
     $storeLinks = [
-        ['label' => 'Dashboard', 'route' => 'dashboard', 'active' => ['dashboard'], 'permission' => 'dashboard.view'],
-        ['label' => 'Alerts', 'route' => 'alerts.index', 'active' => ['alerts.*'], 'permission' => 'dashboard.view'],
-        ['label' => 'Products', 'route' => 'products.index', 'active' => ['products.index', 'products.edit', 'products.stock-ledger'], 'permission' => 'products.view'],
-        ['label' => 'Add Product', 'route' => 'products.create', 'active' => ['products.create'], 'permission' => 'products.create'],
-        ['label' => 'Categories', 'route' => 'categories.index', 'active' => ['categories.*'], 'permission' => 'products.view'],
-        ['label' => 'POS Billing', 'route' => 'invoices.pos', 'active' => ['invoices.pos'], 'permission' => 'sales.create'],
-        ['label' => 'Barcode Scanner', 'route' => 'barcode.index', 'active' => ['barcode.*'], 'feature' => 'pro.barcode', 'permission' => 'sales.create'],
-        ['label' => 'Invoices', 'route' => 'invoices.index', 'active' => ['invoices.index', 'invoices.show', 'payments.*'], 'permission' => 'sales.view'],
-        ['label' => 'Create Invoice', 'route' => 'invoices.create', 'active' => ['invoices.create'], 'permission' => 'sales.create'],
-        ['label' => 'Customers', 'route' => 'customers.index', 'active' => ['customers.index', 'customers.statement', 'customer.account'], 'permission' => 'customers.view'],
-        ['label' => 'Add Customer', 'route' => 'customers.create', 'active' => ['customers.create'], 'permission' => 'customers.create'],
+        ['label' => 'Dashboard', 'icon' => 'layout-dashboard', 'route' => 'dashboard', 'active' => ['dashboard'], 'permission' => 'dashboard.view'],
+        ['label' => 'Products', 'icon' => 'package-search', 'route' => 'products.index', 'active' => ['products.*'], 'permission' => 'products.view', 'action_route' => 'products.create', 'action_permission' => 'products.create', 'action_label' => 'Add product'],
+        ['label' => 'Categories', 'icon' => 'tags', 'route' => 'categories.index', 'active' => ['categories.*'], 'permission' => 'products.view'],
+        ['label' => 'POS Billing', 'icon' => 'scan-barcode', 'route' => 'invoices.pos', 'active' => ['invoices.pos'], 'permission' => 'sales.create'],
+        ['label' => 'Barcode Scanner', 'icon' => 'scan-line', 'route' => 'barcode.index', 'active' => ['barcode.*'], 'feature' => 'pro.barcode', 'permission' => 'sales.create'],
+        ['label' => 'Invoices', 'icon' => 'receipt-text', 'route' => 'invoices.index', 'active' => ['invoices.*', 'payments.*'], 'permission' => 'sales.view', 'action_route' => 'invoices.create', 'action_permission' => 'sales.create', 'action_label' => 'Create invoice'],
+        ['label' => 'Customers', 'icon' => 'users', 'route' => 'customers.index', 'active' => ['customers.*', 'customer.account'], 'permission' => 'customers.view', 'action_route' => 'customers.create', 'action_permission' => 'customers.create', 'action_label' => 'Add customer'],
     ];
 
     $financeLinks = [
-        ['label' => 'Purchases', 'route' => 'purchases.index', 'active' => ['purchases.index', 'purchases.show', 'purchases.edit'], 'permission' => 'purchases.view'],
-        ['label' => 'Create Purchase', 'route' => 'purchases.create', 'active' => ['purchases.create'], 'permission' => 'purchases.create'],
-        ['label' => 'Suppliers', 'route' => 'suppliers.index', 'active' => ['suppliers.index', 'suppliers.show', 'suppliers.edit', 'supplier.*', 'supplier-payments.*'], 'permission' => 'suppliers.view'],
-        ['label' => 'Add Supplier', 'route' => 'suppliers.create', 'active' => ['suppliers.create'], 'permission' => 'suppliers.create'],
-        ['label' => 'Expenses', 'route' => 'expenses.index', 'active' => ['expenses.index', 'expenses.edit'], 'permission' => 'expenses.view'],
-        ['label' => 'Create Expense', 'route' => 'expenses.create', 'active' => ['expenses.create'], 'permission' => 'expenses.create'],
+        ['label' => 'Purchases', 'icon' => 'shopping-cart', 'route' => 'purchases.index', 'active' => ['purchases.*'], 'permission' => 'purchases.view', 'action_route' => 'purchases.create', 'action_permission' => 'purchases.create', 'action_label' => 'Create purchase'],
+        ['label' => 'Suppliers', 'icon' => 'truck', 'route' => 'suppliers.index', 'active' => ['suppliers.*', 'supplier.*', 'supplier-payments.*'], 'permission' => 'suppliers.view', 'action_route' => 'suppliers.create', 'action_permission' => 'suppliers.create', 'action_label' => 'Add supplier'],
+        ['label' => 'Expenses', 'icon' => 'wallet-cards', 'route' => 'expenses.index', 'active' => ['expenses.*'], 'permission' => 'expenses.view', 'action_route' => 'expenses.create', 'action_permission' => 'expenses.create', 'action_label' => 'Create expense'],
     ];
 
     $reportLinks = [
-        ['label' => 'Daily Sales', 'route' => 'reports.daily-sales', 'active' => ['reports.daily-sales'], 'permission' => 'reports.view'],
-        ['label' => 'Monthly Sales', 'route' => 'reports.monthly-sales', 'active' => ['reports.monthly-sales'], 'permission' => 'reports.view'],
-        ['label' => 'Stock Report', 'route' => 'reports.stock', 'active' => ['reports.stock'], 'permission' => 'reports.view'],
-        ['label' => 'Low Stock', 'route' => 'reports.low-stock', 'active' => ['reports.low-stock'], 'permission' => 'reports.view'],
-        ['label' => 'Profit & Loss', 'route' => 'reports.profit-loss', 'active' => ['reports.profit-loss'], 'permission' => 'reports.view'],
+        ['label' => 'Daily Sales', 'icon' => 'chart-column', 'route' => 'reports.daily-sales', 'active' => ['reports.daily-sales'], 'permission' => 'reports.view'],
+        ['label' => 'Monthly Sales', 'icon' => 'calendar-range', 'route' => 'reports.monthly-sales', 'active' => ['reports.monthly-sales'], 'permission' => 'reports.view'],
+        ['label' => 'Stock Report', 'icon' => 'warehouse', 'route' => 'reports.stock', 'active' => ['reports.stock'], 'permission' => 'reports.view'],
+        ['label' => 'Low Stock', 'icon' => 'triangle-alert', 'route' => 'reports.low-stock', 'active' => ['reports.low-stock'], 'permission' => 'reports.view'],
+        ['label' => 'Profit & Loss', 'icon' => 'chart-no-axes-combined', 'route' => 'reports.profit-loss', 'active' => ['reports.profit-loss'], 'permission' => 'reports.view'],
     ];
 
     $settingsLinks = [
-        ['label' => 'Team Users', 'route' => 'team.index', 'active' => ['team.*'], 'permission' => 'team.manage'],
-        ['label' => 'Plan & Billing', 'route' => 'billing.index', 'active' => ['billing.*'], 'permission' => 'payments.view'],
-        ['label' => 'Business Settings', 'route' => 'settings.business', 'active' => ['settings.*'], 'permission' => 'settings.manage'],
+        ['label' => 'Team Users', 'icon' => 'users-round', 'route' => 'team.index', 'active' => ['team.*'], 'permission' => 'team.manage'],
+        ['label' => 'Plan & Billing', 'icon' => 'credit-card', 'route' => 'billing.index', 'active' => ['billing.*'], 'role' => 'owner'],
+        ['label' => 'Business Settings', 'icon' => 'settings-2', 'route' => 'settings.business', 'active' => ['settings.*'], 'permission' => 'settings.manage'],
     ];
 
     $platformLinks = [
-        ['label' => 'Platform Admin', 'route' => 'platform.dashboard', 'active' => ['platform.dashboard']],
-        ['label' => 'Activity', 'route' => 'platform.activities.index', 'active' => ['platform.activities.*']],
-        ['label' => 'Tenants', 'route' => 'platform.tenants.index', 'active' => ['platform.tenants.*']],
-        ['label' => 'Billing', 'route' => 'platform.billing.index', 'active' => ['platform.billing.*']],
-        ['label' => 'Payment Reviews', 'route' => 'platform.payment-submissions.index', 'active' => ['platform.payment-submissions.*']],
-        ['label' => 'Plans', 'route' => 'platform.plans.index', 'active' => ['platform.plans.*']],
-        ['label' => 'Features', 'route' => 'platform.features.index', 'active' => ['platform.features.*']],
-        ['label' => 'Offers', 'route' => 'platform.offers.index', 'active' => ['platform.offers.*']],
-        ['label' => 'Settings', 'route' => 'platform.settings.edit', 'active' => ['platform.settings.*']],
+        ['label' => 'Platform Admin', 'icon' => 'gauge', 'route' => 'platform.dashboard', 'active' => ['platform.dashboard']],
+        ['label' => 'Activity', 'icon' => 'history', 'route' => 'platform.activities.index', 'active' => ['platform.activities.*']],
+        ['label' => 'Tenants', 'icon' => 'building-2', 'route' => 'platform.tenants.index', 'active' => ['platform.tenants.*']],
+        ['label' => 'Billing', 'icon' => 'landmark', 'route' => 'platform.billing.index', 'active' => ['platform.billing.*']],
+        ['label' => 'Payment Reviews', 'icon' => 'badge-check', 'route' => 'platform.payment-submissions.index', 'active' => ['platform.payment-submissions.*']],
+        ['label' => 'Plans', 'icon' => 'layers-3', 'route' => 'platform.plans.index', 'active' => ['platform.plans.*']],
+        ['label' => 'Features', 'icon' => 'blocks', 'route' => 'platform.features.index', 'active' => ['platform.features.*']],
+        ['label' => 'Offers', 'icon' => 'badge-percent', 'route' => 'platform.offers.index', 'active' => ['platform.offers.*']],
+        ['label' => 'Settings', 'icon' => 'settings', 'route' => 'platform.settings.edit', 'active' => ['platform.settings.*']],
     ];
+
+    $groupIsActive = fn (array $links): bool => collect($links)
+        ->contains(fn (array $link): bool => $isActive($link['active']));
+    $canAccess = fn (array $link): bool => isset($link['role'])
+        ? auth()->user()->hasRole($link['role'])
+        : auth()->user()->can($link['permission']);
 @endphp
 
-<aside class="navbar navbar-vertical navbar-expand-lg navbar-dark bg-dark d-print-none">
+<aside class="navbar navbar-vertical navbar-expand-lg navbar-dark billstack-sidebar d-print-none">
     <div class="container-fluid">
         <h1 class="navbar-brand">
             <a href="{{ auth()->user()?->isPlatformAdmin() ? route('platform.dashboard') : route('dashboard') }}"
-               class="text-white text-decoration-none">
-                BillStack
+               class="d-flex align-items-center gap-2 text-white text-decoration-none">
+                <span class="brand-mark">{{ str(platform_name())->substr(0, 2)->upper() }}</span>
+                <span class="brand-copy">
+                    <span>{{ platform_name() }}</span>
+                    <small>{{ auth()->user()?->isPlatformAdmin() ? 'Platform control' : 'Business workspace' }}</small>
+                </span>
             </a>
         </h1>
+
+        <button type="button"
+                class="sidebar-rail-toggle"
+                data-sidebar-toggle
+                aria-label="Toggle compact sidebar"
+                title="Collapse or expand sidebar">
+            <span class="sidebar-collapse-icon"><i data-lucide="chevron-left"></i></span>
+            <span class="sidebar-expand-icon"><i data-lucide="chevron-right"></i></span>
+        </button>
 
         <div class="navbar-collapse">
             <ul class="navbar-nav pt-lg-3">
                 @if(auth()->user()?->isPlatformAdmin())
-                    <li class="nav-item mb-1">
-                        <span class="nav-link disabled text-uppercase text-white-50 small">
-                            Platform Control
-                        </span>
+                    <li class="nav-group">
+                        <button class="nav-section" type="button"
+                                data-sidebar-group-toggle="platform-control-links"
+                                aria-expanded="{{ $groupIsActive($platformLinks) ? 'true' : 'false' }}">
+                                <span>Platform Control</span>
+                                <i data-lucide="chevron-down"></i>
+                        </button>
+                        <ul class="nav-group-links" id="platform-control-links"
+                            @if(! $groupIsActive($platformLinks)) hidden @endif>
+                                @foreach($platformLinks as $link)
+                                    <li class="nav-item">
+                                        <a class="nav-link {{ $isActive($link['active']) ? 'active' : '' }}"
+                                           href="{{ route($link['route']) }}"
+                                           title="{{ $link['label'] }}">
+                                            <span class="nav-link-icon"><i data-lucide="{{ $link['icon'] }}"></i></span>
+                                            <span class="nav-link-title">{{ $link['label'] }}</span>
+                                        </a>
+                                    </li>
+                                @endforeach
+                        </ul>
                     </li>
-
-                    @foreach($platformLinks as $link)
-                        <li class="nav-item">
-                            <a class="nav-link text-white {{ $isActive($link['active']) ? 'active' : '' }}"
-                               href="{{ route($link['route']) }}">
-                                <span class="nav-link-title">{{ $link['label'] }}</span>
-                            </a>
-                        </li>
-                    @endforeach
                 @else
-                    <li class="nav-item mb-1">
-                        <span class="nav-link disabled text-uppercase text-white-50 small">
-                            Store Operations
-                        </span>
+                    <li class="nav-group">
+                        <button class="nav-section" type="button"
+                                data-sidebar-group-toggle="store-operation-links"
+                                aria-expanded="{{ $groupIsActive($storeLinks) ? 'true' : 'false' }}">
+                                <span>Store Operations</span>
+                                <i data-lucide="chevron-down"></i>
+                        </button>
+                        <ul class="nav-group-links" id="store-operation-links"
+                            @if(! $groupIsActive($storeLinks)) hidden @endif>
+                                @foreach($storeLinks as $link)
+                                    @if(auth()->user()->can($link['permission']) && (! isset($link['feature']) || app(\App\Services\TenantFeatureService::class)->userHasFeature(auth()->user(), $link['feature'])))
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ $isActive($link['active']) ? 'active' : '' }}"
+                                               href="{{ route($link['route']) }}"
+                                               title="{{ $link['label'] }}">
+                                                <span class="nav-link-icon"><i data-lucide="{{ $link['icon'] }}"></i></span>
+                                                <span class="nav-link-title">{{ $link['label'] }}</span>
+                                            </a>
+                                            @if(isset($link['action_route']) && auth()->user()->can($link['action_permission']))
+                                                <a class="nav-quick-action"
+                                                   href="{{ route($link['action_route']) }}"
+                                                   title="{{ $link['action_label'] }}"
+                                                   aria-label="{{ $link['action_label'] }}">
+                                                    <i data-lucide="plus"></i>
+                                                </a>
+                                            @endif
+                                        </li>
+                                    @endif
+                                @endforeach
+                        </ul>
                     </li>
-
-                    @foreach($storeLinks as $link)
-                        @if(auth()->user()->can($link['permission']) && (! isset($link['feature']) || app(\App\Services\TenantFeatureService::class)->userHasFeature(auth()->user(), $link['feature'])))
-                            <li class="nav-item">
-                                <a class="nav-link text-white {{ $isActive($link['active']) ? 'active' : '' }}"
-                                   href="{{ route($link['route']) }}">
-                                    <span class="nav-link-title">{{ $link['label'] }}</span>
-                                </a>
-                            </li>
-                        @endif
-                    @endforeach
 
                     @if(collect($financeLinks)->contains(fn ($link) => auth()->user()->can($link['permission'])))
-                        <li class="nav-item mt-3 mb-1">
-                            <span class="nav-link disabled text-uppercase text-white-50 small">
-                                Finance
-                            </span>
+                        <li class="nav-group">
+                            <button class="nav-section" type="button"
+                                    data-sidebar-group-toggle="finance-links"
+                                    aria-expanded="{{ $groupIsActive($financeLinks) ? 'true' : 'false' }}">
+                                    <span>Finance</span>
+                                    <i data-lucide="chevron-down"></i>
+                            </button>
+                            <ul class="nav-group-links" id="finance-links"
+                                @if(! $groupIsActive($financeLinks)) hidden @endif>
+                                    @foreach($financeLinks as $link)
+                                        @can($link['permission'])
+                                            <li class="nav-item">
+                                                <a class="nav-link {{ $isActive($link['active']) ? 'active' : '' }}"
+                                                   href="{{ route($link['route']) }}"
+                                                   title="{{ $link['label'] }}">
+                                                    <span class="nav-link-icon"><i data-lucide="{{ $link['icon'] }}"></i></span>
+                                                    <span class="nav-link-title">{{ $link['label'] }}</span>
+                                                </a>
+                                                @if(isset($link['action_route']) && auth()->user()->can($link['action_permission']))
+                                                    <a class="nav-quick-action"
+                                                       href="{{ route($link['action_route']) }}"
+                                                       title="{{ $link['action_label'] }}"
+                                                       aria-label="{{ $link['action_label'] }}">
+                                                        <i data-lucide="plus"></i>
+                                                    </a>
+                                                @endif
+                                            </li>
+                                        @endcan
+                                    @endforeach
+                            </ul>
                         </li>
-
-                        @foreach($financeLinks as $link)
-                            @can($link['permission'])
-                                <li class="nav-item">
-                                    <a class="nav-link text-white {{ $isActive($link['active']) ? 'active' : '' }}"
-                                       href="{{ route($link['route']) }}">
-                                        <span class="nav-link-title">{{ $link['label'] }}</span>
-                                    </a>
-                                </li>
-                            @endcan
-                        @endforeach
                     @endif
 
                     @can('reports.view')
-                        <li class="nav-item mt-3 mb-1">
-                            <span class="nav-link disabled text-uppercase text-white-50 small">
-                                Reports
-                            </span>
+                        <li class="nav-group">
+                            <button class="nav-section" type="button"
+                                    data-sidebar-group-toggle="report-links"
+                                    aria-expanded="{{ $groupIsActive($reportLinks) ? 'true' : 'false' }}">
+                                    <span>Reports</span>
+                                    <i data-lucide="chevron-down"></i>
+                            </button>
+                            <ul class="nav-group-links" id="report-links"
+                                @if(! $groupIsActive($reportLinks)) hidden @endif>
+                                    @foreach($reportLinks as $link)
+                                        <li class="nav-item">
+                                            <a class="nav-link {{ $isActive($link['active']) ? 'active' : '' }}"
+                                               href="{{ route($link['route']) }}"
+                                               title="{{ $link['label'] }}">
+                                                <span class="nav-link-icon"><i data-lucide="{{ $link['icon'] }}"></i></span>
+                                                <span class="nav-link-title">{{ $link['label'] }}</span>
+                                            </a>
+                                        </li>
+                                    @endforeach
+                            </ul>
                         </li>
-
-                        @foreach($reportLinks as $link)
-                            <li class="nav-item">
-                                <a class="nav-link text-white {{ $isActive($link['active']) ? 'active' : '' }}"
-                                   href="{{ route($link['route']) }}">
-                                    <span class="nav-link-title">{{ $link['label'] }}</span>
-                                </a>
-                            </li>
-                        @endforeach
                     @endcan
 
-                    @if(collect($settingsLinks)->contains(fn ($link) => auth()->user()->can($link['permission'])))
-                        <li class="nav-item mt-3 mb-1">
-                            <span class="nav-link disabled text-uppercase text-white-50 small">
-                                Settings
-                            </span>
+                    @if(collect($settingsLinks)->contains($canAccess))
+                        <li class="nav-group">
+                            <button class="nav-section" type="button"
+                                    data-sidebar-group-toggle="setting-links"
+                                    aria-expanded="{{ $groupIsActive($settingsLinks) ? 'true' : 'false' }}">
+                                    <span>Settings</span>
+                                    <i data-lucide="chevron-down"></i>
+                            </button>
+                            <ul class="nav-group-links" id="setting-links"
+                                @if(! $groupIsActive($settingsLinks)) hidden @endif>
+                                    @foreach($settingsLinks as $link)
+                                        @if($canAccess($link))
+                                            <li class="nav-item">
+                                                <a class="nav-link {{ $isActive($link['active']) ? 'active' : '' }}"
+                                                   href="{{ route($link['route']) }}"
+                                                   title="{{ $link['label'] }}">
+                                                    <span class="nav-link-icon"><i data-lucide="{{ $link['icon'] }}"></i></span>
+                                                    <span class="nav-link-title">{{ $link['label'] }}</span>
+                                                </a>
+                                            </li>
+                                        @endif
+                                    @endforeach
+                            </ul>
                         </li>
-
-                        @foreach($settingsLinks as $link)
-                            @can($link['permission'])
-                                <li class="nav-item">
-                                    <a class="nav-link text-white {{ $isActive($link['active']) ? 'active' : '' }}"
-                                       href="{{ route($link['route']) }}">
-                                        <span class="nav-link-title">{{ $link['label'] }}</span>
-                                    </a>
-                                </li>
-                            @endcan
-                        @endforeach
                     @endif
                 @endif
             </ul>
+        </div>
+
+        <div class="sidebar-footer">
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="sidebar-signout" title="Sign out">
+                    <i data-lucide="log-out"></i>
+                    <span>Sign Out</span>
+                </button>
+            </form>
         </div>
     </div>
 </aside>

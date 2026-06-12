@@ -12,7 +12,7 @@
         ->count();
 @endphp
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="page-heading">
     <div>
         <h3 class="mb-1">Invoices</h3>
         <div class="text-muted">
@@ -22,6 +22,7 @@
 
     <a href="{{ route('invoices.create') }}"
        class="btn btn-primary">
+        <i data-lucide="file-plus-2"></i>
         Create Invoice
     </a>
 </div>
@@ -117,6 +118,7 @@
                             <div class="d-inline-flex gap-1 flex-nowrap">
                                 <a href="{{ route('invoices.show', $invoice) }}"
                                    class="btn btn-sm btn-primary text-nowrap">
+                                    <i data-lucide="eye"></i>
                                     View
                                 </a>
 
@@ -129,6 +131,7 @@
                                         @method('PATCH')
 
                                         <button class="btn btn-sm btn-warning text-nowrap">
+                                            <i data-lucide="ban"></i>
                                             Cancel
                                         </button>
                                     </form>

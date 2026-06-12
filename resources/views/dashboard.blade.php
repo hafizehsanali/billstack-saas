@@ -1,204 +1,109 @@
 @extends('layouts.app')
 
 @section('content')
-{{-- Dashboard Filters --}}
-<div class="card mb-4">
-
-    <div class="card-body">
-
-        <form method="GET" action="{{ route('dashboard') }}">
-
-            <div class="row align-items-end">
-
-                <div class="col-md-4">
-                    <label class="form-label">Start Date</label>
-
-                    <input type="date"
-                        name="start_date"
-                        class="form-control"
-                        value="{{ request('start_date') }}">
-                </div>
-
-                <div class="col-md-4">
-                    <label class="form-label">End Date</label>
-
-                    <input type="date"
-                        name="end_date"
-                        class="form-control"
-                        value="{{ request('end_date') }}">
-                </div>
-
-                <div class="col-md-4">
-
-                    <button class="btn btn-primary">
-                        Filter Analytics
-                    </button>
-
-                    <a href="{{ route('dashboard') }}"
-                        class="btn btn-secondary">
-
-                        Reset
-
-                    </a>
-
-                </div>
-
-            </div>
-
-        </form>
-
-    </div>
-
-</div>
 @php
     $isFiltered = request()->start_date || request()->end_date;
 @endphp
-<div class="row g-3">
 
-    {{-- Sales --}}
-    <div class="col-md-3">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <small>Sales Today</small>
-                <h2>Rs {{ number_format($stats['today_sales'], 2) }}</h2>
-            </div>
+<div class="page-heading">
+    <div>
+        <h1>Business Overview</h1>
+        <div class="text-muted">
+            Sales, profit, inventory health, and account activity in one view.
         </div>
     </div>
-
-    <div class="col-md-3">
-        <div class="card bg-blue text-white">
-            <div class="card-body">
-                <small>Sales in Selected Period</small>
-                <h2>Rs {{ number_format($stats['monthly_sales'], 2) }}</h2>
-            </div>
-        </div>
+    <div class="page-actions">
+        <a href="{{ route('invoices.pos') }}" class="btn btn-primary">
+            <i data-lucide="scan-barcode"></i>
+            Open POS
+        </a>
+        <a href="{{ route('invoices.create') }}" class="btn btn-outline-secondary">
+            <i data-lucide="file-plus-2"></i>
+            New Invoice
+        </a>
     </div>
-
-    <div class="col-md-3">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <small>Total Sales</small>
-                <h2>Rs {{ number_format($stats['total_sales'], 2) }}</h2>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card bg-green text-white">
-            <div class="card-body">
-                <small>Net Profit</small>
-                <h2>Rs {{ number_format($stats['net_profit'], 2) }}</h2>
-            </div>
-        </div>
-    </div>
-
-    {{-- Profit --}}
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <small>Cost of Goods Sold</small>
-                <h2>Rs {{ number_format($stats['total_cogs'], 2) }}</h2>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <small>Gross Profit</small>
-                <h2>Rs {{ number_format($stats['gross_profit'], 2) }}</h2>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <small>Expenses</small>
-                <h2>Rs {{ number_format($stats['total_expenses'], 2) }}</h2>
-            </div>
-        </div>
-    </div>
-
-    {{-- Inventory --}}
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-body">
-                <small>{{ $isFiltered ? 'Products Added' : 'Total Products' }}</small>
-                <h2>{{ $stats['total_products'] }}</h2>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card border-danger">
-            <div class="card-body">
-                <small>Low Stock Items</small>
-                <h2>{{ $stats['low_stock'] }}</h2>
-                <a href="{{ route('alerts.index') }}"
-                   class="btn btn-sm btn-outline-danger">
-                    View Alerts
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-body">
-                <small> {{ $isFiltered ? 'New Customers' : 'Total Customers' }}</small>
-                <h2>{{ $stats['total_customers'] }}</h2>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-body">
-                <small>{{ $isFiltered ? 'Invoices Created' : 'Total Invoices' }}</small>
-                <h2>{{ $stats['total_invoices'] }}</h2>
-            </div>
-        </div>
-    </div>
-
-    {{-- Invoice Status --}}
-    <div class="col-md-3">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <small>Paid</small>
-                <h2>{{ $stats['paid_invoices'] }}</h2>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card bg-warning text-white">
-            <div class="card-body">
-                <small>Partially Paid</small>
-                <h2>{{ $stats['partial_invoices'] }}</h2>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card bg-danger text-white">
-            <div class="card-body">
-                <small>Unpaid Invoices</small>
-                <h2>{{ $stats['unpaid_invoices'] }}</h2>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card bg-dark text-white">
-            <div class="card-body">
-                <small>Cancelled</small>
-                <h2>{{ $stats['cancelled_invoices'] }}</h2>
-            </div>
-        </div>
-    </div>
-
 </div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ route('dashboard') }}">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" name="start_date" class="form-control" value="{{ request('start_date') }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">End Date</label>
+                    <input type="date" name="end_date" class="form-control" value="{{ request('end_date') }}">
+                </div>
+                <div class="col-md-4">
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary">
+                            <i data-lucide="sliders-horizontal"></i>
+                            Apply Period
+                        </button>
+                        <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary">
+                            <i data-lucide="rotate-ccw"></i>
+                            Reset
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    @foreach([
+        ['label' => 'Sales Today', 'value' => 'Rs '.number_format($stats['today_sales'], 2), 'icon' => 'banknote', 'tone' => ''],
+        ['label' => 'Sales in Selected Period', 'value' => 'Rs '.number_format($stats['monthly_sales'], 2), 'icon' => 'calendar-range', 'tone' => 'blue'],
+        ['label' => 'Total Sales', 'value' => 'Rs '.number_format($stats['total_sales'], 2), 'icon' => 'trending-up', 'tone' => ''],
+        ['label' => 'Net Profit', 'value' => 'Rs '.number_format($stats['net_profit'], 2), 'icon' => 'chart-no-axes-combined', 'tone' => $stats['net_profit'] < 0 ? 'danger' : ''],
+    ] as $metric)
+        <div class="col-sm-6 col-xl-3">
+            <div class="card metric-card h-100">
+                <div class="card-body d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                        <div class="metric-label">{{ $metric['label'] }}</div>
+                        <div class="metric-value">{{ $metric['value'] }}</div>
+                        @if ($metric['label'] === 'Net Profit')
+                            <div class="small text-muted mt-2">
+                                Cost of Goods Sold: Rs {{ number_format($stats['total_cogs'], 2) }}
+                            </div>
+                        @endif
+                    </div>
+                    <span class="metric-icon {{ $metric['tone'] }}">
+                        <i data-lucide="{{ $metric['icon'] }}"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+    @endforeach
+</div>
+
+<div class="row g-3">
+    @foreach([
+        ['label' => 'Gross Profit', 'value' => 'Rs '.number_format($stats['gross_profit'], 2), 'icon' => 'circle-dollar-sign', 'tone' => ''],
+        ['label' => 'Expenses', 'value' => 'Rs '.number_format($stats['total_expenses'], 2), 'icon' => 'wallet-cards', 'tone' => 'warning'],
+        ['label' => $isFiltered ? 'Products Added' : 'Total Products', 'value' => number_format($stats['total_products']), 'icon' => 'boxes', 'tone' => 'blue'],
+        ['label' => 'Low Stock Items', 'value' => number_format($stats['low_stock']), 'icon' => 'triangle-alert', 'tone' => $stats['low_stock'] > 0 ? 'danger' : ''],
+        ['label' => $isFiltered ? 'New Customers' : 'Total Customers', 'value' => number_format($stats['total_customers']), 'icon' => 'users', 'tone' => ''],
+        ['label' => $isFiltered ? 'Invoices Created' : 'Total Invoices', 'value' => number_format($stats['total_invoices']), 'icon' => 'receipt-text', 'tone' => 'blue'],
+    ] as $metric)
+        <div class="col-sm-6 col-lg-4 col-xl-2">
+            <div class="card metric-card h-100">
+                <div class="card-body">
+                    <span class="metric-icon {{ $metric['tone'] }} mb-3">
+                        <i data-lucide="{{ $metric['icon'] }}"></i>
+                    </span>
+                    <div class="metric-label">{{ $metric['label'] }}</div>
+                    <div class="metric-value">{{ $metric['value'] }}</div>
+                </div>
+            </div>
+        </div>
+    @endforeach
+</div>
+
 {{-- Charts --}}
 <div class="row mt-4">
 
@@ -230,7 +135,7 @@
                 </div>
 
                 <div class="mb-3">
-                    <strong>Partial:</strong>
+                    <strong>Partially Paid:</strong>
                     {{ $stats['partial_invoices'] }}
                 </div>
 

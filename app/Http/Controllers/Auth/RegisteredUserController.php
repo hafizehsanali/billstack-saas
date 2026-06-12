@@ -38,8 +38,12 @@ class RegisteredUserController extends Controller
             ->where('is_active', true)
             ->where('slug', $request->string('plan'))
             ->first();
+        $selectedCycle = in_array($request->string('cycle')->toString(), ['monthly', 'annual'], true)
+            ? $request->string('cycle')->toString()
+            : 'monthly';
+        $selectedPromo = Str::upper($request->string('promo')->toString());
 
-        return view('auth.register', compact('selectedPlan'));
+        return view('auth.register', compact('selectedPlan', 'selectedCycle', 'selectedPromo'));
     }
 
     /**
@@ -64,6 +68,8 @@ class RegisteredUserController extends Controller
                     ->where('is_public', true)
                     ->where('is_active', true),
             ],
+            'billing_cycle' => ['nullable', Rule::in(['monthly', 'annual'])],
+            'promo_code' => ['nullable', 'string', 'max:50', 'alpha_dash'],
         ]);
         $tenant = Tenant::create([
             'name' => $request->business_name,
@@ -92,6 +98,13 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
 
         Auth::login($user);
+
+        if (! $tenant->activeSubscription && $selectedPlan?->monthly_price_cents > 0) {
+            return redirect()->route('subscription.checkout', array_filter([
+                'billing_cycle' => $request->input('billing_cycle', 'monthly'),
+                'promo_code' => Str::upper($request->input('promo_code', '')),
+            ]));
+        }
 
         return redirect(route(
             $tenant->activeSubscription ? 'dashboard' : 'subscription.status',

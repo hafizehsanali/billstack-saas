@@ -11,16 +11,33 @@ use App\Models\Tenant;
 use App\Services\TenantUsageLimitService;
 use App\Services\PlatformActivityService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class TenantController extends Controller
 {
-    public function index(TenantUsageLimitService $usageLimits): View
+    public function index(Request $request, TenantUsageLimitService $usageLimits): View
     {
-        $tenants = Tenant::with(['currentSubscription.plan', 'activeSubscription.plan'])
+        $tenants = Tenant::query()
+            ->with(['currentSubscription.plan', 'activeSubscription.plan'])
             ->withCount(['users'])
+            ->when($request->filled('search'), function ($query) use ($request): void {
+                $search = $request->string('search')->toString();
+                $query->where(function ($query) use ($search): void {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('slug', 'like', "%{$search}%")
+                        ->orWhereHas('users', fn ($users) => $users->where('email', 'like', "%{$search}%"));
+                });
+            })
+            ->when($request->filled('plan'), fn ($query) => $query->whereHas(
+                'currentSubscription.plan',
+                fn ($plans) => $plans->where('subscription_plans.id', $request->integer('plan'))
+            ))
+            ->when($request->input('status') === 'active', fn ($query) => $query->whereHas('activeSubscription'))
+            ->when($request->input('status') === 'inactive', fn ($query) => $query->whereDoesntHave('activeSubscription'))
             ->latest()
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
 
         $usage = $tenants->getCollection()
             ->mapWithKeys(fn (Tenant $tenant) => [
@@ -30,6 +47,7 @@ class TenantController extends Controller
         return view('platform.tenants.index', [
             'tenants' => $tenants,
             'usage' => $usage,
+            'plans' => SubscriptionPlan::where('is_active', true)->orderBy('name')->get(),
         ]);
     }
 
