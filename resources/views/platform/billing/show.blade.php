@@ -97,6 +97,36 @@
     </div>
 
     <div class="col-lg-7">
+        @if($invoice->paymentSubmission)
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3 class="card-title">Owner Payment Submission</h3>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap justify-content-between gap-3">
+                        <div>
+                            <div class="text-muted small">Reference</div>
+                            <div class="fw-semibold">{{ $invoice->paymentSubmission->reference_no }}</div>
+                        </div>
+                        <div>
+                            <div class="text-muted small">Method</div>
+                            <div>{{ str($invoice->paymentSubmission->payment_method)->replace('_', ' ')->title() }}</div>
+                        </div>
+                        <div>
+                            <div class="text-muted small">Status</div>
+                            <span class="badge {{ $invoice->paymentSubmission->status === 'approved' ? 'bg-success text-white' : ($invoice->paymentSubmission->status === 'rejected' ? 'bg-danger text-white' : 'bg-warning text-dark') }}">
+                                {{ str($invoice->paymentSubmission->status)->title() }}
+                            </span>
+                        </div>
+                        <a href="{{ route('platform.payment-submissions.index') }}"
+                           class="btn btn-sm btn-outline-secondary align-self-start">
+                            Review Queue
+                        </a>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         @if($invoice->balance_cents > 0)
             <div class="card mb-3">
                 <div class="card-header">

@@ -15,6 +15,7 @@ use App\Http\Controllers\Platform\BillingController as PlatformBillingController
 use App\Http\Controllers\Platform\DashboardController as PlatformDashboardController;
 use App\Http\Controllers\Platform\FeatureController as PlatformFeatureController;
 use App\Http\Controllers\Platform\OfferController as PlatformOfferController;
+use App\Http\Controllers\Platform\PaymentSubmissionController as PlatformPaymentSubmissionController;
 use App\Http\Controllers\Platform\PlanController as PlatformPlanController;
 use App\Http\Controllers\Platform\SettingController as PlatformSettingController;
 use App\Http\Controllers\Platform\TenantController as PlatformTenantController;
@@ -28,6 +29,7 @@ use App\Http\Controllers\SalesReturnController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SubscriptionStatusController;
 use App\Http\Controllers\SubscriptionCheckoutController;
+use App\Http\Controllers\SubscriptionPaymentSubmissionController;
 use App\Http\Controllers\SupplierAccountController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SupplierPaymentController;
@@ -48,6 +50,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/subscription/checkout', [SubscriptionCheckoutController::class, 'store'])
         ->middleware('role:owner')
         ->name('subscription.checkout.store');
+    Route::post('/subscription/invoices/{invoice}/payment-submission', [SubscriptionPaymentSubmissionController::class, 'store'])
+        ->middleware('role:owner')
+        ->name('subscription.payment-submissions.store');
     Route::get('/features/unavailable', [FeatureUnavailableController::class, 'show'])->name('features.unavailable');
 
     Route::middleware('active_subscription')->group(function () {
@@ -136,6 +141,12 @@ Route::middleware(['auth', 'platform_admin'])
         Route::get('billing/{invoice}', [PlatformBillingController::class, 'show'])->name('billing.show');
         Route::post('billing/{invoice}/payments', [PlatformBillingController::class, 'storePayment'])
             ->name('billing.payments.store');
+        Route::get('payment-submissions', [PlatformPaymentSubmissionController::class, 'index'])
+            ->name('payment-submissions.index');
+        Route::post('payment-submissions/{submission}/approve', [PlatformPaymentSubmissionController::class, 'approve'])
+            ->name('payment-submissions.approve');
+        Route::post('payment-submissions/{submission}/reject', [PlatformPaymentSubmissionController::class, 'reject'])
+            ->name('payment-submissions.reject');
         Route::resource('plans', PlatformPlanController::class)->except(['show', 'destroy']);
         Route::resource('features', PlatformFeatureController::class)->except(['show', 'destroy']);
         Route::resource('offers', PlatformOfferController::class)->except(['show', 'destroy']);

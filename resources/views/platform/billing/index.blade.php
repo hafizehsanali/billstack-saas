@@ -87,6 +87,11 @@
                             <span class="badge {{ $invoice->status === 'paid' ? 'bg-success text-white' : 'bg-light text-dark border' }}">
                                 {{ str($invoice->status)->replace('_', ' ')->title() }}
                             </span>
+                            @if($invoice->paymentSubmission?->status === 'pending')
+                                <div class="mt-1">
+                                    <span class="badge bg-warning text-dark">Payment review pending</span>
+                                </div>
+                            @endif
                         </td>
                         <td class="text-end">
                             <a href="{{ route('platform.billing.show', $invoice) }}"

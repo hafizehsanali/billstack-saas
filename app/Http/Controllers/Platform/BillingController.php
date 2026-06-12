@@ -15,7 +15,11 @@ class BillingController extends Controller
 {
     public function index(): View
     {
-        $invoices = PlatformSubscriptionInvoice::with(['tenant', 'subscription.plan'])
+        $invoices = PlatformSubscriptionInvoice::with([
+            'tenant',
+            'subscription.plan',
+            'paymentSubmission',
+        ])
             ->latest('issued_on')
             ->latest()
             ->paginate(15);
@@ -58,7 +62,14 @@ class BillingController extends Controller
     public function show(PlatformSubscriptionInvoice $invoice): View
     {
         return view('platform.billing.show', [
-            'invoice' => $invoice->load(['tenant', 'subscription.plan', 'payments', 'offer']),
+            'invoice' => $invoice->load([
+                'tenant',
+                'subscription.plan',
+                'payments',
+                'offer',
+                'paymentSubmission.submitter',
+                'paymentSubmission.reviewer',
+            ]),
         ]);
     }
 

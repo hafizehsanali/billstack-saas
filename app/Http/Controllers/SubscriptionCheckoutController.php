@@ -64,7 +64,7 @@ class SubscriptionCheckoutController extends Controller
 
     private function openInvoice(int $subscriptionId): ?PlatformSubscriptionInvoice
     {
-        return PlatformSubscriptionInvoice::with('payments')
+        return PlatformSubscriptionInvoice::with(['payments', 'paymentSubmission'])
             ->where('tenant_subscription_id', $subscriptionId)
             ->where('status', '!=', 'paid')
             ->latest()

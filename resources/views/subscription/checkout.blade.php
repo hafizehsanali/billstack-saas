@@ -106,6 +106,84 @@
                             </div>
                         @endif
                     </div>
+
+                    @php
+                        $paymentSubmission = $invoice->paymentSubmission;
+                    @endphp
+
+                    @if($paymentSubmission?->status === 'pending')
+                        <div class="alert alert-warning mt-3 mb-0">
+                            <div class="fw-semibold">Payment is waiting for review</div>
+                            <div class="small mt-1">
+                                Reference {{ $paymentSubmission->reference_no }} was submitted on
+                                {{ $paymentSubmission->paid_on?->format('M d, Y') }}.
+                            </div>
+                        </div>
+                    @else
+                        @if($paymentSubmission?->status === 'rejected')
+                            <div class="alert alert-danger mt-3">
+                                <div class="fw-semibold">Previous payment submission was rejected</div>
+                                <div class="small mt-1">{{ $paymentSubmission->rejection_reason }}</div>
+                            </div>
+                        @endif
+
+                        <form method="POST"
+                              action="{{ route('subscription.payment-submissions.store', $invoice) }}"
+                              class="border rounded p-3 mt-3">
+                            @csrf
+                            <div class="fw-semibold mb-1">Submit Full Payment Reference</div>
+                            <div class="text-muted small mb-3">
+                                Submit details only after paying the complete
+                                Rs {{ number_format($invoice->total_cents / 100, 2) }}.
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Payment Method <span class="text-danger">*</span></label>
+                                    <select name="payment_method"
+                                            class="form-select @error('payment_method') is-invalid @enderror"
+                                            required>
+                                        @foreach([
+                                            'bank_transfer' => 'Bank Transfer',
+                                            'card' => 'Card',
+                                            'mobile_wallet' => 'Mobile Wallet',
+                                            'cash_deposit' => 'Cash Deposit',
+                                        ] as $value => $label)
+                                            <option value="{{ $value }}" @selected(old('payment_method') === $value)>
+                                                {{ $label }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Transaction Reference <span class="text-danger">*</span></label>
+                                    <input type="text"
+                                           name="reference_no"
+                                           value="{{ old('reference_no') }}"
+                                           class="form-control @error('reference_no') is-invalid @enderror"
+                                           required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Payment Date <span class="text-danger">*</span></label>
+                                    <input type="date"
+                                           name="paid_on"
+                                           value="{{ old('paid_on', today()->toDateString()) }}"
+                                           max="{{ today()->toDateString() }}"
+                                           class="form-control @error('paid_on') is-invalid @enderror"
+                                           required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Notes</label>
+                                    <input type="text"
+                                           name="notes"
+                                           value="{{ old('notes') }}"
+                                           class="form-control @error('notes') is-invalid @enderror">
+                                </div>
+                            </div>
+
+                            <button class="btn btn-primary mt-3">Submit Payment for Review</button>
+                        </form>
+                    @endif
                 @else
                     <p class="text-muted">
                         Create the subscription invoice to begin the purchase process.

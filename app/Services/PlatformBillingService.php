@@ -156,6 +156,15 @@ class PlatformBillingService
                 'status' => 'paid',
             ]);
 
+            $lockedInvoice->paymentSubmission()
+                ->where('status', 'pending')
+                ->update([
+                    'status' => 'approved',
+                    'reviewed_by' => auth()->id(),
+                    'reviewed_at' => now(),
+                    'rejection_reason' => null,
+                ]);
+
             if ($lockedInvoice->subscription) {
                 $lockedInvoice->subscription->update([
                     'status' => 'active',

@@ -51,6 +51,14 @@ class PlatformSubscriptionInvoice extends Model
         return $this->hasMany(PlatformSubscriptionPayment::class);
     }
 
+    public function paymentSubmission()
+    {
+        return $this->hasOne(
+            SubscriptionPaymentSubmission::class,
+            'platform_subscription_invoice_id'
+        );
+    }
+
     public function offer(): BelongsTo
     {
         return $this->belongsTo(PlatformOffer::class, 'platform_offer_id');
