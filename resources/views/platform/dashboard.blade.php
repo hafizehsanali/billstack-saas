@@ -127,6 +127,42 @@
     </div>
 </div>
 
+<div class="card mb-4">
+    <div class="card-header">
+        <div>
+            <h2 class="card-title mb-1">System Operations</h2>
+            <div class="text-muted small">Latest automated database backup status.</div>
+        </div>
+    </div>
+    <div class="card-body">
+        @if($backupStatus)
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div>
+                    <span class="badge {{ $backupStatus['status'] === 'successful' ? 'bg-success text-white' : 'bg-danger text-white' }}">
+                        {{ str($backupStatus['status'])->title() }}
+                    </span>
+                    <span class="ms-2">
+                        {{ \Illuminate\Support\Carbon::parse($backupStatus['completed_at'])->diffForHumans() }}
+                    </span>
+                    @if($backupStatus['status'] === 'successful')
+                        <span class="text-muted ms-2">
+                            {{ strtoupper($backupStatus['driver']) }} |
+                            {{ number_format(($backupStatus['size'] ?? 0) / 1024, 1) }} KB
+                        </span>
+                    @endif
+                </div>
+                @if($backupStatus['message'])
+                    <div class="text-danger small">{{ $backupStatus['message'] }}</div>
+                @endif
+            </div>
+        @else
+            <div class="text-warning">
+                No database backup has been recorded. Run <code>php artisan app:backup-database</code>.
+            </div>
+        @endif
+    </div>
+</div>
+
 <div class="row g-4">
     <div class="col-lg-7">
         <div class="card h-100">

@@ -20,3 +20,8 @@ Artisan::command('subscriptions:expire', function (
 Schedule::command('subscriptions:expire')
     ->dailyAt('00:10')
     ->withoutOverlapping();
+
+Schedule::command('app:backup-database')
+    ->dailyAt('01:00')
+    ->withoutOverlapping()
+    ->onOneServer();

@@ -12,6 +12,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Services\PlatformOperationalAlertService;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\File;
 
 class DashboardController extends Controller
 {
@@ -40,6 +41,18 @@ class DashboardController extends Controller
                 ->latest()
                 ->take(6)
                 ->get(),
+            'backupStatus' => $this->backupStatus(),
         ]);
+    }
+
+    private function backupStatus(): ?array
+    {
+        $path = config('backup.path').DIRECTORY_SEPARATOR.'status.json';
+
+        if (! File::exists($path)) {
+            return null;
+        }
+
+        return json_decode(File::get($path), true);
     }
 }
