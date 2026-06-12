@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             TenantSeeder::class,
             SaasPlanSeeder::class,
+            PlatformSettingSeeder::class,
             PlatformOfferSeeder::class,
             UserSeeder::class,
             CategorySeeder::class,

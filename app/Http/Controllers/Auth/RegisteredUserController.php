@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\PlatformSetting;
 use App\Models\SubscriptionPlan;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -26,6 +27,12 @@ class RegisteredUserController extends Controller
      */
     public function create(Request $request): View
     {
+        $settings = PlatformSetting::current();
+
+        if (! $settings->allow_registration) {
+            return view('auth.registration-closed', compact('settings'));
+        }
+
         $selectedPlan = SubscriptionPlan::query()
             ->where('is_public', true)
             ->where('is_active', true)
@@ -42,6 +49,8 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request, TenantSubscriptionService $subscriptions): RedirectResponse
     {
+        abort_unless(PlatformSetting::current()->allow_registration, 403);
+
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'business_name' => ['required', 'string', 'max:255'],

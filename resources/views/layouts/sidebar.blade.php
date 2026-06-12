@@ -45,6 +45,7 @@
         ['label' => 'Plans', 'route' => 'platform.plans.index', 'active' => ['platform.plans.*']],
         ['label' => 'Features', 'route' => 'platform.features.index', 'active' => ['platform.features.*']],
         ['label' => 'Offers', 'route' => 'platform.offers.index', 'active' => ['platform.offers.*']],
+        ['label' => 'Settings', 'route' => 'platform.settings.edit', 'active' => ['platform.settings.*']],
     ];
 @endphp
 

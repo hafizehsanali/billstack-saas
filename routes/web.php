@@ -16,6 +16,7 @@ use App\Http\Controllers\Platform\DashboardController as PlatformDashboardContro
 use App\Http\Controllers\Platform\FeatureController as PlatformFeatureController;
 use App\Http\Controllers\Platform\OfferController as PlatformOfferController;
 use App\Http\Controllers\Platform\PlanController as PlatformPlanController;
+use App\Http\Controllers\Platform\SettingController as PlatformSettingController;
 use App\Http\Controllers\Platform\TenantController as PlatformTenantController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
@@ -138,6 +139,8 @@ Route::middleware(['auth', 'platform_admin'])
         Route::resource('plans', PlatformPlanController::class)->except(['show', 'destroy']);
         Route::resource('features', PlatformFeatureController::class)->except(['show', 'destroy']);
         Route::resource('offers', PlatformOfferController::class)->except(['show', 'destroy']);
+        Route::get('settings', [PlatformSettingController::class, 'edit'])->name('settings.edit');
+        Route::put('settings', [PlatformSettingController::class, 'update'])->name('settings.update');
     });
 
 require __DIR__.'/auth.php';

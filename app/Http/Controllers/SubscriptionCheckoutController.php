@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSubscriptionCheckoutRequest;
 use App\Models\PlatformOffer;
+use App\Models\PlatformSetting;
 use App\Models\PlatformSubscriptionInvoice;
 use App\Services\PlatformBillingService;
 use Illuminate\Http\RedirectResponse;
@@ -22,6 +23,7 @@ class SubscriptionCheckoutController extends Controller
             'tenant' => $tenant,
             'subscription' => $subscription,
             'invoice' => $this->openInvoice($subscription->id),
+            'platformSettings' => PlatformSetting::current(),
             'offers' => PlatformOffer::with('plans')
                 ->where('is_active', true)
                 ->get()

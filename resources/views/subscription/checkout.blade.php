@@ -84,8 +84,20 @@
                     </div>
 
                     <div class="alert alert-info mb-0">
-                        Online payment integration is pending. Complete payment through the configured business
-                        payment channel; the platform administrator will record it and activate the package.
+                        <div class="fw-semibold mb-1">Full payment instructions</div>
+                        <div>
+                            {{ $platformSettings->payment_instructions
+                                ?: 'Contact platform support to complete the full subscription payment.' }}
+                        </div>
+                        @if($platformSettings->support_email || $platformSettings->support_phone)
+                            <div class="mt-2 small">
+                                Support:
+                                {{ collect([
+                                    $platformSettings->support_email,
+                                    $platformSettings->support_phone,
+                                ])->filter()->join(' | ') }}
+                            </div>
+                        @endif
                     </div>
                 @else
                     <p class="text-muted">

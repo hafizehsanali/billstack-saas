@@ -19,6 +19,9 @@
         <a href="{{ route('platform.features.index') }}" class="btn btn-outline-secondary">
             Features
         </a>
+        <a href="{{ route('platform.settings.edit') }}" class="btn btn-outline-secondary">
+            Settings
+        </a>
         <a href="{{ route('platform.plans.index') }}" class="btn btn-primary">
             Plans
         </a>
