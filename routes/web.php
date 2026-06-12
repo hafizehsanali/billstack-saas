@@ -133,6 +133,7 @@ Route::middleware(['auth', 'platform_admin'])
     ->group(function () {
         Route::get('/', [PlatformDashboardController::class, 'index'])->name('dashboard');
         Route::get('tenants', [PlatformTenantController::class, 'index'])->name('tenants.index');
+        Route::get('tenants/{tenant}', [PlatformTenantController::class, 'show'])->name('tenants.show');
         Route::get('tenants/{tenant}/edit', [PlatformTenantController::class, 'edit'])->name('tenants.edit');
         Route::put('tenants/{tenant}', [PlatformTenantController::class, 'update'])->name('tenants.update');
         Route::get('billing', [PlatformBillingController::class, 'index'])->name('billing.index');

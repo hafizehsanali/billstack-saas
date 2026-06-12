@@ -33,7 +33,9 @@
                     @endphp
                     <tr>
                         <td>
-                            <div class="fw-bold">{{ $tenant->name }}</div>
+                            <a href="{{ route('platform.tenants.show', $tenant) }}" class="fw-bold">
+                                {{ $tenant->name }}
+                            </a>
                             <div class="text-muted small">{{ $tenant->email ?? $tenant->slug }}</div>
                         </td>
                         <td>{{ $subscription?->plan?->name ?? 'Not assigned' }}</td>
@@ -62,6 +64,10 @@
                         </td>
                         <td>{{ $tenant->created_at?->format('M d, Y') }}</td>
                         <td class="text-end">
+                            <a href="{{ route('platform.tenants.show', $tenant) }}"
+                               class="btn btn-sm btn-outline-primary">
+                                View
+                            </a>
                             <a href="{{ route('platform.tenants.edit', $tenant) }}"
                                class="btn btn-sm btn-outline-secondary">
                                 Subscription

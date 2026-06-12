@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Platform;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Platform\UpdateTenantSubscriptionRequest;
+use App\Models\PlatformSubscriptionInvoice;
+use App\Models\SubscriptionPaymentSubmission;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Services\TenantUsageLimitService;
@@ -37,6 +39,37 @@ class TenantController extends Controller
             'plans' => SubscriptionPlan::where('is_active', true)
                 ->orderBy('monthly_price_cents')
                 ->orderBy('name')
+                ->get(),
+        ]);
+    }
+
+    public function show(Tenant $tenant, TenantUsageLimitService $usageLimits): View
+    {
+        $tenant->load([
+            'currentSubscription.plan',
+            'activeSubscription.plan',
+            'users',
+        ]);
+
+        $billingSummary = PlatformSubscriptionInvoice::where('tenant_id', $tenant->id)
+            ->selectRaw('COALESCE(SUM(total_cents), 0) as total_billed_cents')
+            ->selectRaw('COALESCE(SUM(paid_cents), 0) as total_paid_cents')
+            ->selectRaw('COALESCE(SUM(balance_cents), 0) as total_due_cents')
+            ->first();
+
+        return view('platform.tenants.show', [
+            'tenant' => $tenant,
+            'usage' => $usageLimits->summary($tenant),
+            'billingSummary' => $billingSummary,
+            'invoices' => PlatformSubscriptionInvoice::with('paymentSubmission')
+                ->where('tenant_id', $tenant->id)
+                ->latest('issued_on')
+                ->take(8)
+                ->get(),
+            'paymentSubmissions' => SubscriptionPaymentSubmission::with('invoice')
+                ->where('tenant_id', $tenant->id)
+                ->latest()
+                ->take(8)
                 ->get(),
         ]);
     }
