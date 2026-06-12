@@ -178,6 +178,27 @@
                             </div>
                         </div>
 
+                        <div class="mt-3">
+                            <label class="form-check">
+                                <input type="checkbox"
+                                       name="terms"
+                                       value="1"
+                                       class="form-check-input @error('terms') is-invalid @enderror"
+                                       @checked(old('terms'))
+                                       required>
+                                <span class="form-check-label">
+                                    I agree to the
+                                    <a href="{{ route('legal.terms') }}" target="_blank">Terms of Service</a>,
+                                    <a href="{{ route('legal.privacy') }}" target="_blank">Privacy Policy</a>,
+                                    and
+                                    <a href="{{ route('legal.refunds') }}" target="_blank">Refund Policy</a>.
+                                </span>
+                            </label>
+                            @error('terms')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                        </div>
+
                         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-4 pt-3 border-top">
                             <a href="{{ route('plans.index') }}" class="text-secondary">Back to packages</a>
                             <button type="submit" class="btn btn-primary px-4">Create Account</button>

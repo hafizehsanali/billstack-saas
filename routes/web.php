@@ -42,6 +42,9 @@ Route::get('/', function () {
     return view('welcome');
 });
 Route::get('/plans', [PublicPlanController::class, 'index'])->name('plans.index');
+Route::view('/terms', 'legal.terms')->name('legal.terms');
+Route::view('/privacy', 'legal.privacy')->name('legal.privacy');
+Route::view('/refund-policy', 'legal.refunds')->name('legal.refunds');
 
 Route::middleware('auth')->group(function () {
     Route::get('/subscription/status', [SubscriptionStatusController::class, 'show'])->name('subscription.status');

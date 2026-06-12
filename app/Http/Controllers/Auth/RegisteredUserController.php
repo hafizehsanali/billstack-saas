@@ -56,6 +56,7 @@ class RegisteredUserController extends Controller
             'business_name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'terms' => ['accepted'],
             'plan' => [
                 'nullable',
                 'string',
@@ -73,6 +74,7 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'terms_accepted_at' => now(),
         ]);
 
         Role::findOrCreate('owner');

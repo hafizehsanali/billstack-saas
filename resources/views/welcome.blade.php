@@ -80,5 +80,16 @@
     </div>
 </main>
 
+<footer class="border-top bg-white">
+    <div class="container py-3 d-flex flex-wrap justify-content-between gap-2 small text-muted">
+        <span>BillStack business management</span>
+        <span class="d-flex gap-3">
+            <a href="{{ route('legal.terms') }}">Terms</a>
+            <a href="{{ route('legal.privacy') }}">Privacy</a>
+            <a href="{{ route('legal.refunds') }}">Refunds</a>
+        </span>
+    </div>
+</footer>
+
 </body>
 </html>

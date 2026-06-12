@@ -163,6 +163,7 @@ class PublicPlanSubscriptionTest extends TestCase
             'email' => 'public-owner@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
+            'terms' => '1',
             'plan' => $plan->slug,
         ];
     }

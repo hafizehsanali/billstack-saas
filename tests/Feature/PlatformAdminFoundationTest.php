@@ -32,6 +32,7 @@ class PlatformAdminFoundationTest extends TestCase
             'email' => 'owner@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
+            'terms' => '1',
         ])->assertRedirect(route('dashboard', absolute: false));
 
         $user = User::where('email', 'owner@example.com')->firstOrFail();
