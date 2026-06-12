@@ -7,6 +7,8 @@ use App\Models\SubscriptionPaymentSubmission;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Notifications\SubscriptionPaymentReviewed;
+use App\Notifications\SubscriptionPaymentSubmitted;
 use Database\Seeders\PlatformBillingSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Database\Seeders\SaasPlanSeeder;
@@ -14,6 +16,7 @@ use Database\Seeders\SubscriptionPaymentSubmissionSeeder;
 use App\Models\PlatformSetting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class SubscriptionPaymentSubmissionTest extends TestCase
@@ -50,6 +53,18 @@ class SubscriptionPaymentSubmissionTest extends TestCase
             ->assertSessionHasErrors('payment');
 
         $this->assertSame(1, SubscriptionPaymentSubmission::count());
+    }
+
+    public function test_platform_admin_is_notified_when_payment_is_submitted(): void
+    {
+        Notification::fake();
+        $this->configurePaymentChannels();
+        $admin = $this->platformAdmin();
+        [$owner, $invoice] = $this->scenario();
+
+        $this->submit($owner, $invoice, 'NOTIFY-ADMIN');
+
+        Notification::assertSentTo($admin, SubscriptionPaymentSubmitted::class);
     }
 
     public function test_owner_cannot_submit_payment_for_another_business_invoice(): void
@@ -119,6 +134,7 @@ class SubscriptionPaymentSubmissionTest extends TestCase
 
     public function test_admin_approval_records_full_payment_and_activates_subscription(): void
     {
+        Notification::fake();
         [$owner, $invoice, $subscription] = $this->scenario();
         $this->submit($owner, $invoice, 'APPROVE-REF');
         $submission = SubscriptionPaymentSubmission::firstOrFail();
@@ -136,10 +152,12 @@ class SubscriptionPaymentSubmissionTest extends TestCase
         $this->assertSame(0, $invoice->balance_cents);
         $this->assertSame($invoice->total_cents, $invoice->payments()->first()->amount_cents);
         $this->assertSame('active', $subscription->fresh()->status);
+        Notification::assertSentTo($owner, SubscriptionPaymentReviewed::class);
     }
 
     public function test_rejected_submission_can_be_corrected_and_resubmitted(): void
     {
+        Notification::fake();
         $this->configurePaymentChannels();
         [$owner, $invoice] = $this->scenario();
         $this->submit($owner, $invoice, 'WRONG-REF');
@@ -164,6 +182,7 @@ class SubscriptionPaymentSubmissionTest extends TestCase
         $this->assertSame('pending', $submission->status);
         $this->assertSame('CORRECT-REF', $submission->reference_no);
         $this->assertNull($submission->rejection_reason);
+        Notification::assertSentTo($owner, SubscriptionPaymentReviewed::class);
     }
 
     public function test_manual_full_payment_also_closes_pending_submission(): void

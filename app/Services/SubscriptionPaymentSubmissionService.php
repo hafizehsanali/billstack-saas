@@ -5,7 +5,10 @@ namespace App\Services;
 use App\Models\PlatformSubscriptionInvoice;
 use App\Models\SubscriptionPaymentSubmission;
 use App\Models\User;
+use App\Notifications\SubscriptionPaymentReviewed;
+use App\Notifications\SubscriptionPaymentSubmitted;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 
 class SubscriptionPaymentSubmissionService
@@ -29,7 +32,7 @@ class SubscriptionPaymentSubmissionService
             ]);
         }
 
-        return SubscriptionPaymentSubmission::updateOrCreate(
+        $submission = SubscriptionPaymentSubmission::updateOrCreate(
             ['platform_subscription_invoice_id' => $invoice->id],
             [
                 'tenant_id' => $invoice->tenant_id,
@@ -44,6 +47,17 @@ class SubscriptionPaymentSubmissionService
                 'rejection_reason' => null,
             ]
         );
+
+        $admins = User::where('is_platform_admin', true)->get();
+
+        Notification::send($admins, new SubscriptionPaymentSubmitted(
+            $invoice->tenant?->name ?? 'A business',
+            $invoice->invoice_no,
+            $submission->reference_no,
+            $invoice->total_cents
+        ));
+
+        return $submission;
     }
 
     public function approve(
@@ -76,6 +90,12 @@ class SubscriptionPaymentSubmissionService
                 'rejection_reason' => null,
             ]);
         });
+
+        $submission->refresh()->loadMissing(['invoice', 'submitter']);
+        $submission->submitter?->notify(new SubscriptionPaymentReviewed(
+            'approved',
+            $submission->invoice->invoice_no
+        ));
     }
 
     public function reject(
@@ -95,5 +115,12 @@ class SubscriptionPaymentSubmissionService
             'reviewed_at' => now(),
             'rejection_reason' => $reason,
         ]);
+
+        $submission->loadMissing(['invoice', 'submitter']);
+        $submission->submitter?->notify(new SubscriptionPaymentReviewed(
+            'rejected',
+            $submission->invoice->invoice_no,
+            $reason
+        ));
     }
 }
