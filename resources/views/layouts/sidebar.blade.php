@@ -2,40 +2,40 @@
     $isActive = fn (array $patterns): bool => request()->routeIs(...$patterns);
 
     $storeLinks = [
-        ['label' => 'Dashboard', 'route' => 'dashboard', 'active' => ['dashboard']],
-        ['label' => 'Alerts', 'route' => 'alerts.index', 'active' => ['alerts.*']],
-        ['label' => 'Products', 'route' => 'products.index', 'active' => ['products.index', 'products.edit', 'products.stock-ledger']],
-        ['label' => 'Add Product', 'route' => 'products.create', 'active' => ['products.create']],
-        ['label' => 'Categories', 'route' => 'categories.index', 'active' => ['categories.*']],
-        ['label' => 'POS Billing', 'route' => 'invoices.pos', 'active' => ['invoices.pos']],
-        ['label' => 'Barcode Scanner', 'route' => 'barcode.index', 'active' => ['barcode.*'], 'feature' => 'pro.barcode'],
-        ['label' => 'Invoices', 'route' => 'invoices.index', 'active' => ['invoices.index', 'invoices.show', 'payments.*']],
-        ['label' => 'Create Invoice', 'route' => 'invoices.create', 'active' => ['invoices.create']],
-        ['label' => 'Customers', 'route' => 'customers.index', 'active' => ['customers.index', 'customers.statement', 'customer.account']],
-        ['label' => 'Add Customer', 'route' => 'customers.create', 'active' => ['customers.create']],
+        ['label' => 'Dashboard', 'route' => 'dashboard', 'active' => ['dashboard'], 'permission' => 'dashboard.view'],
+        ['label' => 'Alerts', 'route' => 'alerts.index', 'active' => ['alerts.*'], 'permission' => 'dashboard.view'],
+        ['label' => 'Products', 'route' => 'products.index', 'active' => ['products.index', 'products.edit', 'products.stock-ledger'], 'permission' => 'products.view'],
+        ['label' => 'Add Product', 'route' => 'products.create', 'active' => ['products.create'], 'permission' => 'products.create'],
+        ['label' => 'Categories', 'route' => 'categories.index', 'active' => ['categories.*'], 'permission' => 'products.view'],
+        ['label' => 'POS Billing', 'route' => 'invoices.pos', 'active' => ['invoices.pos'], 'permission' => 'sales.create'],
+        ['label' => 'Barcode Scanner', 'route' => 'barcode.index', 'active' => ['barcode.*'], 'feature' => 'pro.barcode', 'permission' => 'sales.create'],
+        ['label' => 'Invoices', 'route' => 'invoices.index', 'active' => ['invoices.index', 'invoices.show', 'payments.*'], 'permission' => 'sales.view'],
+        ['label' => 'Create Invoice', 'route' => 'invoices.create', 'active' => ['invoices.create'], 'permission' => 'sales.create'],
+        ['label' => 'Customers', 'route' => 'customers.index', 'active' => ['customers.index', 'customers.statement', 'customer.account'], 'permission' => 'customers.view'],
+        ['label' => 'Add Customer', 'route' => 'customers.create', 'active' => ['customers.create'], 'permission' => 'customers.create'],
     ];
 
     $financeLinks = [
-        ['label' => 'Purchases', 'route' => 'purchases.index', 'active' => ['purchases.index', 'purchases.show', 'purchases.edit']],
-        ['label' => 'Create Purchase', 'route' => 'purchases.create', 'active' => ['purchases.create']],
-        ['label' => 'Suppliers', 'route' => 'suppliers.index', 'active' => ['suppliers.index', 'suppliers.show', 'suppliers.edit', 'supplier.*', 'supplier-payments.*']],
-        ['label' => 'Add Supplier', 'route' => 'suppliers.create', 'active' => ['suppliers.create']],
-        ['label' => 'Expenses', 'route' => 'expenses.index', 'active' => ['expenses.index', 'expenses.edit']],
-        ['label' => 'Create Expense', 'route' => 'expenses.create', 'active' => ['expenses.create']],
+        ['label' => 'Purchases', 'route' => 'purchases.index', 'active' => ['purchases.index', 'purchases.show', 'purchases.edit'], 'permission' => 'purchases.view'],
+        ['label' => 'Create Purchase', 'route' => 'purchases.create', 'active' => ['purchases.create'], 'permission' => 'purchases.create'],
+        ['label' => 'Suppliers', 'route' => 'suppliers.index', 'active' => ['suppliers.index', 'suppliers.show', 'suppliers.edit', 'supplier.*', 'supplier-payments.*'], 'permission' => 'suppliers.view'],
+        ['label' => 'Add Supplier', 'route' => 'suppliers.create', 'active' => ['suppliers.create'], 'permission' => 'suppliers.create'],
+        ['label' => 'Expenses', 'route' => 'expenses.index', 'active' => ['expenses.index', 'expenses.edit'], 'permission' => 'expenses.view'],
+        ['label' => 'Create Expense', 'route' => 'expenses.create', 'active' => ['expenses.create'], 'permission' => 'expenses.create'],
     ];
 
     $reportLinks = [
-        ['label' => 'Daily Sales', 'route' => 'reports.daily-sales', 'active' => ['reports.daily-sales']],
-        ['label' => 'Monthly Sales', 'route' => 'reports.monthly-sales', 'active' => ['reports.monthly-sales']],
-        ['label' => 'Stock Report', 'route' => 'reports.stock', 'active' => ['reports.stock']],
-        ['label' => 'Low Stock', 'route' => 'reports.low-stock', 'active' => ['reports.low-stock']],
-        ['label' => 'Profit & Loss', 'route' => 'reports.profit-loss', 'active' => ['reports.profit-loss']],
+        ['label' => 'Daily Sales', 'route' => 'reports.daily-sales', 'active' => ['reports.daily-sales'], 'permission' => 'reports.view'],
+        ['label' => 'Monthly Sales', 'route' => 'reports.monthly-sales', 'active' => ['reports.monthly-sales'], 'permission' => 'reports.view'],
+        ['label' => 'Stock Report', 'route' => 'reports.stock', 'active' => ['reports.stock'], 'permission' => 'reports.view'],
+        ['label' => 'Low Stock', 'route' => 'reports.low-stock', 'active' => ['reports.low-stock'], 'permission' => 'reports.view'],
+        ['label' => 'Profit & Loss', 'route' => 'reports.profit-loss', 'active' => ['reports.profit-loss'], 'permission' => 'reports.view'],
     ];
 
     $settingsLinks = [
-        ['label' => 'Team Users', 'route' => 'team.index', 'active' => ['team.*']],
-        ['label' => 'Plan & Billing', 'route' => 'billing.index', 'active' => ['billing.*']],
-        ['label' => 'Business Settings', 'route' => 'settings.business', 'active' => ['settings.*']],
+        ['label' => 'Team Users', 'route' => 'team.index', 'active' => ['team.*'], 'permission' => 'team.manage'],
+        ['label' => 'Plan & Billing', 'route' => 'billing.index', 'active' => ['billing.*'], 'permission' => 'payments.view'],
+        ['label' => 'Business Settings', 'route' => 'settings.business', 'active' => ['settings.*'], 'permission' => 'settings.manage'],
     ];
 
     $platformLinks = [
@@ -85,7 +85,7 @@
                     </li>
 
                     @foreach($storeLinks as $link)
-                        @if(! isset($link['feature']) || app(\App\Services\TenantFeatureService::class)->userHasFeature(auth()->user(), $link['feature']))
+                        @if(auth()->user()->can($link['permission']) && (! isset($link['feature']) || app(\App\Services\TenantFeatureService::class)->userHasFeature(auth()->user(), $link['feature'])))
                             <li class="nav-item">
                                 <a class="nav-link text-white {{ $isActive($link['active']) ? 'active' : '' }}"
                                    href="{{ route($link['route']) }}">
@@ -95,7 +95,7 @@
                         @endif
                     @endforeach
 
-                    @hasanyrole('owner|accountant')
+                    @if(collect($financeLinks)->contains(fn ($link) => auth()->user()->can($link['permission'])))
                         <li class="nav-item mt-3 mb-1">
                             <span class="nav-link disabled text-uppercase text-white-50 small">
                                 Finance
@@ -103,14 +103,18 @@
                         </li>
 
                         @foreach($financeLinks as $link)
-                            <li class="nav-item">
-                                <a class="nav-link text-white {{ $isActive($link['active']) ? 'active' : '' }}"
-                                   href="{{ route($link['route']) }}">
-                                    <span class="nav-link-title">{{ $link['label'] }}</span>
-                                </a>
-                            </li>
+                            @can($link['permission'])
+                                <li class="nav-item">
+                                    <a class="nav-link text-white {{ $isActive($link['active']) ? 'active' : '' }}"
+                                       href="{{ route($link['route']) }}">
+                                        <span class="nav-link-title">{{ $link['label'] }}</span>
+                                    </a>
+                                </li>
+                            @endcan
                         @endforeach
+                    @endif
 
+                    @can('reports.view')
                         <li class="nav-item mt-3 mb-1">
                             <span class="nav-link disabled text-uppercase text-white-50 small">
                                 Reports
@@ -125,7 +129,9 @@
                                 </a>
                             </li>
                         @endforeach
+                    @endcan
 
+                    @if(collect($settingsLinks)->contains(fn ($link) => auth()->user()->can($link['permission'])))
                         <li class="nav-item mt-3 mb-1">
                             <span class="nav-link disabled text-uppercase text-white-50 small">
                                 Settings
@@ -133,14 +139,16 @@
                         </li>
 
                         @foreach($settingsLinks as $link)
-                            <li class="nav-item">
-                                <a class="nav-link text-white {{ $isActive($link['active']) ? 'active' : '' }}"
-                                   href="{{ route($link['route']) }}">
-                                    <span class="nav-link-title">{{ $link['label'] }}</span>
-                                </a>
-                            </li>
+                            @can($link['permission'])
+                                <li class="nav-item">
+                                    <a class="nav-link text-white {{ $isActive($link['active']) ? 'active' : '' }}"
+                                       href="{{ route($link['route']) }}">
+                                        <span class="nav-link-title">{{ $link['label'] }}</span>
+                                    </a>
+                                </li>
+                            @endcan
                         @endforeach
-                    @endhasanyrole
+                    @endif
                 @endif
             </ul>
         </div>
