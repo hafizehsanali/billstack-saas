@@ -14,7 +14,7 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::updateOrCreate(
+        $platformAdmin = User::updateOrCreate(
             ['email' => 'platform@test.com'],
             [
                 'name' => 'Platform Admin',
@@ -22,6 +22,7 @@ class UserSeeder extends Seeder
                 'is_platform_admin' => true,
             ]
         );
+        $platformAdmin->forceFill(['email_verified_at' => now()])->save();
 
         $tenants = Tenant::query()
             ->whereIn('slug', ['demo-store-1', 'demo-store-2', 'demo-store-3'])
@@ -36,6 +37,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password'),
             ]
         );
+        $user1->forceFill(['email_verified_at' => now()])->save();
         $user1->assignRole('owner');
 
         $user2 = User::updateOrCreate(
@@ -46,6 +48,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password'),
             ]
         );
+        $user2->forceFill(['email_verified_at' => now()])->save();
         $user2->assignRole('owner');
 
         $user3 = User::updateOrCreate(
@@ -56,6 +59,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password'),
             ]
         );
+        $user3->forceFill(['email_verified_at' => now()])->save();
         $user3->assignRole('owner');
     }
 }

@@ -46,17 +46,17 @@ Route::get('/plans', [PublicPlanController::class, 'index'])->name('plans.index'
 Route::middleware('auth')->group(function () {
     Route::get('/subscription/status', [SubscriptionStatusController::class, 'show'])->name('subscription.status');
     Route::get('/subscription/checkout', [SubscriptionCheckoutController::class, 'show'])
-        ->middleware('role:owner')
+        ->middleware(['verified', 'role:owner'])
         ->name('subscription.checkout');
     Route::post('/subscription/checkout', [SubscriptionCheckoutController::class, 'store'])
-        ->middleware('role:owner')
+        ->middleware(['verified', 'role:owner'])
         ->name('subscription.checkout.store');
     Route::post('/subscription/invoices/{invoice}/payment-submission', [SubscriptionPaymentSubmissionController::class, 'store'])
-        ->middleware('role:owner')
+        ->middleware(['verified', 'role:owner'])
         ->name('subscription.payment-submissions.store');
     Route::get('/features/unavailable', [FeatureUnavailableController::class, 'show'])->name('features.unavailable');
 
-    Route::middleware('active_subscription')->group(function () {
+    Route::middleware(['verified', 'active_subscription'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])
             ->middleware('permission:dashboard.view')
             ->name('dashboard');

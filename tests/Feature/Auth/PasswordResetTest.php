@@ -68,6 +68,7 @@ class PasswordResetTest extends TestCase
                 ->assertRedirect(route('login'));
 
             $this->assertFalse($user->refresh()->requires_password_setup);
+            $this->assertTrue($user->hasVerifiedEmail());
 
             return true;
         });

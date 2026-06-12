@@ -58,6 +58,7 @@ class TenantTeamSeeder extends Seeder
                 ]
             );
 
+            $member->forceFill(['email_verified_at' => now()])->save();
             $member->syncRoles([$memberData['role']]);
         }
     }

@@ -185,7 +185,9 @@ class TenantTeamManagementTest extends TestCase
         $this->seed(TenantTeamSeeder::class);
 
         $this->assertSame(1, User::where('email', 'cashier@test.com')->count());
-        $this->assertTrue(User::where('email', 'cashier@test.com')->firstOrFail()->hasRole('cashier'));
+        $cashier = User::where('email', 'cashier@test.com')->firstOrFail();
+        $this->assertTrue($cashier->hasRole('cashier'));
+        $this->assertTrue($cashier->hasVerifiedEmail());
         $this->assertDatabaseHas('users', [
             'email' => 'manager@test.com',
             'is_active' => false,
