@@ -40,6 +40,7 @@
 
     $platformLinks = [
         ['label' => 'Platform Admin', 'route' => 'platform.dashboard', 'active' => ['platform.dashboard']],
+        ['label' => 'Activity', 'route' => 'platform.activities.index', 'active' => ['platform.activities.*']],
         ['label' => 'Tenants', 'route' => 'platform.tenants.index', 'active' => ['platform.tenants.*']],
         ['label' => 'Billing', 'route' => 'platform.billing.index', 'active' => ['platform.billing.*']],
         ['label' => 'Payment Reviews', 'route' => 'platform.payment-submissions.index', 'active' => ['platform.payment-submissions.*']],

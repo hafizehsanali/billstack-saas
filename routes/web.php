@@ -12,6 +12,7 @@ use App\Http\Controllers\FeatureUnavailableController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Platform\BillingController as PlatformBillingController;
+use App\Http\Controllers\Platform\ActivityController as PlatformActivityController;
 use App\Http\Controllers\Platform\DashboardController as PlatformDashboardController;
 use App\Http\Controllers\Platform\FeatureController as PlatformFeatureController;
 use App\Http\Controllers\Platform\OfferController as PlatformOfferController;
@@ -132,6 +133,7 @@ Route::middleware(['auth', 'platform_admin'])
     ->name('platform.')
     ->group(function () {
         Route::get('/', [PlatformDashboardController::class, 'index'])->name('dashboard');
+        Route::get('activities', [PlatformActivityController::class, 'index'])->name('activities.index');
         Route::get('tenants', [PlatformTenantController::class, 'index'])->name('tenants.index');
         Route::get('tenants/{tenant}', [PlatformTenantController::class, 'show'])->name('tenants.show');
         Route::get('tenants/{tenant}/edit', [PlatformTenantController::class, 'edit'])->name('tenants.edit');

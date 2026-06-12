@@ -10,6 +10,7 @@ use App\Models\Tenant;
 use App\Services\PlatformBillingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use App\Services\PlatformActivityService;
 
 class BillingController extends Controller
 {
@@ -76,9 +77,17 @@ class BillingController extends Controller
     public function storePayment(
         StoreBillingPaymentRequest $request,
         PlatformSubscriptionInvoice $invoice,
-        PlatformBillingService $billing
+        PlatformBillingService $billing,
+        PlatformActivityService $activity
     ): RedirectResponse {
         $billing->recordPayment($invoice, $request->validated());
+        $invoice->loadMissing('tenant');
+        $activity->record(
+            'subscription_payment.recorded',
+            "Recorded full payment for {$invoice->invoice_no}.",
+            $invoice,
+            $invoice->tenant
+        );
 
         return redirect()
             ->route('platform.billing.show', $invoice)

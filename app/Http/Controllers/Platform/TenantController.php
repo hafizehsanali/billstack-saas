@@ -9,6 +9,7 @@ use App\Models\SubscriptionPaymentSubmission;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Services\TenantUsageLimitService;
+use App\Services\PlatformActivityService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -74,10 +75,16 @@ class TenantController extends Controller
         ]);
     }
 
-    public function update(UpdateTenantSubscriptionRequest $request, Tenant $tenant): RedirectResponse
+    public function update(
+        UpdateTenantSubscriptionRequest $request,
+        Tenant $tenant,
+        PlatformActivityService $activity
+    ): RedirectResponse
     {
         $data = $request->validated();
         $subscription = $tenant->currentSubscription;
+        $previousPlan = $subscription?->plan?->name ?? 'Not assigned';
+        $previousStatus = $subscription?->status ?? 'pending';
 
         if ($data['status'] === 'active') {
             if ($subscription) {
@@ -101,6 +108,16 @@ class TenantController extends Controller
                 'ends_at' => $data['ends_at'] ?? now(),
             ]);
         }
+
+        $updatedSubscription = $tenant->fresh()->currentSubscription;
+        $activity->record(
+            'tenant.subscription_updated',
+            "Changed subscription from {$previousPlan} ({$previousStatus}) to "
+                .($updatedSubscription?->plan?->name ?? 'Not assigned')
+                .' ('.($updatedSubscription?->status ?? 'pending').').',
+            $updatedSubscription,
+            $tenant
+        );
 
         return redirect()
             ->route('platform.tenants.index')

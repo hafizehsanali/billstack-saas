@@ -9,6 +9,7 @@ use App\Models\PlanFeature;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use App\Services\PlatformActivityService;
 
 class FeatureController extends Controller
 {
@@ -27,16 +28,24 @@ class FeatureController extends Controller
         return view('platform.features.create');
     }
 
-    public function store(StoreFeatureRequest $request): RedirectResponse
+    public function store(
+        StoreFeatureRequest $request,
+        PlatformActivityService $activity
+    ): RedirectResponse
     {
         $data = $request->validated();
 
-        PlanFeature::create([
+        $feature = PlanFeature::create([
             'name' => $data['name'],
             'key' => $data['key'] ?: Str::slug($data['name'], '.'),
             'description' => $data['description'] ?? null,
             'is_paid' => (bool) ($data['is_paid'] ?? false),
         ]);
+        $activity->record(
+            'feature.created',
+            "Created plan feature {$feature->name}.",
+            $feature
+        );
 
         return redirect()
             ->route('platform.features.index')
@@ -48,7 +57,11 @@ class FeatureController extends Controller
         return view('platform.features.edit', compact('feature'));
     }
 
-    public function update(UpdateFeatureRequest $request, PlanFeature $feature): RedirectResponse
+    public function update(
+        UpdateFeatureRequest $request,
+        PlanFeature $feature,
+        PlatformActivityService $activity
+    ): RedirectResponse
     {
         $data = $request->validated();
 
@@ -58,6 +71,11 @@ class FeatureController extends Controller
             'description' => $data['description'] ?? null,
             'is_paid' => (bool) ($data['is_paid'] ?? false),
         ]);
+        $activity->record(
+            'feature.updated',
+            "Updated plan feature {$feature->name}.",
+            $feature
+        );
 
         return redirect()
             ->route('platform.features.index')

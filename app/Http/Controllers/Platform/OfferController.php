@@ -10,6 +10,7 @@ use App\Models\SubscriptionPlan;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use App\Services\PlatformActivityService;
 
 class OfferController extends Controller
 {
@@ -30,10 +31,18 @@ class OfferController extends Controller
         ]);
     }
 
-    public function store(StoreOfferRequest $request): RedirectResponse
+    public function store(
+        StoreOfferRequest $request,
+        PlatformActivityService $activity
+    ): RedirectResponse
     {
         $offer = PlatformOffer::create($this->offerData($request->validated()));
         $offer->plans()->sync($request->validated('plans', []));
+        $activity->record(
+            'offer.created',
+            "Created promotion {$offer->code}.",
+            $offer
+        );
 
         return redirect()
             ->route('platform.offers.index')
@@ -49,10 +58,19 @@ class OfferController extends Controller
         ]);
     }
 
-    public function update(UpdateOfferRequest $request, PlatformOffer $offer): RedirectResponse
+    public function update(
+        UpdateOfferRequest $request,
+        PlatformOffer $offer,
+        PlatformActivityService $activity
+    ): RedirectResponse
     {
         $offer->update($this->offerData($request->validated()));
         $offer->plans()->sync($request->validated('plans', []));
+        $activity->record(
+            'offer.updated',
+            "Updated promotion {$offer->code}.",
+            $offer
+        );
 
         return redirect()
             ->route('platform.offers.index')

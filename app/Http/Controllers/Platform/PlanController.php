@@ -10,6 +10,7 @@ use App\Models\SubscriptionPlan;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use App\Services\PlatformActivityService;
 
 class PlanController extends Controller
 {
@@ -31,12 +32,20 @@ class PlanController extends Controller
         ]);
     }
 
-    public function store(StorePlanRequest $request): RedirectResponse
+    public function store(
+        StorePlanRequest $request,
+        PlatformActivityService $activity
+    ): RedirectResponse
     {
         $data = $this->validatedPlanData($request->validated());
         $plan = SubscriptionPlan::create($data);
 
         $plan->features()->sync($request->validated('features', []));
+        $activity->record(
+            'plan.created',
+            "Created subscription plan {$plan->name}.",
+            $plan
+        );
 
         return redirect()
             ->route('platform.plans.index')
@@ -52,10 +61,19 @@ class PlanController extends Controller
         ]);
     }
 
-    public function update(UpdatePlanRequest $request, SubscriptionPlan $plan): RedirectResponse
+    public function update(
+        UpdatePlanRequest $request,
+        SubscriptionPlan $plan,
+        PlatformActivityService $activity
+    ): RedirectResponse
     {
         $plan->update($this->validatedPlanData($request->validated(), $plan));
         $plan->features()->sync($request->validated('features', []));
+        $activity->record(
+            'plan.updated',
+            "Updated subscription plan {$plan->name}.",
+            $plan
+        );
 
         return redirect()
             ->route('platform.plans.index')
