@@ -26,11 +26,14 @@ class SubscriptionCheckoutController extends Controller
                 && $offer->appliesTo($subscription->plan))
             ->values();
 
+        $platformSettings = PlatformSetting::current();
+
         return view('subscription.checkout', [
             'tenant' => $tenant,
             'subscription' => $subscription,
             'invoice' => $this->openInvoice($subscription->id),
-            'platformSettings' => PlatformSetting::current(),
+            'platformSettings' => $platformSettings,
+            'paymentChannels' => $platformSettings->activePaymentChannels(),
             'offers' => $offers,
             'offerPreviews' => $offers->map(fn (PlatformOffer $offer) => [
                 'code' => $offer->code,

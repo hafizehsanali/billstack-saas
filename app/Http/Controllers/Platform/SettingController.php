@@ -26,6 +26,17 @@ class SettingController extends Controller
         $data = $request->validated();
         $data['currency_code'] = strtoupper($data['currency_code']);
         $data['allow_registration'] = (bool) ($data['allow_registration'] ?? false);
+        $data['payment_channels'] = collect($data['payment_channels'] ?? [])
+            ->map(fn (array $channel) => [
+                'key' => $channel['key'],
+                'label' => $channel['label'],
+                'account_title' => $channel['account_title'] ?? null,
+                'account_number' => $channel['account_number'] ?? null,
+                'instructions' => $channel['instructions'] ?? null,
+                'is_active' => (bool) ($channel['is_active'] ?? false),
+            ])
+            ->values()
+            ->all();
 
         $settings = PlatformSetting::current();
         $settings->update($data);

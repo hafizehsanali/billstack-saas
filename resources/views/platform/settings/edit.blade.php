@@ -96,8 +96,165 @@
                 @enderror
             </div>
 
+            @php
+                $paymentChannels = old(
+                    'payment_channels',
+                    $settings->payment_channels ?: \App\Models\PlatformSetting::defaultPaymentChannels()
+                );
+            @endphp
+
+            <div class="mb-3">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <label class="form-label mb-0">Payment Channels</label>
+                    <button type="button" id="add-payment-channel" class="btn btn-sm btn-outline-primary">
+                        Add Channel
+                    </button>
+                </div>
+
+                <div id="payment-channels" class="d-grid gap-3">
+                    @foreach($paymentChannels as $index => $channel)
+                        <div class="border rounded p-3 payment-channel">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">System Key</label>
+                                    <input type="text"
+                                           name="payment_channels[{{ $index }}][key]"
+                                           value="{{ $channel['key'] ?? '' }}"
+                                           class="form-control"
+                                           placeholder="bank_transfer"
+                                           required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Display Name</label>
+                                    <input type="text"
+                                           name="payment_channels[{{ $index }}][label]"
+                                           value="{{ $channel['label'] ?? '' }}"
+                                           class="form-control"
+                                           placeholder="Bank Transfer"
+                                           required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Account Title</label>
+                                    <input type="text"
+                                           name="payment_channels[{{ $index }}][account_title]"
+                                           value="{{ $channel['account_title'] ?? '' }}"
+                                           class="form-control">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Account / Wallet Number</label>
+                                    <input type="text"
+                                           name="payment_channels[{{ $index }}][account_number]"
+                                           value="{{ $channel['account_number'] ?? '' }}"
+                                           class="form-control">
+                                </div>
+                                <div class="col-md-9">
+                                    <label class="form-label">Channel Instructions</label>
+                                    <input type="text"
+                                           name="payment_channels[{{ $index }}][instructions]"
+                                           value="{{ $channel['instructions'] ?? '' }}"
+                                           class="form-control">
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end justify-content-between">
+                                    <label class="form-check mb-2">
+                                        <input type="hidden"
+                                               name="payment_channels[{{ $index }}][is_active]"
+                                               value="0">
+                                        <input type="checkbox"
+                                               name="payment_channels[{{ $index }}][is_active]"
+                                               value="1"
+                                               class="form-check-input"
+                                               @checked((bool) ($channel['is_active'] ?? false))>
+                                        <span class="form-check-label">Active</span>
+                                    </label>
+                                    <button type="button" class="btn btn-sm btn-outline-danger remove-payment-channel">
+                                        Remove
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                @error('payment_channels')
+                    <div class="text-danger small mt-1">{{ $message }}</div>
+                @enderror
+            </div>
+
             <button class="btn btn-primary">Save Settings</button>
         </div>
     </div>
 </form>
+@endsection
+
+@section('scripts')
+<template id="payment-channel-template">
+    <div class="border rounded p-3 payment-channel">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">System Key</label>
+                <input type="text" data-name="key" class="form-control" placeholder="jazzcash" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Display Name</label>
+                <input type="text" data-name="label" class="form-control" placeholder="JazzCash" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Account Title</label>
+                <input type="text" data-name="account_title" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Account / Wallet Number</label>
+                <input type="text" data-name="account_number" class="form-control">
+            </div>
+            <div class="col-md-9">
+                <label class="form-label">Channel Instructions</label>
+                <input type="text" data-name="instructions" class="form-control">
+            </div>
+            <div class="col-md-3 d-flex align-items-end justify-content-between">
+                <label class="form-check mb-2">
+                    <input type="hidden" data-name="is_active" value="0">
+                    <input type="checkbox" data-name="is_active" value="1" class="form-check-input">
+                    <span class="form-check-label">Active</span>
+                </label>
+                <button type="button" class="btn btn-sm btn-outline-danger remove-payment-channel">
+                    Remove
+                </button>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const container = document.getElementById('payment-channels');
+        const template = document.getElementById('payment-channel-template');
+
+        const reindex = () => {
+            container.querySelectorAll('.payment-channel').forEach((channel, index) => {
+                channel.querySelectorAll('[data-name]').forEach(input => {
+                    input.name = `payment_channels[${index}][${input.dataset.name}]`;
+                });
+
+                channel.querySelectorAll('[name^="payment_channels["]').forEach(input => {
+                    input.name = input.name.replace(/payment_channels\[\d+]/, `payment_channels[${index}]`);
+                });
+            });
+        };
+
+        document.getElementById('add-payment-channel').addEventListener('click', () => {
+            container.appendChild(template.content.cloneNode(true));
+            reindex();
+        });
+
+        container.addEventListener('click', event => {
+            const button = event.target.closest('.remove-payment-channel');
+
+            if (! button || container.querySelectorAll('.payment-channel').length === 1) {
+                return;
+            }
+
+            button.closest('.payment-channel').remove();
+            reindex();
+        });
+    });
+</script>
 @endsection

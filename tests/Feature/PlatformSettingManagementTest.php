@@ -29,6 +29,16 @@ class PlatformSettingManagementTest extends TestCase
                 'support_phone' => '+92 300 1234567',
                 'currency_code' => 'usd',
                 'payment_instructions' => 'Pay the full invoice by bank transfer.',
+                'payment_channels' => [
+                    [
+                        'key' => 'jazzcash',
+                        'label' => 'JazzCash',
+                        'account_title' => 'BillStack Cloud',
+                        'account_number' => '03001234567',
+                        'instructions' => 'Use the invoice number as reference.',
+                        'is_active' => '1',
+                    ],
+                ],
                 'allow_registration' => '0',
             ])
             ->assertRedirect();
@@ -38,6 +48,7 @@ class PlatformSettingManagementTest extends TestCase
         $this->assertSame('BillStack Cloud', $settings->platform_name);
         $this->assertSame('USD', $settings->currency_code);
         $this->assertFalse($settings->allow_registration);
+        $this->assertSame('jazzcash', $settings->activePaymentChannels()[0]['key']);
     }
 
     public function test_store_owner_cannot_access_platform_settings(): void
@@ -80,6 +91,16 @@ class PlatformSettingManagementTest extends TestCase
         Role::findOrCreate('owner');
         PlatformSetting::current()->update([
             'payment_instructions' => 'Send the complete payment using bank account 123.',
+            'payment_channels' => [
+                [
+                    'key' => 'bank_transfer',
+                    'label' => 'Bank Transfer',
+                    'account_title' => 'BillStack Collections',
+                    'account_number' => 'PK00-TEST-123',
+                    'instructions' => 'Use the invoice number as reference.',
+                    'is_active' => true,
+                ],
+            ],
             'support_phone' => '+92 300 7654321',
         ]);
 
@@ -117,6 +138,8 @@ class PlatformSettingManagementTest extends TestCase
             ->get(route('subscription.checkout'))
             ->assertOk()
             ->assertSee('Send the complete payment using bank account 123.')
+            ->assertSee('BillStack Collections')
+            ->assertSee('PK00-TEST-123')
             ->assertSee('+92 300 7654321');
     }
 

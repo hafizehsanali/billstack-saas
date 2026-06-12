@@ -11,6 +11,7 @@ use Database\Seeders\PlatformBillingSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Database\Seeders\SaasPlanSeeder;
 use Database\Seeders\SubscriptionPaymentSubmissionSeeder;
+use App\Models\PlatformSetting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -21,6 +22,7 @@ class SubscriptionPaymentSubmissionTest extends TestCase
 
     public function test_owner_can_submit_full_payment_reference_once(): void
     {
+        $this->configurePaymentChannels();
         [$owner, $invoice] = $this->scenario();
 
         $this->actingAs($owner)
@@ -52,6 +54,7 @@ class SubscriptionPaymentSubmissionTest extends TestCase
 
     public function test_owner_cannot_submit_payment_for_another_business_invoice(): void
     {
+        $this->configurePaymentChannels();
         [$owner] = $this->scenario();
         [, $foreignInvoice] = $this->scenario('Foreign Store');
 
@@ -65,6 +68,52 @@ class SubscriptionPaymentSubmissionTest extends TestCase
 
         $this->assertDatabaseMissing('subscription_payment_submissions', [
             'reference_no' => 'FOREIGN-REF',
+        ]);
+    }
+
+    public function test_owner_can_only_submit_an_active_platform_payment_channel(): void
+    {
+        PlatformSetting::current()->update([
+            'payment_channels' => [
+                [
+                    'key' => 'jazzcash',
+                    'label' => 'JazzCash',
+                    'account_title' => 'BillStack',
+                    'account_number' => '03001234567',
+                    'instructions' => null,
+                    'is_active' => true,
+                ],
+                [
+                    'key' => 'easypaisa',
+                    'label' => 'Easypaisa',
+                    'account_title' => 'BillStack',
+                    'account_number' => '03111234567',
+                    'instructions' => null,
+                    'is_active' => false,
+                ],
+            ],
+        ]);
+        [$owner, $invoice] = $this->scenario();
+
+        $this->actingAs($owner)
+            ->post(route('subscription.payment-submissions.store', $invoice), [
+                'payment_method' => 'easypaisa',
+                'reference_no' => 'INACTIVE-CHANNEL',
+                'paid_on' => today()->toDateString(),
+            ])
+            ->assertSessionHasErrors('payment_method');
+
+        $this->actingAs($owner)
+            ->post(route('subscription.payment-submissions.store', $invoice), [
+                'payment_method' => 'jazzcash',
+                'reference_no' => 'ACTIVE-CHANNEL',
+                'paid_on' => today()->toDateString(),
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('subscription_payment_submissions', [
+            'payment_method' => 'jazzcash',
+            'reference_no' => 'ACTIVE-CHANNEL',
         ]);
     }
 
@@ -91,6 +140,7 @@ class SubscriptionPaymentSubmissionTest extends TestCase
 
     public function test_rejected_submission_can_be_corrected_and_resubmitted(): void
     {
+        $this->configurePaymentChannels();
         [$owner, $invoice] = $this->scenario();
         $this->submit($owner, $invoice, 'WRONG-REF');
         $submission = SubscriptionPaymentSubmission::firstOrFail();
@@ -199,6 +249,7 @@ class SubscriptionPaymentSubmissionTest extends TestCase
 
     private function submit(User $owner, PlatformSubscriptionInvoice $invoice, string $reference): void
     {
+        $this->configurePaymentChannels();
         $this->actingAs($owner)->post(
             route('subscription.payment-submissions.store', $invoice),
             [
@@ -214,6 +265,22 @@ class SubscriptionPaymentSubmissionTest extends TestCase
         return User::factory()->create([
             'tenant_id' => null,
             'is_platform_admin' => true,
+        ]);
+    }
+
+    private function configurePaymentChannels(): void
+    {
+        PlatformSetting::current()->update([
+            'payment_channels' => [
+                [
+                    'key' => 'bank_transfer',
+                    'label' => 'Bank Transfer',
+                    'account_title' => 'BillStack',
+                    'account_number' => 'TEST-ACCOUNT',
+                    'instructions' => null,
+                    'is_active' => true,
+                ],
+            ],
         ]);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\PlatformSetting;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -14,10 +15,14 @@ class StoreSubscriptionPaymentSubmissionRequest extends FormRequest
 
     public function rules(): array
     {
+        $channelKeys = collect(PlatformSetting::current()->activePaymentChannels())
+            ->pluck('key')
+            ->all();
+
         return [
             'payment_method' => [
                 'required',
-                Rule::in(['bank_transfer', 'card', 'mobile_wallet', 'cash_deposit']),
+                Rule::in($channelKeys),
             ],
             'reference_no' => ['required', 'string', 'max:100'],
             'paid_on' => ['required', 'date', 'before_or_equal:today'],

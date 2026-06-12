@@ -107,6 +107,36 @@
                         @endif
                     </div>
 
+                    @if(count($paymentChannels))
+                        <div class="mt-3">
+                            <div class="fw-semibold mb-2">Available Payment Channels</div>
+                            <div class="row g-2">
+                                @foreach($paymentChannels as $channel)
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3 h-100">
+                                            <div class="fw-semibold">{{ $channel['label'] }}</div>
+                                            @if($channel['account_title'])
+                                                <div class="small mt-2">
+                                                    <span class="text-muted">Account title:</span>
+                                                    {{ $channel['account_title'] }}
+                                                </div>
+                                            @endif
+                                            @if($channel['account_number'])
+                                                <div class="small">
+                                                    <span class="text-muted">Account / wallet:</span>
+                                                    {{ $channel['account_number'] }}
+                                                </div>
+                                            @endif
+                                            @if($channel['instructions'])
+                                                <div class="text-muted small mt-2">{{ $channel['instructions'] }}</div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
                     @php
                         $paymentSubmission = $invoice->paymentSubmission;
                     @endphp
@@ -143,14 +173,9 @@
                                     <select name="payment_method"
                                             class="form-select @error('payment_method') is-invalid @enderror"
                                             required>
-                                        @foreach([
-                                            'bank_transfer' => 'Bank Transfer',
-                                            'card' => 'Card',
-                                            'mobile_wallet' => 'Mobile Wallet',
-                                            'cash_deposit' => 'Cash Deposit',
-                                        ] as $value => $label)
-                                            <option value="{{ $value }}" @selected(old('payment_method') === $value)>
-                                                {{ $label }}
+                                        @foreach($paymentChannels as $channel)
+                                            <option value="{{ $channel['key'] }}" @selected(old('payment_method') === $channel['key'])>
+                                                {{ $channel['label'] }}
                                             </option>
                                         @endforeach
                                     </select>
