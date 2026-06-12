@@ -7,6 +7,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Database\Seeders\SaasPlanSeeder;
+use Database\Seeders\TenantTeamSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -120,6 +121,70 @@ class TenantTeamManagementTest extends TestCase
         ])->assertSessionHasErrors('email');
 
         $this->assertGuest();
+    }
+
+    public function test_owner_can_deactivate_and_reactivate_staff_user(): void
+    {
+        $owner = $this->createOwnerWithTenant(userLimit: 2);
+        $staff = User::factory()->create([
+            'tenant_id' => $owner->tenant_id,
+            'is_active' => true,
+        ]);
+        $staff->assignRole('cashier');
+
+        $this->actingAs($owner)
+            ->patch(route('team.deactivate', $staff))
+            ->assertSessionHas('success');
+
+        $this->assertFalse($staff->fresh()->is_active);
+
+        $this->actingAs($owner)
+            ->patch(route('team.activate', $staff))
+            ->assertSessionHas('success');
+
+        $this->assertTrue($staff->fresh()->is_active);
+    }
+
+    public function test_owner_cannot_manage_another_owner_as_staff(): void
+    {
+        $owner = $this->createOwnerWithTenant(userLimit: 3);
+        $otherOwner = User::factory()->create(['tenant_id' => $owner->tenant_id]);
+        $otherOwner->assignRole('owner');
+
+        $this->actingAs($owner)
+            ->get(route('team.edit', $otherOwner))
+            ->assertForbidden();
+    }
+
+    public function test_team_index_explains_staff_role_access(): void
+    {
+        $owner = $this->createOwnerWithTenant(userLimit: 3);
+
+        $this->actingAs($owner)
+            ->get(route('team.index'))
+            ->assertOk()
+            ->assertSee('Role Access Guide')
+            ->assertSee('Can handle POS billing, customers, and invoice payments.');
+    }
+
+    public function test_tenant_team_seeder_creates_repeatable_demo_staff_accounts(): void
+    {
+        $this->seed(RolePermissionSeeder::class);
+
+        Tenant::create([
+            'name' => 'Northstar General Store',
+            'slug' => 'demo-store-1',
+        ]);
+
+        $this->seed(TenantTeamSeeder::class);
+        $this->seed(TenantTeamSeeder::class);
+
+        $this->assertSame(1, User::where('email', 'cashier@test.com')->count());
+        $this->assertTrue(User::where('email', 'cashier@test.com')->firstOrFail()->hasRole('cashier'));
+        $this->assertDatabaseHas('users', [
+            'email' => 'manager@test.com',
+            'is_active' => false,
+        ]);
     }
 
     private function createOwnerWithTenant(

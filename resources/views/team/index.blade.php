@@ -88,7 +88,15 @@
                             <div class="text-muted small">{{ $member->email }}</div>
                         </td>
                         <td>
-                            {{ str($member->roles->first()?->name ?? 'No role')->replace('_', ' ')->title() }}
+                            @php
+                                $role = $member->roles->first()?->name;
+                            @endphp
+                            <div class="fw-semibold">
+                                {{ str($role ?? 'No role')->replace('_', ' ')->title() }}
+                            </div>
+                            @if($role && isset($roleDescriptions[$role]))
+                                <div class="text-muted small">{{ $roleDescriptions[$role] }}</div>
+                            @endif
                         </td>
                         <td>
                             @if($member->is_active)
@@ -147,6 +155,24 @@
 
 <div class="mt-3">
     {{ $members->links() }}
+</div>
+
+<div class="mt-4">
+    <h4 class="mb-2">Role Access Guide</h4>
+    <div class="table-responsive border rounded">
+        <table class="table table-sm table-vcenter mb-0">
+            <tbody>
+                @foreach($roleDescriptions as $role => $description)
+                    <tr>
+                        <th class="ps-3" style="width: 180px;">
+                            {{ str($role)->replace('_', ' ')->title() }}
+                        </th>
+                        <td class="text-muted">{{ $description }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
 </div>
 
 @endsection

@@ -37,6 +37,7 @@ class TeamMemberController extends Controller
         return view('team.index', [
             'members' => $members,
             'tenant' => $tenant,
+            'roleDescriptions' => self::ROLE_DESCRIPTIONS,
             'userLimit' => $userLimit,
             'activeUserCount' => $activeUserCount,
             'inactiveUserCount' => $inactiveUserCount,
@@ -158,5 +159,6 @@ class TeamMemberController extends Controller
     private function authorizeTenantMember(User $member): void
     {
         abort_if($member->tenant_id !== auth()->user()->tenant_id, 403);
+        abort_if($member->hasRole('owner') && (int) $member->id !== (int) auth()->id(), 403);
     }
 }

@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             PlatformSettingSeeder::class,
             PlatformOfferSeeder::class,
             UserSeeder::class,
+            TenantTeamSeeder::class,
             CategorySeeder::class,
             SupplierSeeder::class,
             CustomerSeeder::class,
