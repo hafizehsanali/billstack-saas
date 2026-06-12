@@ -6,7 +6,9 @@ use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\PlatformSubscriptionInvoice;
+use App\Models\PlatformActivityLog;
 use App\Models\Product;
+use App\Models\SubscriptionPaymentSubmission;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\User;
@@ -82,10 +84,25 @@ class PlatformDashboardAlertsTest extends TestCase
             'issued_on' => now()->subDays(10),
             'due_on' => now()->subDay(),
         ]);
+        SubscriptionPaymentSubmission::create([
+            'platform_subscription_invoice_id' => $platformInvoice->id,
+            'tenant_id' => $tenant->id,
+            'submitted_by' => $owner->id,
+            'payment_method' => 'bank_transfer',
+            'reference_no' => 'DASHBOARD-REVIEW-001',
+            'paid_on' => today(),
+            'status' => 'pending',
+        ]);
 
         $admin = User::factory()->create([
             'tenant_id' => null,
             'is_platform_admin' => true,
+        ]);
+        PlatformActivityLog::create([
+            'actor_id' => $admin->id,
+            'tenant_id' => $tenant->id,
+            'action' => 'tenant.subscription_updated',
+            'description' => 'Updated Attention Store subscription.',
         ]);
 
         $this->actingAs($admin)
@@ -97,6 +114,9 @@ class PlatformDashboardAlertsTest extends TestCase
             ->assertSee('Subscription ends')
             ->assertDontSee('Trial ends')
             ->assertSee($platformInvoice->invoice_no)
-            ->assertSee('Rs 50.00 due');
+            ->assertSee('Rs 50.00 due')
+            ->assertSee('Payment Reviews')
+            ->assertSee('Updated Attention Store subscription.')
+            ->assertSee(route('platform.tenants.show', $tenant), false);
     }
 }
