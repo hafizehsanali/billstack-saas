@@ -19,16 +19,25 @@ class SubscriptionCheckoutController extends Controller
 
         abort_if(! $subscription?->plan || $subscription->plan->monthly_price_cents === 0, 404);
 
+        $offers = PlatformOffer::with('plans')
+            ->where('is_active', true)
+            ->get()
+            ->filter(fn (PlatformOffer $offer) => $offer->isCurrentlyAvailable()
+                && $offer->appliesTo($subscription->plan))
+            ->values();
+
         return view('subscription.checkout', [
             'tenant' => $tenant,
             'subscription' => $subscription,
             'invoice' => $this->openInvoice($subscription->id),
             'platformSettings' => PlatformSetting::current(),
-            'offers' => PlatformOffer::with('plans')
-                ->where('is_active', true)
-                ->get()
-                ->filter(fn (PlatformOffer $offer) => $offer->isCurrentlyAvailable()
-                    && $offer->appliesTo($subscription->plan)),
+            'offers' => $offers,
+            'offerPreviews' => $offers->map(fn (PlatformOffer $offer) => [
+                'code' => $offer->code,
+                'type' => $offer->discount_type,
+                'value' => (int) $offer->discount_value,
+                'cycle' => $offer->billing_cycle,
+            ])->values(),
         ]);
     }
 

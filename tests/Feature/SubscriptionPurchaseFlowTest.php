@@ -117,6 +117,16 @@ class SubscriptionPurchaseFlowTest extends TestCase
         $this->assertSame(399920, $invoice->total_cents);
         $this->assertSame('SAVE20', $invoice->offer_code);
         $this->assertSame(1, $offer->fresh()->redeemed_count);
+
+        $this->actingAs($owner)
+            ->get(route('subscription.checkout'))
+            ->assertOk()
+            ->assertSee('Package Price')
+            ->assertSee('Coupon Discount')
+            ->assertSee('Total Payable After Coupon')
+            ->assertSee('Rs 4,999.00')
+            ->assertSee('Rs 999.80')
+            ->assertSee('Rs 3,999.20');
     }
 
     public function test_fixed_offer_is_capped_at_subscription_price(): void

@@ -47,32 +47,15 @@
             </div>
             <div class="card-body">
                 @if($invoice)
-                    <div class="row g-3 mb-4">
+                    <div class="row g-3 mb-3">
                         <div class="col-sm-6">
                             <div class="text-muted">Invoice</div>
                             <div class="fw-bold">{{ $invoice->invoice_no }}</div>
                         </div>
                         <div class="col-sm-6">
-                            <div class="text-muted">Amount Due</div>
-                            <div class="h3 mb-0 text-danger">
-                                Rs {{ number_format($invoice->balance_cents / 100, 2) }}
-                            </div>
-                        </div>
-                        <div class="col-sm-6">
                             <div class="text-muted">Billing Cycle</div>
                             <div>{{ str($invoice->billing_cycle)->title() }}</div>
                         </div>
-                        @if($invoice->offer_code)
-                            <div class="col-sm-6">
-                                <div class="text-muted">Promotion</div>
-                                <div>
-                                    <span class="badge bg-warning text-dark">{{ $invoice->offer_code }}</span>
-                                    <span class="text-success ms-1">
-                                        - Rs {{ number_format($invoice->discount_cents / 100, 2) }}
-                                    </span>
-                                </div>
-                            </div>
-                        @endif
                         <div class="col-sm-6">
                             <div class="text-muted">Issued</div>
                             <div>{{ $invoice->issued_on?->format('M d, Y') }}</div>
@@ -80,6 +63,30 @@
                         <div class="col-sm-6">
                             <div class="text-muted">Due</div>
                             <div>{{ $invoice->due_on?->format('M d, Y') }}</div>
+                        </div>
+                    </div>
+
+                    <div class="border rounded p-3 mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Package Price</span>
+                            <span>Rs {{ number_format($invoice->subtotal_cents / 100, 2) }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">
+                                Coupon Discount
+                                @if($invoice->offer_code)
+                                    <span class="badge bg-warning text-dark ms-1">{{ $invoice->offer_code }}</span>
+                                @endif
+                            </span>
+                            <span class="{{ $invoice->discount_cents > 0 ? 'text-success' : 'text-muted' }}">
+                                - Rs {{ number_format($invoice->discount_cents / 100, 2) }}
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center border-top pt-3">
+                            <span class="fw-semibold">Total Payable After Coupon</span>
+                            <span class="h2 mb-0 text-danger">
+                                Rs {{ number_format($invoice->total_cents / 100, 2) }}
+                            </span>
                         </div>
                     </div>
 
@@ -160,6 +167,25 @@
                                 </div>
                             @endif
                         </div>
+
+                        <div class="border rounded p-3 mb-3" id="payment-estimate">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Package Price</span>
+                                <span id="estimate-subtotal">Rs 0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Coupon Discount</span>
+                                <span id="estimate-discount" class="text-success">- Rs 0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center border-top pt-3">
+                                <span class="fw-semibold">Estimated Total Payable</span>
+                                <span id="estimate-total" class="h2 mb-0 text-danger">Rs 0.00</span>
+                            </div>
+                            <div id="estimate-note" class="text-muted small mt-2">
+                                The final amount is confirmed when the purchase invoice is created.
+                            </div>
+                        </div>
+
                         <button class="btn btn-primary">Create Purchase Invoice</button>
                     </form>
                 @endif
@@ -167,4 +193,51 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+@if(! $invoice)
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const planPrices = {
+                monthly: {{ (int) $subscription->plan->monthly_price_cents }},
+                annual: {{ (int) $subscription->plan->annual_price_cents }},
+            };
+            const offers = @json($offerPreviews);
+            const promoInput = document.getElementById('promo_code');
+            const currency = new Intl.NumberFormat('en-PK', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            });
+
+            const formatAmount = cents => `Rs ${currency.format(cents / 100)}`;
+
+            const updateEstimate = () => {
+                const cycle = document.querySelector('input[name="billing_cycle"]:checked')?.value ?? 'monthly';
+                const subtotal = planPrices[cycle] ?? 0;
+                const code = promoInput.value.trim().toUpperCase();
+                const offer = offers.find(item =>
+                    item.code === code && (item.cycle === 'both' || item.cycle === cycle)
+                );
+                let discount = 0;
+
+                if (offer) {
+                    discount = offer.type === 'percent'
+                        ? Math.round(subtotal * (offer.value / 100))
+                        : offer.value;
+                    discount = Math.min(discount, subtotal);
+                }
+
+                document.getElementById('estimate-subtotal').textContent = formatAmount(subtotal);
+                document.getElementById('estimate-discount').textContent = `- ${formatAmount(discount)}`;
+                document.getElementById('estimate-total').textContent = formatAmount(subtotal - discount);
+            };
+
+            document.querySelectorAll('input[name="billing_cycle"]')
+                .forEach(input => input.addEventListener('change', updateEstimate));
+            promoInput.addEventListener('input', updateEstimate);
+            updateEstimate();
+        });
+    </script>
+@endif
 @endsection
