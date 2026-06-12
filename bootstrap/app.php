@@ -30,6 +30,9 @@ return Application::configure(basePath: dirname(__DIR__))
                                 'feature' =>
                                     \App\Http\Middleware\EnsureTenantFeatureIsEnabled::class,
 
+                                'verified' =>
+                                    \App\Http\Middleware\EnsureEmailVerificationIsRequired::class,
+
                             ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

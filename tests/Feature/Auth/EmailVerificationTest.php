@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
@@ -52,6 +53,21 @@ class EmailVerificationTest extends TestCase
         );
 
         $this->actingAs($user)->get($verificationUrl);
+
+        $this->assertFalse($user->fresh()->hasVerifiedEmail());
+    }
+
+    public function test_unverified_user_can_access_protected_routes_when_verification_is_disabled(): void
+    {
+        config(['auth.require_email_verification' => false]);
+        $user = User::factory()->unverified()->create();
+        Route::middleware(['web', 'auth', 'verified'])
+            ->get('/verification-test', fn () => response('verified middleware passed'));
+
+        $this->actingAs($user)
+            ->get('/verification-test')
+            ->assertOk()
+            ->assertSee('verified middleware passed');
 
         $this->assertFalse($user->fresh()->hasVerifiedEmail());
     }

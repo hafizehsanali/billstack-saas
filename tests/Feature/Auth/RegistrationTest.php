@@ -66,6 +66,7 @@ class RegistrationTest extends TestCase
 
     public function test_unverified_owner_is_redirected_to_email_verification(): void
     {
+        config(['auth.require_email_verification' => true]);
         $user = User::factory()->unverified()->create();
 
         $this->actingAs($user)
