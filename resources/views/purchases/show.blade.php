@@ -113,9 +113,9 @@
                 <tbody>
                     @foreach($purchase->items as $item)
                         <tr>
-                            <td>{{ $item->product?->name ?? 'Deleted product' }}</td>
+                            <td>{{ $item->variant?->display_name ?? $item->product?->name ?? 'Deleted product' }}</td>
                             <td>{{ number_format($item->purchase_price, 2) }}</td>
-                            <td>{{ $item->quantity }}</td>
+                            <td>{{ $item->quantity }} {{ $item->unit?->symbol }}</td>
                             <td>{{ $item->returnedQuantity() }}</td>
                             <td>{{ $item->returnableQuantity() }}</td>
                             <td>{{ number_format($item->line_total, 2) }}</td>
@@ -332,8 +332,8 @@
                                     @endphp
 
                                     <tr>
-                                        <td>{{ $item->product?->name ?? 'Deleted product' }}</td>
-                                        <td class="text-end">{{ $item->quantity }}</td>
+                                        <td>{{ $item->variant?->display_name ?? $item->product?->name ?? 'Deleted product' }}</td>
+                                        <td class="text-end">{{ $item->quantity }} {{ $item->unit?->symbol }}</td>
                                         <td class="text-end">{{ $item->returnedQuantity() }}</td>
                                         <td class="text-end">{{ $returnableQuantity }}</td>
                                         <td>

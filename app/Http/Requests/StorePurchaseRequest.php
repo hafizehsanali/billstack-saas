@@ -49,6 +49,17 @@ class StorePurchaseRequest extends FormRequest
                 Rule::exists('products', 'id')
                     ->where('tenant_id', auth()->user()->tenant_id),
             ],
+            'products.*.product_variant_id' => [
+                'nullable',
+                Rule::exists('product_variants', 'id')
+                    ->where('tenant_id', auth()->user()->tenant_id),
+            ],
+            'products.*.unit_id' => [
+                'nullable',
+                Rule::exists('units', 'id')
+                    ->where('tenant_id', auth()->user()->tenant_id),
+            ],
+            'products.*.unit_factor' => ['nullable', 'integer', 'min:1'],
             'products.*.quantity' => ['required','integer','min:1',],
             'products.*.purchase_price' => ['required','numeric','min:0'],
         ];

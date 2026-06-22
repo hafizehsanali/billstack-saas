@@ -14,7 +14,7 @@ return new class extends Migration
             $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
             $table->foreignId('supplier_id')->constrained()->cascadeOnDelete();
             // Purchase invoice/reference number
-            $table->string('purchase_no')->unique();
+            $table->string('purchase_no');
              // Purchase date
             $table->date('purchase_date');
             // Financials
@@ -30,6 +30,7 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->timestamps();
             $table->softDeletes();
+            $table->unique(['tenant_id', 'purchase_no'], 'purchases_tenant_purchase_no_unique');
         });
     }
 

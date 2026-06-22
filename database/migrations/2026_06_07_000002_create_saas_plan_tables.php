@@ -16,6 +16,10 @@ return new class extends Migration
             $table->unsignedInteger('monthly_price_cents')->default(0);
             $table->unsignedInteger('annual_price_cents')->default(0);
             $table->unsignedInteger('user_limit')->nullable();
+            $table->unsignedInteger('trial_days')->default(0);
+            $table->unsignedInteger('free_access_days')->nullable();
+            $table->unsignedInteger('product_limit')->nullable();
+            $table->unsignedInteger('monthly_invoice_limit')->nullable();
             $table->boolean('is_public')->default(true);
             $table->boolean('is_active')->default(true);
             $table->timestamps();

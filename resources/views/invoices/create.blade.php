@@ -280,23 +280,26 @@
 
     function addRow(item = null) {
         const selectedProductId = item?.product_id ? String(item.product_id) : '';
+        const selectedVariantId = item?.product_variant_id ? String(item.product_variant_id) : '';
         const quantity = Number(item?.quantity ?? 1) || 1;
         const price = Number(item?.price ?? 0) || 0;
 
         let html = `
             <tr>
                 <td>
-                    <select name="products[${rowIndex}][product_id]"
+                    <input type="hidden" name="products[${rowIndex}][product_id]" class="product-id">
+                    <select name="products[${rowIndex}][product_variant_id]"
                             class="form-select product-select"
                             onchange="setProductData(this)"
                             required>
                         <option value="">Select Product</option>
 
-                        @foreach($products as $product)
-                            <option value="{{ $product->id }}"
-                                    data-price="{{ $product->selling_price }}"
-                                    data-stock="{{ $product->stock_quantity }}">
-                                {{ $product->name }} (Stock: {{ $product->stock_quantity }})
+                        @foreach($variants as $variant)
+                            <option value="{{ $variant->id }}"
+                                    data-product-id="{{ $variant->product_id }}"
+                                    data-price="{{ $variant->selling_price }}"
+                                    data-stock="{{ $variant->stock_quantity }}">
+                                {{ $variant->display_name }} (Stock: {{ $variant->stock_quantity }} {{ $variant->unit?->symbol }})
                             </option>
                         @endforeach
                     </select>
@@ -354,8 +357,12 @@
         const row = document.querySelector('#invoiceBody tr:last-child');
         const productSelect = row.querySelector('.product-select');
 
-        if (selectedProductId) {
-            productSelect.value = selectedProductId;
+        if (selectedVariantId || selectedProductId) {
+            productSelect.value = selectedVariantId;
+            if (!productSelect.value) {
+                const fallback = [...productSelect.options].find(option => option.dataset.productId === selectedProductId);
+                if (fallback) productSelect.value = fallback.value;
+            }
             setProductData(productSelect);
             row.querySelector('.quantity').value = quantity;
             row.querySelector('.price').value = parseFloat(price || 0).toFixed(2);
@@ -372,6 +379,7 @@
         let price = parseFloat(option.dataset.price) || 0;
         let stock = parseFloat(option.dataset.stock) || 0;
 
+        row.querySelector('.product-id').value = option.dataset.productId || '';
         row.querySelector('.price').value = price.toFixed(2);
         row.querySelector('.stock').value = stock;
 

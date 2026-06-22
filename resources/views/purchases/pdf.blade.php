@@ -76,9 +76,9 @@
 
             @foreach($purchase->items as $item)
                 <tr>
-                    <td>{{ $item->product->name }}</td>
+                    <td>{{ $item->variant?->display_name ?? $item->product->name }}</td>
                     <td>{{ number_format($item->purchase_price, 2) }}</td>
-                    <td>{{ $item->quantity }}</td>
+                    <td>{{ $item->quantity }} {{ $item->unit?->symbol }}</td>
                     <td>{{ number_format($item->line_total, 2) }}</td>
                 </tr>
             @endforeach

@@ -103,8 +103,9 @@
 
                         <thead>
                             <tr>
-                                <th width="35%">Product</th>
-                                <th width="15%">Qty</th>
+                                <th width="30%">Product</th>
+                                <th width="12%">Unit</th>
+                                <th width="13%">Quantity</th>
                                 <th width="20%">Purchase Price</th>
                                 <th width="20%">Line Total</th>
                                 <th width="10%">Action</th>
@@ -286,6 +287,7 @@
     function addRow(item = null)
     {
         const selectedProductId = item?.product_id ? String(item.product_id) : '';
+        const selectedVariantId = item?.product_variant_id ? String(item.product_variant_id) : '';
         const quantity = Number(item?.quantity ?? 1) || 1;
         const purchasePrice = Number(item?.purchase_price ?? 0) || 0;
 
@@ -293,7 +295,8 @@
             <tr>
 
                 <td>
-                    <select name="products[${rowIndex}][product_id]"
+                    <input type="hidden" name="products[${rowIndex}][product_id]" class="product-id">
+                    <select name="products[${rowIndex}][product_variant_id]"
                             class="form-select product-select"
                             onchange="setProductPrice(this)"
                             required>
@@ -302,16 +305,26 @@
                             Select Product
                         </option>
 
-                        @foreach($products as $product)
+                        @foreach($variants as $variant)
 
-                            <option value="{{ $product->id }}"
-                                    data-price="{{ $product->purchase_price }}">
-                                {{ $product->name }}
+                            <option value="{{ $variant->id }}"
+                                    data-product-id="{{ $variant->product_id }}"
+                                    data-price="{{ $variant->purchase_unit_price ?? $variant->purchase_price }}"
+                                    data-unit-id="{{ $variant->purchase_unit_id ?: $variant->unit_id }}"
+                                    data-unit="{{ ($variant->purchaseUnit ?: $variant->unit)?->symbol ?? 'unit' }}"
+                                    data-factor="{{ max((int) $variant->purchase_unit_factor, 1) }}">
+                                {{ $variant->display_name }}
                             </option>
 
                         @endforeach
 
                     </select>
+                </td>
+
+                <td>
+                    <input type="hidden" name="products[${rowIndex}][unit_id]" class="unit-id">
+                    <input type="hidden" name="products[${rowIndex}][unit_factor]" class="unit-factor" value="1">
+                    <span class="form-control bg-light unit-label">-</span>
                 </td>
 
                 <td>
@@ -361,8 +374,13 @@
         const row = document.querySelector('#purchaseBody tr:last-child');
         const productSelect = row.querySelector('.product-select');
 
-        if (selectedProductId) {
-            productSelect.value = selectedProductId;
+        if (selectedVariantId || selectedProductId) {
+            productSelect.value = selectedVariantId;
+            if (!productSelect.value) {
+                const fallback = [...productSelect.options].find(option => option.dataset.productId === selectedProductId);
+                if (fallback) productSelect.value = fallback.value;
+            }
+            setProductPrice(productSelect);
             row.querySelector('.price').value = parseFloat(purchasePrice || 0).toFixed(2);
         }
 
@@ -377,6 +395,10 @@
         let option = select.options[select.selectedIndex];
         let price = parseFloat(option.dataset.price) || 0;
 
+        row.querySelector('.product-id').value = option.dataset.productId || '';
+        row.querySelector('.unit-id').value = option.dataset.unitId || '';
+        row.querySelector('.unit-factor').value = option.dataset.factor || 1;
+        row.querySelector('.unit-label').textContent = option.dataset.unit || '-';
         row.querySelector('.price').value = price.toFixed(2);
 
         calculateTotals();

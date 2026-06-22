@@ -17,6 +17,9 @@ return new class extends Migration
                 ->after('id')
                 ->constrained()
                 ->cascadeOnDelete();
+            $table->boolean('is_platform_admin')->default(false)->after('tenant_id');
+            $table->timestamp('terms_accepted_at')->nullable()->after('email_verified_at');
+            $table->boolean('requires_password_setup')->default(false)->after('is_active');
         });
     }
 
@@ -26,7 +29,12 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            //
+            $table->dropColumn([
+                'requires_password_setup',
+                'terms_accepted_at',
+                'is_platform_admin',
+            ]);
+            $table->dropConstrainedForeignId('tenant_id');
         });
     }
 };

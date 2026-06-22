@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Invoice;
-use App\Models\Product;
+use App\Services\ProductCatalogService;
 use App\Models\SalesReturn;
 use App\Models\SalesReturnItem;
 use App\Services\StockLedgerService;
@@ -31,7 +31,7 @@ class SalesReturnController extends Controller
 
         DB::transaction(function () use ($invoice, $validated) {
             $stockLedger = app(StockLedgerService::class);
-            $invoice->load('items.returnItems', 'payments');
+            $invoice->load('items.returnItems', 'items.variant', 'payments');
 
             $selectedItems = collect($validated['items'])
                 ->map(fn ($item, $invoiceItemId) => [
@@ -86,22 +86,24 @@ class SalesReturnController extends Controller
                     'sales_return_id' => $salesReturn->id,
                     'invoice_item_id' => $invoiceItem->id,
                     'product_id' => $invoiceItem->product_id,
+                    'product_variant_id' => $invoiceItem->product_variant_id,
                     'quantity' => $item['quantity'],
                     'price' => $invoiceItem->price,
                     'total' => $lineTotal,
                 ]);
 
-                $product = Product::find($invoiceItem->product_id);
+                $catalog = app(ProductCatalogService::class);
+                $variant = $invoiceItem->variant
+                    ?? $catalog->resolveVariant($invoiceItem->product_id, null, true);
 
-                if ($product) {
-                    $product->increment('stock_quantity', $item['quantity']);
-                    $product->refresh();
+                if ($variant) {
+                    $catalog->adjustStock($variant, $item['quantity'], 'in');
 
-                    $stockLedger->record($product, 'sales_return', $item['quantity'], [
+                    $stockLedger->record($variant, 'sales_return', $item['quantity'], [
                         'direction' => 'in',
-                        'unit_cost' => $product->purchase_price,
+                        'unit_cost' => $variant->purchase_price,
                         'unit_price' => $invoiceItem->price,
-                        'stock_after' => $product->stock_quantity,
+                        'stock_after' => $variant->stock_quantity,
                         'source_type' => SalesReturnItem::class,
                         'source_id' => $returnItem->id,
                         'reference_no' => $salesReturn->return_no,

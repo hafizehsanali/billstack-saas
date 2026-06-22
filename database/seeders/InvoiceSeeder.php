@@ -72,10 +72,13 @@ class InvoiceSeeder extends Seeder
                 ]);
 
                 foreach ($products as $product) {
+                    $variant = $product->variants()->where('is_default', true)->first()
+                        ?? $product->variants()->first();
 
                     InvoiceItem::create([
                         'invoice_id' => $invoice->id,
                         'product_id' => $product->id,
+                        'product_variant_id' => $variant?->id,
                         'quantity' => 2,
                         'price' => $product->selling_price,
                         'total' => $product->selling_price * 2,
@@ -83,7 +86,8 @@ class InvoiceSeeder extends Seeder
 
                     // stock deduction only if not cancelled
                     if ($status !== 'cancelled') {
-                        $product->decrement('stock_quantity', 2);
+                        $variant?->decrement('stock_quantity', 2);
+                        $product->syncFromVariants();
                     }
                 }
             }

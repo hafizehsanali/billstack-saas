@@ -76,9 +76,21 @@
 
             @foreach($invoice->items as $item)
                 <tr>
-                    <td>{{ $item->product->name }}</td>
-                    <td>{{ number_format($item->price, 2) }}</td>
-                    <td>{{ $item->quantity }}</td>
+                    <td>{{ $item->variant?->display_name ?? $item->product->name }}</td>
+                    <td>
+                        @if($item->regular_price && $item->regular_price > $item->price)
+                            <span style="text-decoration: line-through; color: #6b7280;">
+                                Rs {{ number_format($item->regular_price, 2) }}
+                            </span><br>
+                        @endif
+                        Rs {{ number_format($item->price, 2) }}
+                        @if($item->item_savings > 0)
+                            <br><small style="color: #166534;">
+                                You saved Rs {{ number_format($item->item_savings, 2) }}
+                            </small>
+                        @endif
+                    </td>
+                    <td>{{ $item->quantity }} {{ $item->variant?->unit?->symbol }}</td>
                     <td>{{ number_format($item->total, 2) }}</td>
                 </tr>
             @endforeach
@@ -86,6 +98,15 @@
         </tbody>
 
     </table>
+
+    @php
+        $promotionalSavings = (float) $invoice->items->sum('item_savings');
+    @endphp
+    @if($promotionalSavings > 0)
+        <p class="text-right" style="color: #166534;">
+            <strong>Promotional Savings: Rs {{ number_format($promotionalSavings, 2) }}</strong>
+        </p>
+    @endif
 
     <h3 class="text-right">
         Total: Rs {{ number_format($invoice->total, 2) }}

@@ -23,6 +23,11 @@ class Tenant extends Model
         return $this->hasMany(User::class);
     }
 
+    public function brands(): HasMany
+    {
+        return $this->hasMany(Brand::class);
+    }
+
     public function activeSubscription(): HasOne
     {
         return $this->hasOne(TenantSubscription::class)

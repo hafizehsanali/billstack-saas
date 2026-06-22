@@ -4,20 +4,24 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProductRequest;
 use App\Models\Category;
+use App\Models\Brand;
 use App\Models\InvoiceItem;
 use App\Models\Product;
+use App\Models\ProductAttribute;
 use App\Models\PurchaseItem;
 use App\Models\PurchaseReturnItem;
 use App\Models\SalesReturnItem;
 use App\Models\StockMovement;
+use App\Models\Unit;
 use App\Services\StockLedgerService;
+use App\Services\ProductCatalogService;
 use App\Services\TenantUsageLimitService;
 
 class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::with('category')
+        $products = Product::with(['category', 'brand', 'variants.unit', 'variants.attributeValues.attribute'])
             ->latest()
             ->get();
 
@@ -27,25 +31,36 @@ class ProductController extends Controller
     public function create()
     {
         $categories = Category::all();
+        $brands = Brand::orderBy('name')->get();
+        $attributes = ProductAttribute::with('values')->orderBy('name')->get();
+        $units = Unit::where('is_active', true)->orderBy('name')->get();
 
-        return view('products.create', compact('categories'));
+        return view('products.create', compact('categories', 'brands', 'attributes', 'units'));
     }
 
     public function edit(Product $product)
     {
+        $product->load(['variants.attributeValues', 'images']);
         $categories = Category::all();
+        $brands = Brand::orderBy('name')->get();
+        $attributes = ProductAttribute::with('values')->orderBy('name')->get();
+        $units = Unit::where('is_active', true)->orderBy('name')->get();
 
         return view('products.edit', compact(
             'product',
-            'categories'
+            'categories',
+            'brands',
+            'attributes',
+            'units'
         ));
     }
 
     public function stockLedger(Product $product)
     {
-        $product->load('category');
+        $product->load(['category', 'variants.unit']);
 
         $movements = $product->stockMovements()
+            ->with('variant.unit')
             ->latest('movement_date')
             ->latest()
             ->paginate(25);
@@ -138,41 +153,7 @@ class ProductController extends Controller
 
         $data = $request->validated();
 
-        $product = Product::create([
-
-            'tenant_id' => auth()->user()->tenant_id,
-
-            'category_id' => $data['category_id'],
-
-            'name' => $data['name'],
-
-            'sku' => $data['sku'],
-
-            'barcode' => $data['barcode'] ?? null,
-
-            'purchase_price' => $data['purchase_price'],
-
-            'selling_price' => $data['selling_price'],
-
-            'stock_quantity' => $data['stock_quantity'],
-
-            'low_stock_alert' => $data['low_stock_alert'],
-
-        ]);
-
-        if ($product->stock_quantity > 0) {
-            app(StockLedgerService::class)->record(
-                $product,
-                'opening_stock',
-                $product->stock_quantity,
-                [
-                    'direction' => 'in',
-                    'unit_cost' => $product->purchase_price,
-                    'unit_price' => $product->selling_price,
-                    'notes' => 'Opening stock from product creation.',
-                ]
-            );
-        }
+        app(ProductCatalogService::class)->create($data);
 
         return redirect()
             ->route('products.index')
@@ -185,34 +166,7 @@ class ProductController extends Controller
     public function update(StoreProductRequest $request, Product $product)
     {
         $data = $request->validated();
-        $oldStock = $product->stock_quantity;
-
-        $product->update([
-            'category_id' => $data['category_id'],
-            'name' => $data['name'],
-            'sku' => $data['sku'],
-            'barcode' => $data['barcode'] ?? null,
-            'purchase_price' => $data['purchase_price'],
-            'selling_price' => $data['selling_price'],
-            'stock_quantity' => $data['stock_quantity'],
-            'low_stock_alert' => $data['low_stock_alert'],
-        ]);
-
-        $stockDifference = $product->stock_quantity - $oldStock;
-
-        if ($stockDifference !== 0) {
-            app(StockLedgerService::class)->record(
-                $product,
-                $stockDifference > 0 ? 'stock_adjustment_in' : 'stock_adjustment_out',
-                abs($stockDifference),
-                [
-                    'direction' => $stockDifference > 0 ? 'in' : 'out',
-                    'unit_cost' => $product->purchase_price,
-                    'unit_price' => $product->selling_price,
-                    'notes' => 'Manual stock adjustment from product update.',
-                ]
-            );
-        }
+        app(ProductCatalogService::class)->update($product, $data);
 
         return redirect()
             ->route('products.index')

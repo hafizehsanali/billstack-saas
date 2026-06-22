@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('support_phone')->nullable();
             $table->string('currency_code', 3)->default('PKR');
             $table->text('payment_instructions')->nullable();
+            $table->json('payment_channels')->nullable();
             $table->boolean('allow_registration')->default(true);
             $table->timestamps();
         });

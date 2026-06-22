@@ -61,11 +61,12 @@ class Purchase extends Model
             return false;
         }
 
-        $this->loadMissing('items.product');
+        $this->loadMissing(['items.product', 'items.variant']);
 
         return $this->items->every(
             fn (PurchaseItem $item) => $item->product
-                && $item->product->stock_quantity >= $item->quantity
+                && ($item->variant?->stock_quantity ?? $item->product->stock_quantity)
+                    >= ($item->base_quantity ?: $item->quantity)
         );
     }
 

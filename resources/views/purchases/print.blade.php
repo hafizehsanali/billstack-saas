@@ -81,13 +81,13 @@
 
                     <td>
 
-                        {{ $item->product->name }}
+                        {{ $item->variant?->display_name ?? $item->product->name }}
 
                     </td>
 
                     <td>
 
-                        {{ $item->quantity }}
+                        {{ $item->quantity }} {{ $item->unit?->symbol }}
 
                     </td>
 

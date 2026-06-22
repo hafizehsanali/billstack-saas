@@ -28,11 +28,18 @@ class PurchaseController extends Controller
     {
         $suppliers = Supplier::orderBy('name')->get();
 
-        $products = Product::orderBy('name')->get();
+        $products = Product::with(['activeVariants' => fn ($query) => $query
+            ->with(['unit', 'purchaseUnit'])
+            ->orderByDesc('is_default')])
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+        $variants = $products->flatMap->activeVariants;
 
         return view('purchases.create', compact(
             'suppliers',
-            'products'
+            'products',
+            'variants'
         ));
     }
 
@@ -44,16 +51,23 @@ class PurchaseController extends Controller
             'This purchase cannot be edited after payments, returns, or stock usage.'
         );
 
-        $purchase->load('items');
+        $purchase->load('items.unit');
 
         $suppliers = Supplier::all();
 
-        $products = Product::all();
+        $products = Product::with(['activeVariants' => fn ($query) => $query
+            ->with(['unit', 'purchaseUnit'])
+            ->orderByDesc('is_default')])
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+        $variants = $products->flatMap->activeVariants;
 
         return view('purchases.edit', compact(
             'purchase',
             'suppliers',
-            'products'
+            'products',
+            'variants'
         ));
     }
 
@@ -100,9 +114,12 @@ class PurchaseController extends Controller
         $purchase->load([
             'supplier',
             'items.product',
+            'items.variant',
+            'items.unit',
             'items.returnItems',
             'payments',
             'returns.items.product',
+            'returns.items.variant',
         ]);
 
         return view('purchases.show', compact('purchase'));
@@ -137,6 +154,8 @@ class PurchaseController extends Controller
         $purchase->load([
             'supplier',
             'items.product',
+            'items.variant',
+            'items.unit',
         ]);
 
         return view('purchases.print', compact(
@@ -153,6 +172,8 @@ class PurchaseController extends Controller
         $purchase->load([
             'supplier',
             'items.product',
+            'items.variant',
+            'items.unit',
         ]);
 
         $tenant = auth()->user()->tenant;

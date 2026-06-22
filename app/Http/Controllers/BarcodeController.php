@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\ProductVariant;
+use App\Services\ProductCatalogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -20,23 +22,35 @@ class BarcodeController extends Controller
             'barcode' => ['required', 'string', 'max:255'],
         ]);
 
-        $product = Product::where('tenant_id', $request->user()->tenant_id)
+        $variant = ProductVariant::with('product')
+            ->where('tenant_id', $request->user()->tenant_id)
             ->where('barcode', $data['barcode'])
             ->first();
 
-        if (! $product) {
-            return response()->json([
-                'message' => 'No product found for this barcode.',
-            ], 404);
+        if (! $variant) {
+            $legacyProduct = Product::where('tenant_id', $request->user()->tenant_id)
+                ->where('barcode', $data['barcode'])
+                ->first();
+
+            if (! $legacyProduct) {
+                return response()->json([
+                    'message' => 'No product found for this barcode.',
+                ], 404);
+            }
+
+            $variant = app(ProductCatalogService::class)->resolveVariant($legacyProduct->id);
         }
+
+        $product = $variant->product;
 
         return response()->json([
             'id' => $product->id,
-            'name' => $product->name,
-            'sku' => $product->sku,
-            'barcode' => $product->barcode,
-            'selling_price' => (float) $product->selling_price,
-            'stock_quantity' => (int) $product->stock_quantity,
+            'product_variant_id' => $variant->id,
+            'name' => $variant->display_name,
+            'sku' => $variant->sku,
+            'barcode' => $variant->barcode,
+            'selling_price' => (float) $variant->selling_price,
+            'stock_quantity' => (int) $variant->stock_quantity,
             'edit_url' => route('products.edit', $product),
             'stock_ledger_url' => route('products.stock-ledger', $product),
         ]);

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AlertController;
 use App\Http\Controllers\BarcodeController;
+use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerAccountController;
 use App\Http\Controllers\CustomerController;
@@ -21,6 +22,8 @@ use App\Http\Controllers\Platform\PlanController as PlatformPlanController;
 use App\Http\Controllers\Platform\SettingController as PlatformSettingController;
 use App\Http\Controllers\Platform\TenantController as PlatformTenantController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductImportController;
+use App\Http\Controllers\ProductAttributeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicPlanController;
 use App\Http\Controllers\PurchaseController;
@@ -36,6 +39,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SupplierPaymentController;
 use App\Http\Controllers\TeamMemberController;
 use App\Http\Controllers\TenantBillingController;
+use App\Http\Controllers\UnitController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -103,18 +107,36 @@ Route::middleware('auth')->group(function () {
 
         Route::middleware('permission:products.view')->group(function () {
             Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+            Route::get('/brands', [BrandController::class, 'index'])->name('brands.index');
+            Route::get('/product-attributes', [ProductAttributeController::class, 'index'])->name('product-attributes.index');
             Route::get('/products', [ProductController::class, 'index'])->name('products.index');
             Route::get('/products/{product}/stock-ledger', [ProductController::class, 'stockLedger'])->name('products.stock-ledger');
         });
         Route::middleware('permission:products.create')->group(function () {
             Route::get('/categories/create', [CategoryController::class, 'create'])->name('categories.create');
             Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+            Route::post('/brands', [BrandController::class, 'store'])->name('brands.store');
+            Route::post('/product-attributes', [ProductAttributeController::class, 'store'])->name('product-attributes.store');
+            Route::post('/units', [UnitController::class, 'store'])->name('units.store');
             Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
+            Route::get('/products/import', [ProductImportController::class, 'create'])->name('products.import');
+            Route::get('/products/import/template', [ProductImportController::class, 'template'])->name('products.import.template');
+            Route::post('/products/import/preview', [ProductImportController::class, 'preview'])->name('products.import.preview');
+            Route::post('/products/import', [ProductImportController::class, 'store'])->name('products.import.store');
+            Route::get('/products/import/errors/{token}', [ProductImportController::class, 'errors'])->name('products.import.errors');
             Route::post('/products', [ProductController::class, 'store'])->name('products.store');
         });
         Route::middleware('permission:products.edit')->group(function () {
+            Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+            Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
             Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
             Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
+            Route::put('/brands/{brand}', [BrandController::class, 'update'])->name('brands.update');
+            Route::put('/units/{unit}', [UnitController::class, 'update'])->name('units.update');
+            Route::delete('/units/{unit}', [UnitController::class, 'destroy'])->name('units.destroy');
+            Route::delete('/brands/{brand}', [BrandController::class, 'destroy'])->name('brands.destroy');
+            Route::put('/product-attributes/{productAttribute}', [ProductAttributeController::class, 'update'])->name('product-attributes.update');
+            Route::delete('/product-attributes/{productAttribute}', [ProductAttributeController::class, 'destroy'])->name('product-attributes.destroy');
         });
 
         Route::middleware('permission:customers.view')->group(function () {

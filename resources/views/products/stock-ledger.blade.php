@@ -68,6 +68,7 @@
                     <th>Date</th>
                     <th>Reference</th>
                     <th>Movement</th>
+                    <th>Variant</th>
                     <th>Direction</th>
                     <th class="text-end">Qty</th>
                     <th class="text-end">Unit Cost</th>
@@ -97,6 +98,9 @@
                         <td>
                             {{ $movement->display_type }}
                         </td>
+                        <td>
+                            {{ $product->has_variants ? ($movement->variant?->name ?: 'Variant') : 'Simple product' }}
+                        </td>
 
                         <td>
                             <span class="badge {{ $movement->direction === 'in' ? 'bg-green' : 'bg-red' }}">
@@ -106,7 +110,7 @@
 
                         <td class="text-end {{ $movement->direction === 'in' ? 'text-success' : 'text-danger' }}">
                             {{ $movement->direction === 'in' ? '+' : '-' }}
-                            {{ number_format($movement->quantity, 3) }}
+                            {{ number_format($movement->quantity, 3) }} {{ $movement->variant?->unit?->symbol }}
                         </td>
 
                         <td class="text-end">
@@ -118,7 +122,7 @@
                         </td>
 
                         <td class="text-end">
-                            {{ number_format($movement->stock_after) }}
+                            {{ number_format($movement->stock_after) }} {{ $movement->variant?->unit?->symbol }}
                         </td>
 
                         <td>
@@ -127,7 +131,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" class="text-center text-muted py-4">
+                        <td colspan="10" class="text-center text-muted py-4">
                             No stock movements recorded for this product yet.
                         </td>
                     </tr>

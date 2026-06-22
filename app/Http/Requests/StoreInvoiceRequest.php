@@ -55,6 +55,12 @@ class StoreInvoiceRequest extends FormRequest
                     ->where('tenant_id', auth()->user()->tenant_id),
             ],
 
+            'products.*.product_variant_id' => [
+                'nullable',
+                Rule::exists('product_variants', 'id')
+                    ->where('tenant_id', auth()->user()->tenant_id),
+            ],
+
             'products.*.quantity' => [
                 'required',
                 'integer',

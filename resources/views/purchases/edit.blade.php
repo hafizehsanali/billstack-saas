@@ -161,11 +161,13 @@
 
                         <tr>
 
-                            <th width="35%">
+                            <th width="30%">
                                 Product
                             </th>
 
-                            <th width="15%">
+                            <th width="12%">Unit</th>
+
+                            <th width="13%">
                                 Quantity
                             </th>
 
@@ -190,6 +192,10 @@
                         @php
                             $purchaseRows = collect(old('products', $purchase->items->map(fn ($item) => [
                                 'product_id' => $item->product_id,
+                                'product_variant_id' => $item->product_variant_id,
+                                'unit_id' => $item->unit_id,
+                                'unit_factor' => $item->unit_factor,
+                                'unit_symbol' => $item->unit?->symbol,
                                 'quantity' => $item->quantity,
                                 'purchase_price' => $item->purchase_price,
                                 'line_total' => $item->line_total,
@@ -202,7 +208,8 @@
 
                                 <td>
 
-                                    <select name="products[{{ $index }}][product_id]"
+                                    <input type="hidden" name="products[{{ $index }}][product_id]" class="product-id" value="{{ $item['product_id'] ?? '' }}">
+                                    <select name="products[{{ $index }}][product_variant_id]"
                                             class="form-select product-select"
                                             onchange="setProductPrice(this)"
                                             required>
@@ -211,13 +218,22 @@
                                             Select Product
                                         </option>
 
-                                        @foreach($products as $product)
+                                        @foreach($variants as $variant)
 
-                                            <option value="{{ $product->id }}"
-                                                    data-price="{{ $product->purchase_price }}"
-                                                    @selected(($item['product_id'] ?? null) == $product->id)>
+                                            <option value="{{ $variant->id }}"
+                                                    data-product-id="{{ $variant->product_id }}"
+                                                    data-price="{{ $variant->purchase_unit_price ?? $variant->purchase_price }}"
+                                                    data-unit-id="{{ $variant->purchase_unit_id ?: $variant->unit_id }}"
+                                                    data-unit="{{ ($variant->purchaseUnit ?: $variant->unit)?->symbol ?? 'unit' }}"
+                                                    data-factor="{{ max((int) $variant->purchase_unit_factor, 1) }}"
+                                                    @selected(
+                                                        ($item['product_variant_id'] ?? null) == $variant->id
+                                                        || (! ($item['product_variant_id'] ?? null)
+                                                            && ($item['product_id'] ?? null) == $variant->product_id
+                                                            && $variant->is_default)
+                                                    )>
 
-                                                {{ $product->name }}
+                                                {{ $variant->display_name }}
 
                                             </option>
 
@@ -225,6 +241,12 @@
 
                                     </select>
 
+                                </td>
+
+                                <td>
+                                    <input type="hidden" name="products[{{ $index }}][unit_id]" class="unit-id" value="{{ $item['unit_id'] ?? '' }}">
+                                    <input type="hidden" name="products[{{ $index }}][unit_factor]" class="unit-factor" value="{{ $item['unit_factor'] ?? 1 }}">
+                                    <span class="form-control bg-light unit-label">{{ $item['unit_symbol'] ?? '-' }}</span>
                                 </td>
 
                                 <td>
@@ -442,7 +464,8 @@
 
                     <td>
 
-                        <select name="products[${rowIndex}][product_id]"
+                        <input type="hidden" name="products[${rowIndex}][product_id]" class="product-id">
+                        <select name="products[${rowIndex}][product_variant_id]"
                                 class="form-select product-select"
                                 onchange="setProductPrice(this)"
                                 required>
@@ -451,12 +474,16 @@
                                 Select Product
                             </option>
 
-                            @foreach($products as $product)
+                            @foreach($variants as $variant)
 
-                                <option value="{{ $product->id }}"
-                                        data-price="{{ $product->purchase_price }}">
+                                <option value="{{ $variant->id }}"
+                                        data-product-id="{{ $variant->product_id }}"
+                                        data-price="{{ $variant->purchase_unit_price ?? $variant->purchase_price }}"
+                                        data-unit-id="{{ $variant->purchase_unit_id ?: $variant->unit_id }}"
+                                        data-unit="{{ ($variant->purchaseUnit ?: $variant->unit)?->symbol ?? 'unit' }}"
+                                        data-factor="{{ max((int) $variant->purchase_unit_factor, 1) }}">
 
-                                    {{ $product->name }}
+                                    {{ $variant->display_name }}
 
                                 </option>
 
@@ -464,6 +491,12 @@
 
                         </select>
 
+                    </td>
+
+                    <td>
+                        <input type="hidden" name="products[${rowIndex}][unit_id]" class="unit-id">
+                        <input type="hidden" name="products[${rowIndex}][unit_factor]" class="unit-factor" value="1">
+                        <span class="form-control bg-light unit-label">-</span>
                     </td>
 
                     <td>
@@ -617,6 +650,10 @@
         let option = select.options[select.selectedIndex];
         let price = parseFloat(option.dataset.price) || 0;
 
+        row.querySelector('.product-id').value = option.dataset.productId || '';
+        row.querySelector('.unit-id').value = option.dataset.unitId || '';
+        row.querySelector('.unit-factor').value = option.dataset.factor || 1;
+        row.querySelector('.unit-label').textContent = option.dataset.unit || '-';
         row.querySelector('.price').value = price.toFixed(2);
 
         calculateTotals();

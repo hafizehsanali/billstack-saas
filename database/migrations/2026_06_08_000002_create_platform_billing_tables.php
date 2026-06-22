@@ -12,8 +12,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
             $table->foreignId('tenant_subscription_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('platform_offer_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('offer_code')->nullable();
             $table->string('invoice_no')->unique();
             $table->string('billing_period');
+            $table->string('billing_cycle')->default('monthly');
             $table->unsignedInteger('subtotal_cents')->default(0);
             $table->unsignedInteger('discount_cents')->default(0);
             $table->unsignedInteger('tax_cents')->default(0);

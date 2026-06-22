@@ -38,6 +38,12 @@
             <i data-lucide="package-plus"></i>
             Add Product
         </a>
+        <a href="{{ route('products.import') }}" class="btn btn-outline-primary">
+            <i data-lucide="file-up"></i>
+            Import Products
+        </a>
+        <a href="{{ route('brands.index') }}" class="btn btn-outline-secondary"><i data-lucide="badge-check"></i> Brands</a>
+        <a href="{{ route('product-attributes.index') }}" class="btn btn-outline-secondary"><i data-lucide="list-filter"></i> Attributes</a>
     </div>
 </div>
 
@@ -86,6 +92,7 @@
                 <tr>
                     <th>Product</th>
                     <th>Category</th>
+                    <th>Brand / Variants</th>
                     <th>SKU</th>
                     <th class="text-end">Purchase Price</th>
                     <th class="text-end">Selling Price</th>
@@ -112,6 +119,22 @@
 
                         <td>{{ $product->category?->name ?? '-' }}</td>
 
+                        <td>
+                            <div>{{ $product->brand?->name ?? 'No brand' }}</div>
+                            @if($product->has_variants)
+                                <button class="btn btn-sm btn-link px-0"
+                                        type="button"
+                                        data-variant-toggle="productVariants{{ $product->id }}"
+                                        aria-controls="productVariants{{ $product->id }}"
+                                        aria-expanded="false">
+                                    {{ $product->variants->count() }} {{ Str::plural('variant', $product->variants->count()) }}
+                                    <i data-lucide="chevron-down"></i>
+                                </button>
+                            @else
+                                <span class="text-muted small">Simple product</span>
+                            @endif
+                        </td>
+
                         <td>{{ $product->sku ?: '-' }}</td>
 
                         <td class="text-end">
@@ -124,6 +147,9 @@
 
                         <td class="text-end fw-bold">
                             {{ number_format($product->stock_quantity) }}
+                            @if($product->variants->count() === 1)
+                                {{ $product->variants->first()?->unit?->symbol }}
+                            @endif
                         </td>
 
                         <td>
@@ -150,9 +176,58 @@
                             </a>
                         </td>
                     </tr>
+                    @if($product->has_variants)
+                    <tr id="productVariants{{ $product->id }}" hidden>
+                        <td colspan="9" class="bg-light">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-vcenter mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Variant</th>
+                                            <th>Options</th>
+                                            <th>SKU</th>
+                                            <th>Barcode</th>
+                                            <th class="text-end">Cost</th>
+                                            <th class="text-end">Price</th>
+                                            <th class="text-end">Stock</th>
+                                            <th>Status</th>
+                                            <th class="text-end">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($product->variants as $variant)
+                                            <tr>
+                                                <td class="fw-bold">{{ $variant->name ?: 'Default' }}</td>
+                                                <td>
+                                                    @forelse($variant->attributeValues as $value)
+                                                        <span class="badge bg-secondary-lt">{{ $value->attribute?->name }}: {{ $value->value }}</span>
+                                                    @empty
+                                                        <span class="text-muted">-</span>
+                                                    @endforelse
+                                                </td>
+                                                <td>{{ $variant->sku }}</td>
+                                                <td>{{ $variant->barcode ?: '-' }}</td>
+                                                <td class="text-end">Rs {{ number_format($variant->purchase_price, 2) }}</td>
+                                                <td class="text-end">Rs {{ number_format($variant->selling_price, 2) }}</td>
+                                                <td class="text-end fw-bold">{{ number_format($variant->stock_quantity) }} {{ $variant->unit?->symbol }}</td>
+                                                <td><span class="badge {{ $variant->is_active ? 'bg-success' : 'bg-secondary' }}">{{ $variant->is_active ? 'Active' : 'Inactive' }}</span></td>
+                                                <td class="text-end">
+                                                    <a href="{{ route('products.edit', $product).'#variant-'.$variant->id }}"
+                                                       class="btn btn-sm btn-outline-secondary">
+                                                        <i data-lucide="pencil"></i> Edit
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                    @endif
                 @empty
                     <tr>
-                        <td colspan="8" class="text-center text-muted py-4">
+                        <td colspan="9" class="text-center text-muted py-4">
                             No products found. Add your first product to start tracking inventory.
                         </td>
                     </tr>
@@ -161,5 +236,17 @@
         </table>
     </div>
 </div>
+
+<script>
+    document.querySelectorAll('[data-variant-toggle]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const row = document.getElementById(button.dataset.variantToggle);
+            const isOpening = row.hidden;
+
+            row.hidden = !isOpening;
+            button.setAttribute('aria-expanded', String(isOpening));
+        });
+    });
+</script>
 
 @endsection

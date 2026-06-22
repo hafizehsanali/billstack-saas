@@ -19,6 +19,10 @@ return new class extends Migration
             $table->foreignId('product_id')
                 ->constrained()
                 ->cascadeOnDelete();
+            $table->foreignId('product_variant_id')
+                ->nullable()
+                ->constrained()
+                ->nullOnDelete();
 
             // Quantity purchased
             $table->integer('quantity');

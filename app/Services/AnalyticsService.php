@@ -48,9 +48,9 @@ class AnalyticsService
                     ->whereMonth('created_at', $currentDate->month)
                     ->whereIn('status', ['paid', 'partial']);
 
-            })->get()->sum(function ($item) {
+            })->with(['product', 'variant'])->get()->sum(function ($item) {
 
-                return $item->quantity * $item->product->purchase_price;
+                return $item->quantity * ($item->variant?->purchase_price ?? $item->product->purchase_price);
 
             });
 

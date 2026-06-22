@@ -3,13 +3,15 @@
 @section('content')
 
 @php
-    $productData = $products->map(fn ($product) => [
-        'id' => $product->id,
-        'name' => $product->name,
-        'sku' => $product->sku,
-        'barcode' => $product->barcode,
-        'price' => (float) $product->selling_price,
-        'stock' => (int) $product->stock_quantity,
+    $productData = $variants->map(fn ($variant) => [
+        'id' => $variant->id,
+        'product_id' => $variant->product_id,
+        'name' => $variant->display_name,
+        'sku' => $variant->sku,
+        'barcode' => $variant->barcode,
+        'price' => (float) $variant->selling_price,
+        'stock' => (int) $variant->stock_quantity,
+        'unit' => $variant->unit?->symbol,
     ])->values();
 @endphp
 
@@ -78,9 +80,9 @@
                         <div class="col-md-9">
                             <select id="productPicker" class="form-select">
                                 <option value="">Select product</option>
-                                @foreach($products as $product)
-                                    <option value="{{ $product->id }}">
-                                        {{ $product->name }} - Stock: {{ $product->stock_quantity }} - Rs {{ number_format($product->selling_price, 2) }}
+                                @foreach($variants as $variant)
+                                    <option value="{{ $variant->id }}">
+                                        {{ $variant->display_name }} - Stock: {{ $variant->stock_quantity }} {{ $variant->unit?->symbol }} - Rs {{ number_format($variant->selling_price, 2) }}
                                     </option>
                                 @endforeach
                             </select>
@@ -317,7 +319,8 @@
             <tr data-product-id="${product.id}">
                 <td>
                     <strong>${escapeHtml(product.name)}</strong>
-                    <input type="hidden" name="products[${rowIndex}][product_id]" value="${product.id}">
+                    <input type="hidden" name="products[${rowIndex}][product_id]" value="${product.product_id}">
+                    <input type="hidden" name="products[${rowIndex}][product_variant_id]" value="${product.id}">
                 </td>
                 <td class="text-end">${product.stock}</td>
                 <td>
@@ -414,7 +417,8 @@
     });
 
     oldProducts.forEach((item) => {
-        const product = productMap.get(String(item.product_id));
+        const product = productMap.get(String(item.product_variant_id))
+            || products.find(candidate => String(candidate.product_id) === String(item.product_id));
 
         if (product) {
             addProduct(product, item);

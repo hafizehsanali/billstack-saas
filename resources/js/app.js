@@ -1,5 +1,8 @@
 import './bootstrap';
 import '@tabler/core/dist/js/tabler.min.js';
+import { Modal } from 'bootstrap';
+
+window.bootstrap = { Modal };
 
 import Alpine from 'alpinejs';
 window.Alpine = Alpine;
@@ -17,6 +20,11 @@ const renderIcons = () => createIcons({
         'stroke-width': 1.8,
     },
 });
+
+// Blade-managed interfaces use this renderer after adding controls dynamically.
+window.lucide = {
+    createIcons: renderIcons,
+};
 
 const initializeSidebarGroups = () => {
     document.querySelectorAll('[data-sidebar-group-toggle]').forEach((toggle) => {

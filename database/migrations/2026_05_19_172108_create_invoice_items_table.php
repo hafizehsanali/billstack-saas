@@ -23,11 +23,21 @@ return new class extends Migration
                 ->nullable()
                 ->constrained()
                 ->nullOnDelete();
+            $table->foreignId('product_variant_id')
+                ->nullable()
+                ->constrained()
+                ->nullOnDelete();
 
             $table->integer('quantity')
                 ->default(1);
 
             $table->decimal('price', 12, 2)
+                ->default(0);
+
+            $table->decimal('regular_price', 12, 2)
+                ->nullable();
+
+            $table->decimal('item_savings', 12, 2)
                 ->default(0);
 
             $table->decimal('total', 12, 2)

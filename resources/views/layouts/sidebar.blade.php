@@ -5,6 +5,8 @@
         ['label' => 'Dashboard', 'icon' => 'layout-dashboard', 'route' => 'dashboard', 'active' => ['dashboard'], 'permission' => 'dashboard.view'],
         ['label' => 'Products', 'icon' => 'package-search', 'route' => 'products.index', 'active' => ['products.*'], 'permission' => 'products.view', 'action_route' => 'products.create', 'action_permission' => 'products.create', 'action_label' => 'Add product'],
         ['label' => 'Categories', 'icon' => 'tags', 'route' => 'categories.index', 'active' => ['categories.*'], 'permission' => 'products.view'],
+        ['label' => 'Brands', 'icon' => 'badge-check', 'route' => 'brands.index', 'active' => ['brands.*'], 'permission' => 'products.view'],
+        ['label' => 'Attributes', 'icon' => 'list-filter', 'route' => 'product-attributes.index', 'active' => ['product-attributes.*'], 'permission' => 'products.view'],
         ['label' => 'POS Billing', 'icon' => 'scan-barcode', 'route' => 'invoices.pos', 'active' => ['invoices.pos'], 'permission' => 'sales.create'],
         ['label' => 'Barcode Scanner', 'icon' => 'scan-line', 'route' => 'barcode.index', 'active' => ['barcode.*'], 'feature' => 'pro.barcode', 'permission' => 'sales.create'],
         ['label' => 'Invoices', 'icon' => 'receipt-text', 'route' => 'invoices.index', 'active' => ['invoices.*', 'payments.*'], 'permission' => 'sales.view', 'action_route' => 'invoices.create', 'action_permission' => 'sales.create', 'action_label' => 'Create invoice'],
@@ -117,7 +119,7 @@
                                             </a>
                                             @if(isset($link['action_route']) && auth()->user()->can($link['action_permission']))
                                                 <a class="nav-quick-action"
-                                                   href="{{ route($link['action_route']) }}"
+                                                   href="{{ route($link['action_route']).(isset($link['action_fragment']) ? '#'.$link['action_fragment'] : '') }}"
                                                    title="{{ $link['action_label'] }}"
                                                    aria-label="{{ $link['action_label'] }}">
                                                     <i data-lucide="plus"></i>

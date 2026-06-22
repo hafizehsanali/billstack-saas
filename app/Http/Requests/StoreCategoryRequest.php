@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreCategoryRequest extends FormRequest
 {
@@ -22,19 +23,23 @@ class StoreCategoryRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-             'name' => [
+        $category = $this->route('category');
 
+        return [
+            'name' => [
                 'required',
                 'string',
                 'max:255',
-
                 Rule::unique('categories')
-                    ->where(
-                        'tenant_id',
-                        auth()->user()->tenant_id
-                    ),
-
+                    ->where('tenant_id', auth()->user()->tenant_id)
+                    ->ignore($category),
+            ],
+            'parent_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('categories', 'id')
+                    ->where('tenant_id', auth()->user()->tenant_id),
+                Rule::notIn(array_filter([$category?->id])),
             ],
         ];
     }

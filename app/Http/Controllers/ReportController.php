@@ -98,9 +98,9 @@ class ReportController extends Controller
                 ->whereIn('status', ['paid', 'partial'])
                 ->whereBetween('sale_date', [$startDate, $endDate]);
         })
-            ->with('product')
+            ->with(['product', 'variant'])
             ->get()
-            ->sum(fn ($item) => $item->quantity * ($item->product?->purchase_price ?? 0));
+            ->sum(fn ($item) => $item->quantity * ($item->variant?->purchase_price ?? $item->product?->purchase_price ?? 0));
 
         $expenses = Expense::where('tenant_id', $tenantId)
             ->whereBetween('expense_date', [$startDate, $endDate])

@@ -121,9 +121,21 @@
                     @foreach($invoice->items as $item)
 
                         <tr>
-                            <td>{{ $item->product?->name ?? 'Deleted product' }}</td>
-                            <td>{{ number_format($item->price, 2) }}</td>
-                            <td>{{ $item->quantity }}</td>
+                            <td>{{ $item->variant?->display_name ?? $item->product?->name ?? 'Deleted product' }}</td>
+                            <td>
+                                @if($item->regular_price && $item->regular_price > $item->price)
+                                    <div class="text-muted text-decoration-line-through small">
+                                        Rs {{ number_format($item->regular_price, 2) }}
+                                    </div>
+                                @endif
+                                <div>Rs {{ number_format($item->price, 2) }}</div>
+                                @if($item->item_savings > 0)
+                                    <small class="text-success">
+                                        You saved Rs {{ number_format($item->item_savings, 2) }}
+                                    </small>
+                                @endif
+                            </td>
+                            <td>{{ $item->quantity }} {{ $item->variant?->unit?->symbol }}</td>
                             <td>{{ $item->returnedQuantity() }}</td>
                             <td>{{ number_format($item->total, 2) }}</td>
                         </tr>
@@ -134,17 +146,22 @@
 
             </table>
 
-             @php
-
+            @php
+                $promotionalSavings = (float) $invoice->items->sum('item_savings');
                 $paid = $invoice->payments->sum('amount');
-
                 $returnedAmount = $invoice->returns->sum('total_amount');
-
                 $remaining = max($invoice->total - $paid, 0);
-
                 $creditDue = max($paid - $invoice->total, 0);
-
             @endphp
+
+            @if($promotionalSavings > 0)
+                <div class="alert alert-success d-flex align-items-center gap-2 mb-3">
+                    <i data-lucide="badge-percent"></i>
+                    <strong>
+                        Promotional Savings: Rs {{ number_format($promotionalSavings, 2) }}
+                    </strong>
+                </div>
+            @endif
             <div class="row text-center mb-3">
 
                 <div class="col-md-3">
@@ -391,8 +408,8 @@
                                     @endphp
 
                                     <tr>
-                                        <td>{{ $item->product?->name ?? 'Deleted product' }}</td>
-                                        <td class="text-end">{{ $item->quantity }}</td>
+                                        <td>{{ $item->variant?->display_name ?? $item->product?->name ?? 'Deleted product' }}</td>
+                                        <td class="text-end">{{ $item->quantity }} {{ $item->variant?->unit?->symbol }}</td>
                                         <td class="text-end">{{ $item->returnedQuantity() }}</td>
                                         <td class="text-end">{{ $returnableQuantity }}</td>
                                         <td>

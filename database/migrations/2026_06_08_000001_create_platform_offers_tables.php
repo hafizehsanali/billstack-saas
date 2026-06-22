@@ -15,6 +15,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('discount_type');
             $table->unsignedInteger('discount_value');
+            $table->string('billing_cycle')->default('both');
             $table->unsignedInteger('trial_days')->default(0);
             $table->unsignedInteger('redemption_limit')->nullable();
             $table->unsignedInteger('redeemed_count')->default(0);

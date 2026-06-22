@@ -8,6 +8,7 @@ use App\Models\CustomerPayment;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Product;
+use App\Services\ProductCatalogService;
 use App\Services\StockLedgerService;
 use App\Services\TenantUsageLimitService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -30,11 +31,16 @@ class InvoiceController extends Controller
     {
         $customers = Customer::all();
 
-        $products = Product::all();
+        $products = Product::with(['activeVariants' => fn ($query) => $query->with('unit')->orderByDesc('is_default')])
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+        $variants = $products->flatMap->activeVariants;
 
         return view('invoices.create', compact(
             'customers',
-            'products'
+            'products',
+            'variants'
         ));
     }
 
@@ -42,11 +48,16 @@ class InvoiceController extends Controller
     {
         $customers = Customer::orderBy('name')->get();
 
-        $products = Product::orderBy('name')->get();
+        $products = Product::with(['activeVariants' => fn ($query) => $query->with('unit')->orderByDesc('is_default')])
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+        $variants = $products->flatMap->activeVariants;
 
         return view('invoices.pos', compact(
             'customers',
-            'products'
+            'products',
+            'variants'
         ));
     }
 
@@ -61,32 +72,34 @@ class InvoiceController extends Controller
 
         DB::transaction(function () use ($data) {
             $stockLedger = app(StockLedgerService::class);
+            $catalog = app(ProductCatalogService::class);
 
             $subtotal = 0;
             $requestedQuantities = [];
+            $variants = collect();
 
             foreach ($data['products'] as $item) {
-                $productId = $item['product_id'];
+                $variant = $catalog->resolveVariant(
+                    (int) $item['product_id'],
+                    isset($item['product_variant_id']) ? (int) $item['product_variant_id'] : null,
+                    true
+                );
                 $quantity = (int) $item['quantity'];
                 $price = (float) $item['price'];
 
-                $requestedQuantities[$productId] =
-                    ($requestedQuantities[$productId] ?? 0) + $quantity;
+                $variants->put($variant->id, $variant);
+                $requestedQuantities[$variant->id] =
+                    ($requestedQuantities[$variant->id] ?? 0) + $quantity;
 
                 $subtotal += $quantity * $price;
             }
 
-            $products = Product::whereIn(
-                'id',
-                array_keys($requestedQuantities)
-            )->lockForUpdate()->get()->keyBy('id');
+            foreach ($requestedQuantities as $variantId => $quantity) {
+                $variant = $variants->get($variantId);
 
-            foreach ($requestedQuantities as $productId => $quantity) {
-                $product = $products[$productId];
-
-                if ($quantity > $product->stock_quantity) {
+                if ($quantity > $variant->stock_quantity) {
                     throw ValidationException::withMessages([
-                        'stock' => $product->name.' does not have enough stock.',
+                        'stock' => $variant->display_name.' does not have enough stock.',
                     ]);
                 }
             }
@@ -129,27 +142,39 @@ class InvoiceController extends Controller
             ]);
 
             foreach ($data['products'] as $item) {
-                $product = $products[$item['product_id']];
+                $variant = $catalog->resolveVariant(
+                    (int) $item['product_id'],
+                    isset($item['product_variant_id']) ? (int) $item['product_variant_id'] : null,
+                    true
+                );
+                $product = $variant->product;
                 $quantity = (int) $item['quantity'];
                 $price = (float) $item['price'];
                 $lineTotal = $quantity * $price;
+                $regularPrice = (float) ($variant->compare_at_price ?? 0);
+                $hasPromotion = $regularPrice > $price;
+                $itemSavings = $hasPromotion
+                    ? ($regularPrice - $price) * $quantity
+                    : 0;
 
                 $invoiceItem = InvoiceItem::create([
                     'invoice_id' => $invoice->id,
                     'product_id' => $product->id,
+                    'product_variant_id' => $variant->id,
                     'quantity' => $quantity,
                     'price' => $price,
+                    'regular_price' => $hasPromotion ? $regularPrice : null,
+                    'item_savings' => $itemSavings,
                     'total' => $lineTotal,
                 ]);
 
-                $product->decrement('stock_quantity', $quantity);
-                $product->refresh();
+                $catalog->adjustStock($variant, $quantity, 'out');
 
-                $stockLedger->record($product, 'sale', $quantity, [
+                $stockLedger->record($variant, 'sale', $quantity, [
                     'direction' => 'out',
                     'unit_cost' => $product->purchase_price,
                     'unit_price' => $price,
-                    'stock_after' => $product->stock_quantity,
+                    'stock_after' => $variant->stock_quantity,
                     'source_type' => InvoiceItem::class,
                     'source_id' => $invoiceItem->id,
                     'reference_no' => $invoice->invoice_no,
@@ -186,9 +211,11 @@ class InvoiceController extends Controller
         $invoice->load([
             'customer',
             'items.product',
+            'items.variant',
             'items.returnItems',
             'payments',
             'returns.items.product',
+            'returns.items.variant',
         ]);
 
         return view('invoices.show', compact('invoice'));
@@ -204,7 +231,7 @@ class InvoiceController extends Controller
 
         DB::transaction(function () use ($invoice) {
             $lockedInvoice = Invoice::query()
-                ->with('items.product')
+                ->with(['items.product', 'items.variant'])
                 ->lockForUpdate()
                 ->findOrFail($invoice->id);
 
@@ -221,14 +248,16 @@ class InvoiceController extends Controller
                     continue;
                 }
 
-                $item->product->increment('stock_quantity', $item->quantity);
-                $item->product->refresh();
+                $catalog = app(ProductCatalogService::class);
+                $variant = $item->variant
+                    ?? $catalog->resolveVariant($item->product_id, null, true);
+                $catalog->adjustStock($variant, $item->quantity, 'in');
 
-                $stockLedger->record($item->product, 'sale_cancel', $item->quantity, [
+                $stockLedger->record($variant, 'sale_cancel', $item->quantity, [
                     'direction' => 'in',
                     'unit_cost' => $item->product->purchase_price,
                     'unit_price' => $item->price,
-                    'stock_after' => $item->product->stock_quantity,
+                    'stock_after' => $variant->stock_quantity,
                     'source_type' => InvoiceItem::class,
                     'source_id' => $item->id,
                     'reference_no' => $lockedInvoice->invoice_no,
@@ -259,6 +288,7 @@ class InvoiceController extends Controller
         $invoice->load([
             'customer',
             'items.product',
+            'items.variant',
         ]);
 
         $tenant = auth()->user()->tenant;

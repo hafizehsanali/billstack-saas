@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Product;
+use App\Services\ProductCatalogService;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -114,6 +115,51 @@ class InvoiceValidationTest extends TestCase
             'tenant_id' => $firstTenant->id,
             'invoice_no' => 'INV-SHARED',
         ]);
+    }
+
+    public function test_invoice_snapshots_promotional_item_savings(): void
+    {
+        [, $user] = $this->createUserForStore('Promotion Store');
+        $this->actingAs($user);
+
+        $customer = Customer::create(['name' => 'Promotion Customer']);
+        $product = $this->createProduct('Promotional Product', 'PROMO-001');
+        $variant = app(ProductCatalogService::class)->resolveVariant($product->id);
+        $variant->update([
+            'selling_price' => 150,
+            'compare_at_price' => 200,
+        ]);
+
+        $this->post(route('invoices.store'), [
+            'invoice_no' => 'INV-PROMO',
+            'sale_date' => '2026-06-14',
+            'customer_id' => $customer->id,
+            'tax' => 0,
+            'discount' => 0,
+            'extra_expense' => 0,
+            'paid_amount' => 0,
+            'products' => [[
+                'product_id' => $product->id,
+                'product_variant_id' => $variant->id,
+                'quantity' => 2,
+                'price' => 150,
+            ]],
+        ])->assertRedirect(route('invoices.index'));
+
+        $invoice = Invoice::where('invoice_no', 'INV-PROMO')->firstOrFail();
+
+        $this->assertDatabaseHas('invoice_items', [
+            'invoice_id' => $invoice->id,
+            'regular_price' => 200,
+            'price' => 150,
+            'item_savings' => 100,
+            'total' => 300,
+        ]);
+
+        $this->get(route('invoices.show', $invoice))
+            ->assertOk()
+            ->assertSee('You saved Rs 100.00')
+            ->assertSee('Promotional Savings: Rs 100.00');
     }
 
     private function createUserForStore(string $storeName): array

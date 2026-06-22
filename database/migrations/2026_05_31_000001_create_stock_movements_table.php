@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('product_variant_id')->nullable()->constrained()->nullOnDelete();
             $table->string('type');
             $table->string('direction');
             $table->decimal('quantity', 15, 3);

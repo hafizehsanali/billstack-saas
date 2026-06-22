@@ -39,6 +39,8 @@ class PurchaseSeeder extends Seeder
                 ]);
 
                 foreach ($products as $product) {
+                    $variant = $product->variants()->where('is_default', true)->first()
+                        ?? $product->variants()->first();
                     $quantity = random_int(5, 20);
                     $price = random_int(100, 500);
                     $lineTotal = $quantity * $price;
@@ -46,12 +48,17 @@ class PurchaseSeeder extends Seeder
                     PurchaseItem::create([
                         'purchase_id' => $purchase->id,
                         'product_id' => $product->id,
+                        'product_variant_id' => $variant?->id,
+                        'unit_id' => $variant?->purchase_unit_id ?: $variant?->unit_id,
+                        'unit_factor' => 1,
                         'quantity' => $quantity,
+                        'base_quantity' => $quantity,
                         'purchase_price' => $price,
                         'line_total' => $lineTotal,
                     ]);
 
-                    $product->increment('stock_quantity', $quantity);
+                    $variant?->increment('stock_quantity', $quantity);
+                    $product->syncFromVariants();
                     $subtotal += $lineTotal;
                 }
 

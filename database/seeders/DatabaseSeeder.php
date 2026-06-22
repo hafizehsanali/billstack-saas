@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             TenantTeamSeeder::class,
             CategorySeeder::class,
+            UnitSeeder::class,
             SupplierSeeder::class,
             CustomerSeeder::class,
             ProductSeeder::class,

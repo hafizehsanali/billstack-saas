@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
 use Carbon\Carbon;
@@ -15,6 +15,7 @@ class PurchaseService
     {
         return DB::transaction(function () use ($data) {
             $stockLedger = app(StockLedgerService::class);
+            $catalog = app(ProductCatalogService::class);
 
             $subtotal = $data['subtotal'];
 
@@ -71,29 +72,34 @@ class PurchaseService
             ]);
 
             foreach ($data['products'] as $item) {
-
-                $lineTotal = ($item['quantity'] * $item['purchase_price']);
+                $variant = $catalog->resolveVariant(
+                    $item['product_id'],
+                    $item['product_variant_id'] ?? null,
+                    true
+                );
+                $unitFactor = max((float) $variant->purchase_unit_factor, 0.001);
+                $baseQuantity = (int) $item['quantity'] * $unitFactor;
+                $baseUnitCost = (float) $item['purchase_price'] / $unitFactor;
+                $lineTotal = $item['quantity'] * $item['purchase_price'];
 
                 $purchaseItem = $purchase->items()->create([
                     'product_id' => $item['product_id'],
-
+                    'product_variant_id' => $variant->id,
+                    'unit_id' => $variant->purchase_unit_id ?: $variant->unit_id,
+                    'unit_factor' => $unitFactor,
                     'quantity' => $item['quantity'],
-
+                    'base_quantity' => $baseQuantity,
                     'purchase_price' => $item['purchase_price'],
-
                     'line_total' => $lineTotal,
                 ]);
 
-                $product = $this->updateInventory(
-                    $item['product_id'],
-                    $item['quantity'],
-                    $item['purchase_price']
-                );
+                $catalog->adjustStock($variant, $baseQuantity, 'in', $baseUnitCost);
+                $variant->update(['purchase_unit_price' => $item['purchase_price']]);
 
-                $stockLedger->record($product, 'purchase', $item['quantity'], [
+                $stockLedger->record($variant, 'purchase', $baseQuantity, [
                     'direction' => 'in',
-                    'unit_cost' => $item['purchase_price'],
-                    'stock_after' => $product->stock_quantity,
+                    'unit_cost' => $baseUnitCost,
+                    'stock_after' => $variant->stock_quantity,
                     'source_type' => PurchaseItem::class,
                     'source_id' => $purchaseItem->id,
                     'reference_no' => $purchase->purchase_no,
@@ -119,36 +125,6 @@ class PurchaseService
         });
     }
 
-    private function updateInventory(int $productId, int $newQuantity, float $newPrice): Product
-    {
-
-        $product = Product::findOrFail($productId);
-
-        $oldStock = $product->stock_quantity;
-
-        $oldAveragePrice = $product->purchase_price;
-
-        $newStock = $oldStock + $newQuantity;
-
-        // Keep purchase cost aligned with the blended value of existing and new stock.
-        $newAveragePrice = (
-            ($oldStock * $oldAveragePrice)
-            +
-            ($newQuantity * $newPrice)
-        ) / max($newStock, 1);
-
-        $product->update([
-            'stock_quantity' => $newStock,
-
-            'purchase_price' => round(
-                $newAveragePrice,
-                2
-            ),
-        ]);
-
-        return $product->refresh();
-    }
-
     public function update(Purchase $purchase, array $data): void
     {
         if (! $purchase->canBeEdited()) {
@@ -159,14 +135,17 @@ class PurchaseService
 
         DB::transaction(function () use ($purchase, $data) {
             $stockLedger = app(StockLedgerService::class);
+            $catalog = app(ProductCatalogService::class);
 
             foreach ($purchase->items as $oldItem) {
-                $product = $this->reverseInventory($oldItem->product_id, $oldItem->quantity);
+                $variant = $oldItem->variant
+                    ?? $catalog->resolveVariant($oldItem->product_id, null, true);
+                $catalog->adjustStock($variant, $oldItem->base_quantity ?: $oldItem->quantity, 'out');
 
-                $stockLedger->record($product, 'purchase_reversal', $oldItem->quantity, [
+                $stockLedger->record($variant, 'purchase_reversal', $oldItem->base_quantity ?: $oldItem->quantity, [
                     'direction' => 'out',
-                    'unit_cost' => $oldItem->purchase_price,
-                    'stock_after' => $product->stock_quantity,
+                    'unit_cost' => $oldItem->purchase_price / max((int) $oldItem->unit_factor, 1),
+                    'stock_after' => $variant->stock_quantity,
                     'source_type' => PurchaseItem::class,
                     'source_id' => $oldItem->id,
                     'reference_no' => $purchase->purchase_no,
@@ -210,30 +189,35 @@ class PurchaseService
             ]);
 
             foreach ($data['products'] as $item) {
-
-                $lineTotal =
-                    $item['quantity']
-                    * $item['purchase_price'];
+                $variant = $catalog->resolveVariant(
+                    $item['product_id'],
+                    $item['product_variant_id'] ?? null,
+                    true
+                );
+                $unitFactor = max((float) $variant->purchase_unit_factor, 0.001);
+                $baseQuantity = (int) $item['quantity'] * $unitFactor;
+                $baseUnitCost = (float) $item['purchase_price'] / $unitFactor;
+                $lineTotal = $item['quantity'] * $item['purchase_price'];
 
                 $purchaseItem = PurchaseItem::create([
-
                     'purchase_id' => $purchase->id,
-
                     'product_id' => $item['product_id'],
-
+                    'product_variant_id' => $variant->id,
+                    'unit_id' => $variant->purchase_unit_id ?: $variant->unit_id,
+                    'unit_factor' => $unitFactor,
                     'quantity' => $item['quantity'],
-
+                    'base_quantity' => $baseQuantity,
                     'purchase_price' => $item['purchase_price'],
-
                     'line_total' => $lineTotal,
                 ]);
 
-                $product = $this->updateInventory($item['product_id'], $item['quantity'], $item['purchase_price']);
+                $catalog->adjustStock($variant, $baseQuantity, 'in', $baseUnitCost);
+                $variant->update(['purchase_unit_price' => $item['purchase_price']]);
 
-                $stockLedger->record($product, 'purchase', $item['quantity'], [
+                $stockLedger->record($variant, 'purchase', $baseQuantity, [
                     'direction' => 'in',
-                    'unit_cost' => $item['purchase_price'],
-                    'stock_after' => $product->stock_quantity,
+                    'unit_cost' => $baseUnitCost,
+                    'stock_after' => $variant->stock_quantity,
                     'source_type' => PurchaseItem::class,
                     'source_id' => $purchaseItem->id,
                     'reference_no' => $purchase->purchase_no,
@@ -244,21 +228,13 @@ class PurchaseService
         });
     }
 
-    private function reverseInventory(int $productId, int $quantity): Product
-    {
-        $product = Product::findOrFail($productId);
-        $product->decrement('stock_quantity', $quantity);
-
-        return $product->refresh();
-    }
-
     public function cancel(Purchase $purchase): void
     {
 
         DB::transaction(function () use ($purchase) {
             $stockLedger = app(StockLedgerService::class);
             $purchase = Purchase::query()
-                ->with('items.product')
+                ->with(['items.product', 'items.variant'])
                 ->lockForUpdate()
                 ->findOrFail($purchase->id);
 
@@ -270,17 +246,13 @@ class PurchaseService
 
             foreach ($purchase->items as $item) {
 
-                $product = Product::find(
-                    $item->product_id
-                );
-
-                if (! $product) {
-                    continue;
-                }
+                $catalog = app(ProductCatalogService::class);
+                $variant = $item->variant
+                    ?? $catalog->resolveVariant($item->product_id, null, true);
 
                 if (
-                    $product->stock_quantity
-                    < $item->quantity
+                    $variant->stock_quantity
+                    < ($item->base_quantity ?: $item->quantity)
                 ) {
 
                     throw new \Exception(
@@ -288,17 +260,12 @@ class PurchaseService
                     );
                 }
 
-                $product->decrement(
-                    'stock_quantity',
-                    $item->quantity
-                );
+                $catalog->adjustStock($variant, $item->base_quantity ?: $item->quantity, 'out');
 
-                $product->refresh();
-
-                $stockLedger->record($product, 'purchase_cancel', $item->quantity, [
+                $stockLedger->record($variant, 'purchase_cancel', $item->base_quantity ?: $item->quantity, [
                     'direction' => 'out',
-                    'unit_cost' => $item->purchase_price,
-                    'stock_after' => $product->stock_quantity,
+                    'unit_cost' => $item->purchase_price / max((int) $item->unit_factor, 1),
+                    'stock_after' => $variant->stock_quantity,
                     'source_type' => PurchaseItem::class,
                     'source_id' => $item->id,
                     'reference_no' => $purchase->purchase_no,

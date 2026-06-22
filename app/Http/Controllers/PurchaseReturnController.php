@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
+use App\Services\ProductCatalogService;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
 use App\Models\PurchaseReturn;
@@ -32,7 +32,7 @@ class PurchaseReturnController extends Controller
 
         DB::transaction(function () use ($purchase, $validated) {
             $stockLedger = app(StockLedgerService::class);
-            $purchase->load('items.returnItems', 'payments');
+            $purchase->load('items.returnItems', 'items.variant', 'payments');
 
             $selectedItems = collect($validated['items'])
                 ->map(fn ($item, $purchaseItemId) => [
@@ -66,9 +66,12 @@ class PurchaseReturnController extends Controller
                     ]);
                 }
 
-                $product = Product::find($purchaseItem->product_id);
+                $catalog = app(ProductCatalogService::class);
+                $variant = $purchaseItem->variant
+                    ?? $catalog->resolveVariant($purchaseItem->product_id, null, true);
+                $baseReturnQuantity = $item['quantity'] * max((int) $purchaseItem->unit_factor, 1);
 
-                if (! $product || $product->stock_quantity < $item['quantity']) {
+                if ($variant->stock_quantity < $baseReturnQuantity) {
                     throw ValidationException::withMessages([
                         'items' => $purchaseItem->product?->name.' does not have enough stock to return.',
                     ]);
@@ -95,19 +98,23 @@ class PurchaseReturnController extends Controller
                     'purchase_return_id' => $purchaseReturn->id,
                     'purchase_item_id' => $purchaseItem->id,
                     'product_id' => $purchaseItem->product_id,
+                    'product_variant_id' => $purchaseItem->product_variant_id,
                     'quantity' => $item['quantity'],
                     'purchase_price' => $purchaseItem->purchase_price,
                     'total' => $lineTotal,
                 ]);
 
-                $product = Product::find($purchaseItem->product_id);
-                $product->decrement('stock_quantity', $item['quantity']);
-                $product->refresh();
+                $catalog = app(ProductCatalogService::class);
+                $variant = $purchaseItem->variant
+                    ?? $catalog->resolveVariant($purchaseItem->product_id, null, true);
+                $baseReturnQuantity = $item['quantity'] * max((int) $purchaseItem->unit_factor, 1);
+                $baseUnitCost = $purchaseItem->purchase_price / max((int) $purchaseItem->unit_factor, 1);
+                $catalog->adjustStock($variant, $baseReturnQuantity, 'out');
 
-                $stockLedger->record($product, 'purchase_return', $item['quantity'], [
+                $stockLedger->record($variant, 'purchase_return', $baseReturnQuantity, [
                     'direction' => 'out',
-                    'unit_cost' => $purchaseItem->purchase_price,
-                    'stock_after' => $product->stock_quantity,
+                    'unit_cost' => $baseUnitCost,
+                    'stock_after' => $variant->stock_quantity,
                     'source_type' => PurchaseReturnItem::class,
                     'source_id' => $returnItem->id,
                     'reference_no' => $purchaseReturn->return_no,
