@@ -42,7 +42,7 @@ class ProductImportController extends Controller
 
         return response($this->csv([$headers, ...$examples]), 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="billstack-product-import-template.csv"',
+            'Content-Disposition' => 'attachment; filename="zephrant-erp-product-import-template.csv"',
         ]);
     }
 
@@ -129,7 +129,7 @@ class ProductImportController extends Controller
             ...array_map(fn ($error) => array_values($error), $errors),
         ]), 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="billstack-product-import-errors.csv"',
+            'Content-Disposition' => 'attachment; filename="zephrant-erp-product-import-errors.csv"',
         ]);
     }
 

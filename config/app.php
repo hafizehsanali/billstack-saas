@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'BillStack'),
+    'name' => env('APP_NAME', 'Zephrant ERP'),
 
     /*
     |--------------------------------------------------------------------------

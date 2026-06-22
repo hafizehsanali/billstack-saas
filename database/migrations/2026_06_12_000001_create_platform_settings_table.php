@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('platform_settings', function (Blueprint $table) {
             $table->id();
-            $table->string('platform_name')->default('BillStack');
+            $table->string('platform_name')->default('Zephrant ERP');
             $table->string('support_email')->nullable();
             $table->string('support_phone')->nullable();
             $table->string('currency_code', 3)->default('PKR');

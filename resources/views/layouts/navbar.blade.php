@@ -36,7 +36,7 @@
     };
 @endphp
 
-<header class="navbar navbar-expand-md billstack-topbar d-print-none">
+<header class="navbar navbar-expand-md zephrant-erp-topbar d-print-none">
     <div class="container-xl">
         <div class="topbar-identity">
             <strong>

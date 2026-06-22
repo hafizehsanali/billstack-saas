@@ -52,12 +52,12 @@
         : auth()->user()->can($link['permission']);
 @endphp
 
-<aside class="navbar navbar-vertical navbar-expand-lg navbar-dark billstack-sidebar d-print-none">
+<aside class="navbar navbar-vertical navbar-expand-lg navbar-dark zephrant-erp-sidebar d-print-none">
     <div class="container-fluid">
         <h1 class="navbar-brand">
             <a href="{{ auth()->user()?->isPlatformAdmin() ? route('platform.dashboard') : route('dashboard') }}"
                class="d-flex align-items-center gap-2 text-white text-decoration-none">
-                <span class="brand-mark">{{ str(platform_name())->substr(0, 2)->upper() }}</span>
+                <img class="brand-logo brand-logo-white" src="{{ platform_logo_white_asset() }}" alt="{{ platform_name() }} logo">
                 <span class="brand-copy">
                     <span>{{ platform_name() }}</span>
                     <small>{{ auth()->user()?->isPlatformAdmin() ? 'Platform control' : 'Business workspace' }}</small>

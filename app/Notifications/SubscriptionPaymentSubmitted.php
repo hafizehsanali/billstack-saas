@@ -27,12 +27,13 @@ class SubscriptionPaymentSubmitted extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage())
-            ->subject('Subscription payment requires review')
+            ->subject(platform_name().' subscription payment requires review')
             ->greeting('Hello '.$notifiable->name.',')
             ->line($this->businessName.' submitted a full subscription payment reference.')
             ->line('Invoice: '.$this->invoiceNumber)
             ->line('Amount: Rs '.number_format($this->amountCents / 100, 2))
             ->line('Reference: '.$this->referenceNumber)
-            ->action('Review Payment', route('platform.payment-submissions.index'));
+            ->action('Review Payment', route('platform.payment-submissions.index'))
+            ->salutation(platform_company_name().' | '.platform_primary_email().' | https://'.platform_domain());
     }
 }

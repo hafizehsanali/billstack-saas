@@ -1,6 +1,6 @@
 # Changelog
 
-All notable public releases of BillStack are documented here.
+All notable public releases of Zephrant ERP are documented here.
 
 ## [1.0.0-public] - 2026-06-07
 

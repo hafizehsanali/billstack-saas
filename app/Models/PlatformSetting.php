@@ -38,7 +38,7 @@ class PlatformSetting extends Model
             [
                 'key' => 'bank_transfer',
                 'label' => 'Bank Transfer',
-                'account_title' => null,
+                'account_title' => platform_company_name(),
                 'account_number' => null,
                 'instructions' => 'Contact support for the account details before making payment.',
                 'is_active' => true,
@@ -49,7 +49,8 @@ class PlatformSetting extends Model
     public static function current(): self
     {
         return self::firstOrCreate([], [
-            'platform_name' => 'BillStack',
+            'platform_name' => 'Zephrant ERP',
+            'support_email' => platform_primary_email(),
             'currency_code' => 'PKR',
             'payment_channels' => self::defaultPaymentChannels(),
             'allow_registration' => true,

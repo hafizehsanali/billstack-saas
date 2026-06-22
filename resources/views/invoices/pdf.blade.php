@@ -2,12 +2,13 @@
 <html>
 
 <head>
-    <title>Invoice</title>
+    <title>Invoice | {{ platform_name() }}</title>
 
     <style>
         body {
             font-family: Arial, sans-serif;
             font-size: 14px;
+            color: #1F2937;
         }
 
         table {
@@ -16,7 +17,7 @@
         }
 
         table, th, td {
-            border: 1px solid #000;
+            border: 1px solid #d1d5db;
         }
 
         th, td {
@@ -27,10 +28,47 @@
         .text-right {
             text-align: right;
         }
+
+        .brand-header {
+            border-bottom: 3px solid #F97316;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+        }
+
+        .brand-header h1 {
+            margin: 0;
+            color: #1F2937;
+            font-size: 22px;
+        }
+
+        .brand-header p,
+        .brand-footer {
+            color: #4b5563;
+            font-size: 12px;
+        }
+
+        th {
+            color: #ffffff;
+            background: #1F2937;
+        }
+
+        .brand-footer {
+            border-top: 1px solid #d1d5db;
+            margin-top: 24px;
+            padding-top: 10px;
+            text-align: center;
+        }
     </style>
 </head>
 
 <body>
+
+    <div class="brand-header">
+        <h1>{{ platform_name() }}</h1>
+        <p>
+            {{ platform_company_name() }} | {{ platform_primary_email() }} | {{ platform_domain() }}
+        </p>
+    </div>
 
     <h2>{{ $tenant->name }}</h2>
 
@@ -85,7 +123,7 @@
                         @endif
                         Rs {{ number_format($item->price, 2) }}
                         @if($item->item_savings > 0)
-                            <br><small style="color: #166534;">
+                            <br><small style="color: #22C55E;">
                                 You saved Rs {{ number_format($item->item_savings, 2) }}
                             </small>
                         @endif
@@ -103,7 +141,7 @@
         $promotionalSavings = (float) $invoice->items->sum('item_savings');
     @endphp
     @if($promotionalSavings > 0)
-        <p class="text-right" style="color: #166534;">
+        <p class="text-right" style="color: #22C55E;">
             <strong>Promotional Savings: Rs {{ number_format($promotionalSavings, 2) }}</strong>
         </p>
     @endif
@@ -111,6 +149,10 @@
     <h3 class="text-right">
         Total: Rs {{ number_format($invoice->total, 2) }}
     </h3>
+
+    <div class="brand-footer">
+        &copy; {{ now()->year }} {{ platform_company_name() }}. All rights reserved.
+    </div>
 
 </body>
 

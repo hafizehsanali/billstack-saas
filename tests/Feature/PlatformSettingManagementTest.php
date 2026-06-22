@@ -24,7 +24,7 @@ class PlatformSettingManagementTest extends TestCase
 
         $this->actingAs($admin)
             ->put(route('platform.settings.update'), [
-                'platform_name' => 'BillStack Cloud',
+                'platform_name' => 'Zephrant ERP Cloud',
                 'support_email' => 'help@example.com',
                 'support_phone' => '+92 300 1234567',
                 'currency_code' => 'usd',
@@ -33,7 +33,7 @@ class PlatformSettingManagementTest extends TestCase
                     [
                         'key' => 'jazzcash',
                         'label' => 'JazzCash',
-                        'account_title' => 'BillStack Cloud',
+                        'account_title' => 'Zephrant Technologies',
                         'account_number' => '03001234567',
                         'instructions' => 'Use the invoice number as reference.',
                         'is_active' => '1',
@@ -45,7 +45,7 @@ class PlatformSettingManagementTest extends TestCase
 
         $settings = PlatformSetting::current();
 
-        $this->assertSame('BillStack Cloud', $settings->platform_name);
+        $this->assertSame('Zephrant ERP Cloud', $settings->platform_name);
         $this->assertSame('USD', $settings->currency_code);
         $this->assertFalse($settings->allow_registration);
         $this->assertSame('jazzcash', $settings->activePaymentChannels()[0]['key']);
@@ -126,7 +126,7 @@ class PlatformSettingManagementTest extends TestCase
                 [
                     'key' => 'bank_transfer',
                     'label' => 'Bank Transfer',
-                    'account_title' => 'BillStack Collections',
+                    'account_title' => 'Zephrant Technologies Collections',
                     'account_number' => 'PK00-TEST-123',
                     'instructions' => 'Use the invoice number as reference.',
                     'is_active' => true,
@@ -169,7 +169,7 @@ class PlatformSettingManagementTest extends TestCase
             ->get(route('subscription.checkout'))
             ->assertOk()
             ->assertSee('Send the complete payment using bank account 123.')
-            ->assertSee('BillStack Collections')
+            ->assertSee('Zephrant Technologies Collections')
             ->assertSee('PK00-TEST-123')
             ->assertSee('+92 300 7654321');
     }

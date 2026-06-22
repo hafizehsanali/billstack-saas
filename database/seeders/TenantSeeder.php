@@ -10,7 +10,7 @@ class TenantSeeder extends Seeder
     public function run(): void
     {
         Tenant::create([
-            'name' => 'Northstar General Store',
+            'name' => 'Zephrant General Store Demo',
             'slug' => 'demo-store-1',
         ]);
 

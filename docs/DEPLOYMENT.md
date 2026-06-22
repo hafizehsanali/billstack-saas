@@ -55,7 +55,7 @@ php artisan queue:work --sleep=3 --tries=3 --timeout=90
 Configure cron to run the scheduler every minute:
 
 ```cron
-* * * * * cd /path/to/billstack && php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd /path/to/zephrant-erp && php artisan schedule:run >> /dev/null 2>&1
 ```
 
 The scheduler pauses expired subscriptions. Staff invitations and password

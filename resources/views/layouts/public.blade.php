@@ -5,15 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="@yield('meta_description', platform_name().' business management platform')">
     <title>@yield('title') | {{ platform_name() }}</title>
-    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
-    <link rel="icon" type="image/png" href="{{ asset('favicon-64.png') }}">
+    <link rel="icon" type="image/png" href="{{ platform_favicon_asset() }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="public-site">
 <header class="public-header">
     <div class="container-xl public-header-inner">
         <a href="{{ url('/') }}" class="public-brand" aria-label="{{ platform_name() }} home">
-            <span class="brand-mark">{{ str(platform_name())->substr(0, 2)->upper() }}</span>
+            <img class="brand-logo" src="{{ platform_logo_asset() }}" alt="{{ platform_name() }} logo">
             <span>{{ platform_name() }}</span>
         </a>
 
@@ -45,10 +44,11 @@
     <div class="container-xl public-footer-inner">
         <div>
             <a href="{{ url('/') }}" class="public-brand">
-                <span class="brand-mark">{{ str(platform_name())->substr(0, 2)->upper() }}</span>
+                <img class="brand-logo" src="{{ platform_logo_asset() }}" alt="{{ platform_name() }} logo">
                 <span>{{ platform_name() }}</span>
             </a>
-            <p>Connected business management for growing teams.</p>
+            <p>{{ platform_tagline() }}.</p>
+            <small>&copy; {{ now()->year }} {{ platform_company_name() }}. All rights reserved.</small>
         </div>
         <div class="public-footer-links">
             <a href="{{ route('plans.index') }}">Packages</a>

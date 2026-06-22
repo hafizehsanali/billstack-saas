@@ -11,7 +11,7 @@ class PublicHomePageTest extends TestCase
         $this
             ->get('/')
             ->assertOk()
-            ->assertSee('BillStack')
+            ->assertSee('Zephrant ERP')
             ->assertSee('Billing, inventory, purchases, customer accounts, supplier balances')
             ->assertSee('General Stores')
             ->assertSee('Hardware Shops')
@@ -20,9 +20,9 @@ class PublicHomePageTest extends TestCase
             ->assertSee('Built to grow beyond retail')
             ->assertSee('Hospital, hotel, and other industry-specific management services')
             ->assertSee(route('plans.index'), false)
-            ->assertSee(asset('images/billstack-home-hero.png'), false)
+            ->assertSee(asset('images/zephrant-erp-home-hero.png'), false)
             ->assertDontSee('portfolio', false);
 
-        $this->assertFileExists(public_path('images/billstack-home-hero.png'));
+        $this->assertFileExists(public_path('images/zephrant-erp-home-hero.png'));
     }
 }

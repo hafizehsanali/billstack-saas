@@ -4,7 +4,7 @@
 <div class="page-heading">
     <div>
         <h3 class="mb-1">Import Products</h3>
-        <div class="text-muted">Bring an existing product list into BillStack using a CSV file.</div>
+        <div class="text-muted">Bring an existing product list into Zephrant ERP using a CSV file.</div>
     </div>
     <a href="{{ route('products.index') }}" class="btn btn-outline-secondary">
         <i data-lucide="arrow-left"></i>

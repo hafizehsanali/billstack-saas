@@ -6,8 +6,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ platform_name() }}</title>
-        <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
-        <link rel="icon" type="image/png" href="{{ asset('favicon-64.png') }}">
+        <link rel="icon" type="image/png" href="{{ platform_favicon_asset() }}">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -20,12 +19,12 @@
         <main class="guest-shell">
             <section class="guest-brand-panel">
                 <a href="/" class="d-inline-flex align-items-center gap-2 text-white text-decoration-none position-relative" style="z-index: 1;">
-                    <span class="brand-mark">{{ str(platform_name())->substr(0, 2)->upper() }}</span>
+                    <img class="brand-logo brand-logo-white" src="{{ platform_logo_white_asset() }}" alt="{{ platform_name() }} logo">
                     <span class="fs-2 fw-bold">{{ platform_name() }}</span>
                 </a>
 
                 <div class="guest-brand-content">
-                    <div class="text-uppercase fw-semibold small mb-3" style="color: #f0c95c;">Business operations, organized</div>
+                    <div class="text-uppercase fw-semibold small mb-3" style="color: #F97316;">{{ platform_tagline() }}</div>
                     <h1>Run the store. Know the numbers.</h1>
                     <p class="mt-4">
                         Billing, stock, purchasing, customer accounts, supplier balances, and reports in one focused workspace.

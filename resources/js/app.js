@@ -59,7 +59,7 @@ const initializeSidebarToggle = () => {
             toggle.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
 
             try {
-                localStorage.setItem('billstack.sidebar.collapsed', String(isCollapsed));
+                localStorage.setItem('zephrant-erp.sidebar.collapsed', String(isCollapsed));
             } catch (error) {
                 // Keep the control functional when browser storage is unavailable.
             }

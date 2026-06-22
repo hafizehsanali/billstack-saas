@@ -93,7 +93,7 @@ class SubscriptionPaymentSubmissionTest extends TestCase
                 [
                     'key' => 'jazzcash',
                     'label' => 'JazzCash',
-                    'account_title' => 'BillStack',
+                    'account_title' => 'Zephrant Technologies',
                     'account_number' => '03001234567',
                     'instructions' => null,
                     'is_active' => true,
@@ -101,7 +101,7 @@ class SubscriptionPaymentSubmissionTest extends TestCase
                 [
                     'key' => 'easypaisa',
                     'label' => 'Easypaisa',
-                    'account_title' => 'BillStack',
+                    'account_title' => 'Zephrant Technologies',
                     'account_number' => '03111234567',
                     'instructions' => null,
                     'is_active' => false,
@@ -294,7 +294,7 @@ class SubscriptionPaymentSubmissionTest extends TestCase
                 [
                     'key' => 'bank_transfer',
                     'label' => 'Bank Transfer',
-                    'account_title' => 'BillStack',
+                    'account_title' => 'Zephrant Technologies',
                     'account_number' => 'TEST-ACCOUNT',
                     'instructions' => null,
                     'is_active' => true,

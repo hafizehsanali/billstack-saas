@@ -4,7 +4,7 @@
 <div class="page-heading">
     <div>
         <h3 class="mb-1">Map Product Columns</h3>
-        <div class="text-muted">{{ number_format(count($rows)) }} product rows found. Match your CSV columns to BillStack fields.</div>
+        <div class="text-muted">{{ number_format(count($rows)) }} product rows found. Match your CSV columns to Zephrant ERP fields.</div>
     </div>
     <a href="{{ route('products.import') }}" class="btn btn-outline-secondary">
         <i data-lucide="arrow-left"></i>
@@ -26,7 +26,7 @@
                 Customer Unit = KG, Supplier Unit = Bag,
                 Customer Units in One Supplier Unit = 50,
                 Opening Supplier Quantity = 3, and Additional Customer-Unit Stock = 10.
-                BillStack will create 160 KG opening stock.
+                Zephrant ERP will create 160 KG opening stock.
             </div>
             <div class="alert alert-info mb-0 mt-2">
                 <strong>Variant example:</strong>
@@ -38,7 +38,7 @@
             <table class="table table-vcenter card-table product-import-mapping">
                 <thead>
                     <tr>
-                        <th>BillStack Field</th>
+                        <th>Zephrant ERP Field</th>
                         <th>Your CSV Column</th>
                         <th>Example Value</th>
                     </tr>

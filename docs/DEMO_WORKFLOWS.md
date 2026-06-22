@@ -1,6 +1,6 @@
 # Demo Workflows
 
-These workflows are useful when reviewing BillStack locally with seeded demo
+These workflows are useful when reviewing Zephrant ERP locally with seeded demo
 data.
 
 ## Sales and Customer Account

@@ -1,15 +1,14 @@
-# BillStack
+# Zephrant ERP
 
-<img src="docs/assets/billstack-mark.png" alt="BillStack mark" width="96">
+<img src="public/assets/brand/logo.png" alt="Zephrant ERP logo" width="180">
 
-[![CI](https://github.com/hafizehsanali/billstack-saas/actions/workflows/ci.yml/badge.svg)](https://github.com/hafizehsanali/billstack-saas/actions/workflows/ci.yml)
+[![CI](https://github.com/hafizehsanali/zephrant-erp-saas/actions/workflows/ci.yml/badge.svg)](https://github.com/hafizehsanali/zephrant-erp-saas/actions/workflows/ci.yml)
 [![PHP](https://img.shields.io/badge/PHP-8.3%2B-777BB4?logo=php&logoColor=white)](https://www.php.net/)
 [![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white)](https://laravel.com/)
 [![License](https://img.shields.io/badge/license-MIT-2ea44f)](LICENSE)
 
-BillStack is a multi-tenant inventory, billing, and account management system
-for general stores, hardware shops, pharmacies, wholesalers, and
-service-retail businesses.
+Zephrant ERP is a Laravel-based business management platform for inventory,
+billing, customers, reports, and operations.
 
 The public repository contains the generic, demo-safe product foundation.
 Client data, deployment secrets, paid modules, and business-specific
@@ -19,11 +18,11 @@ customizations remain private.
 
 | Dashboard | POS Billing |
 | --- | --- |
-| ![BillStack dashboard](docs/screenshots/dashboard.png) | ![BillStack POS billing](docs/screenshots/pos-billing.png) |
+| ![Zephrant ERP dashboard](docs/screenshots/dashboard.png) | ![Zephrant ERP POS billing](docs/screenshots/pos-billing.png) |
 
 | Invoice Workflow | Supplier Ledger |
 | --- | --- |
-| ![BillStack invoice detail](docs/screenshots/invoice-detail.png) | ![BillStack supplier ledger](docs/screenshots/supplier-ledger.png) |
+| ![Zephrant ERP invoice detail](docs/screenshots/invoice-detail.png) | ![Zephrant ERP supplier ledger](docs/screenshots/supplier-ledger.png) |
 
 ## Engineering Highlights
 

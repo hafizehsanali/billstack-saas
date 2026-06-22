@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Create Account | {{ platform_name() }}</title>
-    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
-    <link rel="icon" type="image/png" href="{{ asset('favicon-64.png') }}">
+    <link rel="icon" type="image/png" href="{{ platform_favicon_asset() }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-white">
@@ -15,7 +14,7 @@
         <section class="col-lg-5 bg-dark text-white d-flex">
             <div class="p-4 p-md-5 d-flex flex-column w-100">
                 <a href="{{ url('/') }}" class="d-inline-flex align-items-center gap-2 text-white text-decoration-none">
-                    <img src="{{ asset('favicon-64.png') }}" alt="" width="40" height="40">
+                    <img src="{{ platform_logo_white_asset() }}" alt="{{ platform_name() }} logo" style="max-width: 160px; max-height: 44px;">
                     <span class="h2 mb-0">{{ platform_name() }}</span>
                 </a>
 
@@ -54,7 +53,7 @@
                     </div>
                 </div>
 
-                <div class="small text-white-50 d-none d-lg-block">{{ platform_name() }} business management</div>
+                <div class="small text-white-50 d-none d-lg-block">{{ platform_company_name() }} | {{ platform_tagline() }}</div>
             </div>
         </section>
 

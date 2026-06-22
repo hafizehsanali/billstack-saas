@@ -1,6 +1,6 @@
 # Public and Private Project Guide
 
-BillStack can keep a public generic codebase while private business deployments hold client-specific configuration, data, and custom modules. Keep these boundaries clear before publishing code or onboarding a real business.
+Zephrant ERP can keep a public generic codebase while private business deployments hold client-specific configuration, data, and custom modules. Keep these boundaries clear before publishing code or onboarding a real business.
 
 ## Public Repository
 

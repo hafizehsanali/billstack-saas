@@ -27,7 +27,7 @@ class SubscriptionPaymentReviewed extends Notification implements ShouldQueue
     {
         $approved = $this->status === 'approved';
         $message = (new MailMessage())
-            ->subject($approved ? 'Subscription payment approved' : 'Subscription payment needs correction')
+            ->subject($approved ? platform_name().' subscription payment approved' : platform_name().' subscription payment needs correction')
             ->greeting('Hello '.$notifiable->name.',')
             ->line(
                 $approved
@@ -46,6 +46,7 @@ class SubscriptionPaymentReviewed extends Notification implements ShouldQueue
                 $approved
                     ? 'Thank you for your payment.'
                     : 'Review the details and submit a corrected payment reference.'
-            );
+            )
+            ->salutation(platform_company_name().' | '.platform_primary_email().' | https://'.platform_domain());
     }
 }

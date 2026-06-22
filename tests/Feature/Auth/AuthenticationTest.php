@@ -16,7 +16,7 @@ class AuthenticationTest extends TestCase
 
         $response
             ->assertStatus(200)
-            ->assertSee('Sign in to BillStack')
+            ->assertSee('Sign in to Zephrant ERP')
             ->assertSee('inventory, invoices, purchases, reports, and business accounts');
     }
 

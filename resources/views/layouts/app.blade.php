@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ platform_name() }}</title>
-    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
-    <link rel="icon" type="image/png" href="{{ asset('favicon-64.png') }}">
+    <link rel="icon" type="image/png" href="{{ platform_favicon_asset() }}">
 
       <script>
         try {
-            if (localStorage.getItem('billstack.sidebar.collapsed') === 'true') {
+            if (localStorage.getItem('zephrant-erp.sidebar.collapsed') === 'true') {
                 document.documentElement.classList.add('sidebar-collapsed');
             }
         } catch (error) {

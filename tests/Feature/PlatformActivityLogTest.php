@@ -40,7 +40,7 @@ class PlatformActivityLogTest extends TestCase
 
         $this->actingAs($admin)
             ->put(route('platform.settings.update'), [
-                'platform_name' => 'BillStack Cloud',
+                'platform_name' => 'Zephrant ERP Cloud',
                 'support_email' => 'support@example.com',
                 'support_phone' => null,
                 'currency_code' => 'PKR',

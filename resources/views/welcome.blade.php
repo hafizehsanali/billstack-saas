@@ -5,15 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="{{ platform_name() }} brings billing, inventory, purchases, customer accounts, supplier balances, and reports into one business workspace.">
     <title>{{ platform_name() }} | Business Management Made Clear</title>
-    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
-    <link rel="icon" type="image/png" href="{{ asset('favicon-64.png') }}">
+    <link rel="icon" type="image/png" href="{{ platform_favicon_asset() }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="public-site">
 <header class="public-header">
     <div class="container-xl public-header-inner">
         <a href="{{ url('/') }}" class="public-brand" aria-label="{{ platform_name() }} home">
-            <span class="brand-mark">{{ str(platform_name())->substr(0, 2)->upper() }}</span>
+            <img class="brand-logo" src="{{ platform_logo_asset() }}" alt="{{ platform_name() }} logo">
             <span>{{ platform_name() }}</span>
         </a>
 
@@ -43,12 +42,12 @@
 
 <main>
     <section class="public-hero"
-             style="--public-hero-image: url('{{ asset('images/billstack-home-hero.png') }}');">
+             style="--public-hero-image: url('{{ asset('images/zephrant-erp-home-hero.png') }}');">
         <div class="container-xl public-hero-content">
             <div class="public-hero-copy">
                 <div class="public-eyebrow">
                     <span></span>
-                    Built for everyday business operations
+                    {{ platform_tagline() }}
                 </div>
                 <h1>{{ platform_name() }}</h1>
                 <p class="public-hero-lead">
@@ -209,10 +208,11 @@
     <div class="container-xl public-footer-inner">
         <div>
             <a href="{{ url('/') }}" class="public-brand">
-                <span class="brand-mark">{{ str(platform_name())->substr(0, 2)->upper() }}</span>
+                <img class="brand-logo" src="{{ platform_logo_asset() }}" alt="{{ platform_name() }} logo">
                 <span>{{ platform_name() }}</span>
             </a>
-            <p>Connected business management for growing teams.</p>
+            <p>{{ platform_company_name() }} builds connected operations for ambitious businesses.</p>
+            <small>&copy; {{ now()->year }} {{ platform_company_name() }}. All rights reserved.</small>
         </div>
         <div class="public-footer-links">
             <a href="{{ route('plans.index') }}">Packages</a>

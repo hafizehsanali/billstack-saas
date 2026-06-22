@@ -1,6 +1,6 @@
-# BillStack Architecture
+# Zephrant ERP Architecture
 
-BillStack is a server-rendered Laravel application organized around
+Zephrant ERP is a server-rendered Laravel application organized around
 tenant-scoped business transactions. Controllers validate requests and
 coordinate use cases, services contain accounting and stock rules, Eloquent
 models define ownership and relationships, and Blade views provide the

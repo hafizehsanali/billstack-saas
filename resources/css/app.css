@@ -4,26 +4,27 @@
 @tailwind utilities;
 
 :root {
-    --bs-primary: #176b5b;
-    --bs-primary-rgb: 23, 107, 91;
-    --billstack-ink: #17221f;
-    --billstack-muted: #64736e;
-    --billstack-line: #dfe7e3;
-    --billstack-surface: #ffffff;
-    --billstack-canvas: #f4f7f6;
-    --billstack-sidebar: #132522;
-    --billstack-sidebar-soft: #1b342f;
-    --billstack-accent: #d7a928;
-    --billstack-danger: #c74646;
+    --bs-primary: #F97316;
+    --bs-primary-rgb: 249, 115, 22;
+    --zephrant-erp-ink: #1F2937;
+    --zephrant-erp-muted: #4B5563;
+    --zephrant-erp-line: #dfe7e3;
+    --zephrant-erp-surface: #F8FAFC;
+    --zephrant-erp-canvas: #F8FAFC;
+    --zephrant-erp-sidebar: #1F2937;
+    --zephrant-erp-sidebar-soft: #374151;
+    --zephrant-erp-accent: #F97316;
+    --zephrant-erp-success: #22C55E;
+    --zephrant-erp-danger: #c74646;
 }
 
 html {
-    background: var(--billstack-canvas);
+    background: var(--zephrant-erp-canvas);
 }
 
 body {
-    color: var(--billstack-ink);
-    background: var(--billstack-canvas);
+    color: var(--zephrant-erp-ink);
+    background: var(--zephrant-erp-canvas);
     letter-spacing: 0;
 }
 
@@ -36,7 +37,7 @@ a:hover {
 }
 
 .page-wrapper {
-    background: var(--billstack-canvas);
+    background: var(--zephrant-erp-canvas);
 }
 
 .page-body {
@@ -48,24 +49,24 @@ a:hover {
 }
 
 .card {
-    border: 1px solid var(--billstack-line);
+    border: 1px solid var(--zephrant-erp-line);
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(21, 50, 43, 0.04);
 }
 
 .card-header {
     min-height: 3.5rem;
-    border-bottom-color: var(--billstack-line);
+    border-bottom-color: var(--zephrant-erp-line);
     background: rgba(249, 251, 250, 0.82);
 }
 
 .card-title {
-    color: var(--billstack-ink);
+    color: var(--zephrant-erp-ink);
     font-weight: 700;
 }
 
 .table {
-    --tblr-table-border-color: var(--billstack-line);
+    --tblr-table-border-color: var(--zephrant-erp-line);
 }
 
 .table thead th {
@@ -179,7 +180,7 @@ a:hover {
 .page-heading h2,
 .page-heading h3 {
     margin-bottom: 0.2rem;
-    color: var(--billstack-ink);
+    color: var(--zephrant-erp-ink);
     font-weight: 750;
 }
 
@@ -193,7 +194,7 @@ a:hover {
 }
 
 .metric-card .metric-label {
-    color: var(--billstack-muted);
+    color: var(--zephrant-erp-muted);
     font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -201,7 +202,7 @@ a:hover {
 
 .metric-card .metric-value {
     margin-top: 0.35rem;
-    color: var(--billstack-ink);
+    color: var(--zephrant-erp-ink);
     font-size: 1.65rem;
     font-weight: 750;
     line-height: 1.2;
@@ -248,7 +249,7 @@ a:hover {
 .row-cards .card-body > .h2,
 .row-cards .card-body > h2 {
     margin-top: 0.35rem;
-    color: var(--billstack-ink);
+    color: var(--zephrant-erp-ink);
     font-weight: 750;
 }
 
@@ -258,22 +259,22 @@ a:hover {
     margin-left: 0.2rem;
 }
 
-.billstack-sidebar {
+.zephrant-erp-sidebar {
     position: relative;
-    background: var(--billstack-sidebar) !important;
+    background: var(--zephrant-erp-sidebar) !important;
     border-right: 0;
     overflow: visible !important;
     transition: width 180ms ease;
 }
 
-.billstack-sidebar .container-fluid {
+.zephrant-erp-sidebar .container-fluid {
     height: 100%;
     display: flex;
     flex-direction: column;
     padding: 0 0.8rem 1rem;
 }
 
-.billstack-sidebar .navbar-collapse {
+.zephrant-erp-sidebar .navbar-collapse {
     min-height: 0;
     flex: 1 1 auto;
     overflow-y: auto;
@@ -281,7 +282,7 @@ a:hover {
     scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
 }
 
-.billstack-sidebar .navbar-brand {
+.zephrant-erp-sidebar .navbar-brand {
     min-height: 3.75rem;
     margin: 0;
     padding: 0 0.5rem;
@@ -346,7 +347,7 @@ a:hover {
     font-weight: 600;
 }
 
-.billstack-sidebar .nav-section {
+.zephrant-erp-sidebar .nav-section {
     border: 0;
     background: transparent;
     width: 100%;
@@ -362,27 +363,27 @@ a:hover {
     cursor: pointer;
 }
 
-.billstack-sidebar .nav-section [data-lucide] {
+.zephrant-erp-sidebar .nav-section [data-lucide] {
     width: 0.9rem;
     height: 0.9rem;
     transition: transform 160ms ease;
 }
 
-.billstack-sidebar .nav-section[aria-expanded="true"] [data-lucide] {
+.zephrant-erp-sidebar .nav-section[aria-expanded="true"] [data-lucide] {
     transform: rotate(180deg);
 }
 
-.billstack-sidebar .nav-section:hover {
+.zephrant-erp-sidebar .nav-section:hover {
     color: rgba(255, 255, 255, 0.75);
 }
 
-.billstack-sidebar .nav-group-links {
+.zephrant-erp-sidebar .nav-group-links {
     margin: 0;
     padding: 0;
     list-style: none;
 }
 
-.billstack-sidebar .nav-link {
+.zephrant-erp-sidebar .nav-link {
     min-height: 2.55rem;
     margin-bottom: 0.15rem;
     padding: 0.58rem 0.72rem;
@@ -391,15 +392,15 @@ a:hover {
     border-radius: 6px;
 }
 
-.billstack-sidebar .nav-item {
+.zephrant-erp-sidebar .nav-item {
     position: relative;
 }
 
-.billstack-sidebar .nav-item:has(.nav-quick-action) .nav-link {
+.zephrant-erp-sidebar .nav-item:has(.nav-quick-action) .nav-link {
     padding-right: 2.7rem;
 }
 
-.billstack-sidebar .nav-quick-action {
+.zephrant-erp-sidebar .nav-quick-action {
     position: absolute;
     top: 50%;
     right: 0.45rem;
@@ -415,36 +416,36 @@ a:hover {
     transition: opacity 140ms ease, transform 140ms ease, background-color 140ms ease;
 }
 
-.billstack-sidebar .nav-item:hover .nav-quick-action,
-.billstack-sidebar .nav-item:focus-within .nav-quick-action {
+.zephrant-erp-sidebar .nav-item:hover .nav-quick-action,
+.zephrant-erp-sidebar .nav-item:focus-within .nav-quick-action {
     opacity: 1;
     transform: translateY(-50%) scale(1);
 }
 
-.billstack-sidebar .nav-quick-action:hover,
-.billstack-sidebar .nav-quick-action:focus-visible {
+.zephrant-erp-sidebar .nav-quick-action:hover,
+.zephrant-erp-sidebar .nav-quick-action:focus-visible {
     color: #17342e;
     background: #f0c95c;
 }
 
-.billstack-sidebar .nav-link:hover {
+.zephrant-erp-sidebar .nav-link:hover {
     color: #fff !important;
     background: rgba(255, 255, 255, 0.07);
 }
 
-.billstack-sidebar .nav-link.active {
+.zephrant-erp-sidebar .nav-link.active {
     color: #fff !important;
-    background: var(--billstack-sidebar-soft);
-    box-shadow: inset 3px 0 0 var(--billstack-accent);
+    background: var(--zephrant-erp-sidebar-soft);
+    box-shadow: inset 3px 0 0 var(--zephrant-erp-accent);
 }
 
-.billstack-sidebar .nav-link-icon {
+.zephrant-erp-sidebar .nav-link-icon {
     width: 1.25rem;
     margin: 0;
     color: rgba(255, 255, 255, 0.58);
 }
 
-.billstack-sidebar .nav-link.active .nav-link-icon {
+.zephrant-erp-sidebar .nav-link.active .nav-link-icon {
     color: #f0c95c;
 }
 
@@ -473,86 +474,86 @@ a:hover {
     background: rgba(255, 255, 255, 0.09);
 }
 
-.billstack-topbar {
+.zephrant-erp-topbar {
     min-height: 3.75rem;
-    border-bottom: 1px solid var(--billstack-line);
+    border-bottom: 1px solid var(--zephrant-erp-line);
     background: rgba(255, 255, 255, 0.97);
     box-shadow: 0 1px 5px rgba(24, 51, 44, 0.035);
 }
 
 @media (min-width: 992px) {
-    html.sidebar-collapsed .billstack-sidebar {
+    html.sidebar-collapsed .zephrant-erp-sidebar {
         width: 4.75rem;
     }
 
-    html.sidebar-collapsed .billstack-sidebar ~ .page-wrapper {
+    html.sidebar-collapsed .zephrant-erp-sidebar ~ .page-wrapper {
         margin-left: 4.75rem;
     }
 
-    html.sidebar-collapsed .billstack-sidebar .container-fluid {
+    html.sidebar-collapsed .zephrant-erp-sidebar .container-fluid {
         padding-right: 0.55rem;
         padding-left: 0.55rem;
     }
 
-    html.sidebar-collapsed .billstack-sidebar .navbar-brand {
+    html.sidebar-collapsed .zephrant-erp-sidebar .navbar-brand {
         justify-content: center;
         padding: 0;
     }
 
-    html.sidebar-collapsed .billstack-sidebar .navbar-brand a {
+    html.sidebar-collapsed .zephrant-erp-sidebar .navbar-brand a {
         justify-content: center;
     }
 
-    html.sidebar-collapsed .billstack-sidebar .brand-copy,
-    html.sidebar-collapsed .billstack-sidebar .nav-section,
-    html.sidebar-collapsed .billstack-sidebar .nav-link-title,
-    html.sidebar-collapsed .billstack-sidebar .nav-quick-action,
-    html.sidebar-collapsed .billstack-sidebar .sidebar-signout span {
+    html.sidebar-collapsed .zephrant-erp-sidebar .brand-copy,
+    html.sidebar-collapsed .zephrant-erp-sidebar .nav-section,
+    html.sidebar-collapsed .zephrant-erp-sidebar .nav-link-title,
+    html.sidebar-collapsed .zephrant-erp-sidebar .nav-quick-action,
+    html.sidebar-collapsed .zephrant-erp-sidebar .sidebar-signout span {
         display: none;
     }
 
-    html.sidebar-collapsed .billstack-sidebar .nav-group-links[hidden] {
+    html.sidebar-collapsed .zephrant-erp-sidebar .nav-group-links[hidden] {
         display: block !important;
     }
 
-    html.sidebar-collapsed .billstack-sidebar .navbar-nav {
+    html.sidebar-collapsed .zephrant-erp-sidebar .navbar-nav {
         padding-top: 0.65rem !important;
     }
 
-    html.sidebar-collapsed .billstack-sidebar .nav-link {
+    html.sidebar-collapsed .zephrant-erp-sidebar .nav-link {
         min-height: 2.8rem;
         justify-content: center;
         padding: 0.65rem;
     }
 
-    html.sidebar-collapsed .billstack-sidebar .nav-item:has(.nav-quick-action) .nav-link {
+    html.sidebar-collapsed .zephrant-erp-sidebar .nav-item:has(.nav-quick-action) .nav-link {
         padding-right: 0.65rem;
     }
 
-    html.sidebar-collapsed .billstack-sidebar .nav-link-icon {
+    html.sidebar-collapsed .zephrant-erp-sidebar .nav-link-icon {
         width: auto;
     }
 
-    html.sidebar-collapsed .billstack-sidebar .sidebar-footer {
+    html.sidebar-collapsed .zephrant-erp-sidebar .sidebar-footer {
         padding-right: 0;
         padding-left: 0;
     }
 
-    html.sidebar-collapsed .billstack-sidebar .sidebar-signout {
+    html.sidebar-collapsed .zephrant-erp-sidebar .sidebar-signout {
         width: 2.65rem;
         margin: 0 auto;
         padding: 0;
     }
 
-    html.sidebar-collapsed .billstack-sidebar .sidebar-collapse-icon {
+    html.sidebar-collapsed .zephrant-erp-sidebar .sidebar-collapse-icon {
         display: none;
     }
 
-    html.sidebar-collapsed .billstack-sidebar .sidebar-expand-icon {
+    html.sidebar-collapsed .zephrant-erp-sidebar .sidebar-expand-icon {
         display: inline-flex;
     }
 
-    html.sidebar-collapsed .billstack-sidebar .sidebar-rail-toggle {
+    html.sidebar-collapsed .zephrant-erp-sidebar .sidebar-rail-toggle {
         right: -0.8rem;
     }
 }
@@ -564,7 +565,7 @@ a:hover {
 }
 
 .topbar-context {
-    color: var(--billstack-muted);
+    color: var(--zephrant-erp-muted);
     font-size: 0.74rem;
 }
 
@@ -578,7 +579,7 @@ a:hover {
 .topbar-identity strong {
     max-width: 300px;
     overflow: hidden;
-    color: var(--billstack-ink);
+    color: var(--zephrant-erp-ink);
     font-size: 0.84rem;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -587,7 +588,7 @@ a:hover {
 .topbar-separator {
     width: 1px;
     height: 1rem;
-    background: var(--billstack-line);
+    background: var(--zephrant-erp-line);
 }
 
 .subscription-navbar-badge {
@@ -682,7 +683,7 @@ a:hover {
     align-items: center;
     gap: 0.65rem;
     padding: 0.2rem 0.45rem;
-    color: var(--billstack-ink);
+    color: var(--zephrant-erp-ink);
     border: 0;
     border-radius: 7px;
     background: transparent;
@@ -711,13 +712,13 @@ a:hover {
 .user-menu-chevron {
     width: 0.9rem;
     height: 0.9rem;
-    color: var(--billstack-muted);
+    color: var(--zephrant-erp-muted);
 }
 
 .user-menu-dropdown {
     min-width: 13rem;
     padding: 0.45rem;
-    border-color: var(--billstack-line);
+    border-color: var(--zephrant-erp-line);
     border-radius: 7px;
     box-shadow: 0 12px 32px rgba(25, 53, 46, 0.14);
 }
@@ -729,13 +730,13 @@ a:hover {
 }
 
 .user-menu-summary strong {
-    color: var(--billstack-ink);
+    color: var(--zephrant-erp-ink);
     font-size: 0.82rem;
 }
 
 .user-menu-summary span {
     margin-top: 0.2rem;
-    color: var(--billstack-muted);
+    color: var(--zephrant-erp-muted);
     font-size: 0.72rem;
 }
 
@@ -860,7 +861,7 @@ a:hover {
     width: 100%;
     min-width: 0;
     padding: 2rem;
-    border: 1px solid var(--billstack-line);
+    border: 1px solid var(--zephrant-erp-line);
     border-radius: 8px;
     background: #fff;
     box-shadow: 0 18px 50px rgba(31, 55, 48, 0.09);
@@ -1676,7 +1677,7 @@ body.public-site {
     max-width: 760px;
     margin: 3rem auto;
     padding: 3rem;
-    border: 1px solid var(--billstack-line);
+    border: 1px solid var(--zephrant-erp-line);
     border-radius: 8px;
     background: #fff;
     text-align: center;
@@ -1691,7 +1692,7 @@ body.public-site {
 .subscription-outcome > p {
     max-width: 560px;
     margin: 0.8rem auto 1.75rem;
-    color: var(--billstack-muted);
+    color: var(--zephrant-erp-muted);
     line-height: 1.7;
 }
 
@@ -1733,14 +1734,14 @@ body.public-site {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     margin-bottom: 1.75rem;
-    border: 1px solid var(--billstack-line);
+    border: 1px solid var(--zephrant-erp-line);
     border-radius: 7px;
 }
 
 .subscription-outcome-summary > div {
     min-width: 0;
     padding: 1rem;
-    border-right: 1px solid var(--billstack-line);
+    border-right: 1px solid var(--zephrant-erp-line);
 }
 
 .subscription-outcome-summary > div:last-child {
@@ -1754,7 +1755,7 @@ body.public-site {
 
 .subscription-outcome-summary span {
     margin-bottom: 0.35rem;
-    color: var(--billstack-muted);
+    color: var(--zephrant-erp-muted);
     font-size: 0.72rem;
 }
 
@@ -1801,13 +1802,13 @@ body.public-site {
 
 .subscription-plan-price > span {
     margin-left: 0.35rem;
-    color: var(--billstack-muted);
+    color: var(--zephrant-erp-muted);
 }
 
 .subscription-plan-price small {
     width: 100%;
     margin-top: 0.45rem;
-    color: var(--billstack-muted);
+    color: var(--zephrant-erp-muted);
 }
 
 .subscription-plan-option .small [data-lucide] {
@@ -2094,7 +2095,7 @@ body.public-site {
 }
 
 @media (max-width: 575.98px) {
-    .billstack-topbar > .container-xl {
+    .zephrant-erp-topbar > .container-xl {
         gap: 0.35rem;
     }
 
@@ -4490,7 +4491,7 @@ select[data-unit-select] option[value="__add_unit__"] {
     }
 
     .subscription-outcome-summary > div:nth-child(-n+2) {
-        border-bottom: 1px solid var(--billstack-line);
+        border-bottom: 1px solid var(--zephrant-erp-line);
     }
 
     .platform-review-actions {
@@ -4529,4 +4530,61 @@ select[data-unit-select] option[value="__add_unit__"] {
     .registration-support-panel {
         padding: 1.4rem;
     }
+}
+
+.brand-logo {
+    max-width: 150px;
+    max-height: 42px;
+    object-fit: contain;
+}
+
+.brand-logo-white {
+    filter: none;
+}
+
+.btn-primary,
+.btn-outline-primary:hover,
+.btn-outline-primary:focus-visible,
+.page-item.active .page-link {
+    --tblr-btn-bg: var(--zephrant-erp-accent);
+    --tblr-btn-border-color: var(--zephrant-erp-accent);
+    --tblr-btn-hover-bg: #EA580C;
+    --tblr-btn-hover-border-color: #EA580C;
+    --tblr-btn-active-bg: #C2410C;
+    --tblr-btn-active-border-color: #C2410C;
+}
+
+.btn-outline-primary {
+    --tblr-btn-color: var(--zephrant-erp-accent);
+    --tblr-btn-border-color: var(--zephrant-erp-accent);
+}
+
+.badge.bg-success,
+.text-success,
+.comparison-yes {
+    color: var(--zephrant-erp-success) !important;
+}
+
+.bg-success {
+    background-color: var(--zephrant-erp-success) !important;
+}
+
+.zephrant-erp-sidebar .nav-link.active {
+    background: var(--zephrant-erp-sidebar-soft);
+    box-shadow: inset 3px 0 0 var(--zephrant-erp-accent);
+}
+
+.zephrant-erp-sidebar .nav-link.active .nav-link-icon,
+.guest-feature [data-lucide],
+.public-eyebrow,
+.public-kicker {
+    color: var(--zephrant-erp-accent);
+}
+
+.public-header,
+.public-footer,
+.card,
+.auth-form-card,
+.subscription-outcome {
+    background: var(--zephrant-erp-surface);
 }

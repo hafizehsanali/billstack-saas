@@ -2,12 +2,13 @@
 <html>
 
 <head>
-    <title>Purchase Invoice</title>
+    <title>Purchase Invoice | {{ platform_name() }}</title>
 
     <style>
         body {
             font-family: Arial, sans-serif;
             font-size: 14px;
+            color: #1F2937;
         }
 
         table {
@@ -16,7 +17,7 @@
         }
 
         table, th, td {
-            border: 1px solid #000;
+            border: 1px solid #d1d5db;
         }
 
         th, td {
@@ -27,10 +28,47 @@
         .text-right {
             text-align: right;
         }
+
+        .brand-header {
+            border-bottom: 3px solid #F97316;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+        }
+
+        .brand-header h1 {
+            margin: 0;
+            color: #1F2937;
+            font-size: 22px;
+        }
+
+        .brand-header p,
+        .brand-footer {
+            color: #4b5563;
+            font-size: 12px;
+        }
+
+        th {
+            color: #ffffff;
+            background: #1F2937;
+        }
+
+        .brand-footer {
+            border-top: 1px solid #d1d5db;
+            margin-top: 24px;
+            padding-top: 10px;
+            text-align: center;
+        }
     </style>
 </head>
 
 <body>
+
+    <div class="brand-header">
+        <h1>{{ platform_name() }}</h1>
+        <p>
+            {{ platform_company_name() }} | {{ platform_primary_email() }} | {{ platform_domain() }}
+        </p>
+    </div>
 
     <h2>{{ $tenant->name }}</h2>
 
@@ -90,6 +128,10 @@
     <h3 class="text-right">
         Total: Rs {{ number_format($purchase->total, 2) }}
     </h3>
+
+    <div class="brand-footer">
+        &copy; {{ now()->year }} {{ platform_company_name() }}. All rights reserved.
+    </div>
 
 </body>
 
