@@ -4562,7 +4562,7 @@ select[data-unit-select] option[value="__add_unit__"] {
 .badge.bg-success,
 .text-success,
 .comparison-yes {
-    color: var(--zephrant-erp-success) !important;
+    /* color: var(--zephrant-erp-success) !important; */
 }
 
 .bg-success {

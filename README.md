@@ -58,8 +58,9 @@ customizations remain private.
 - Feature tests for key accounting and inventory flows
 
 See [Architecture](docs/ARCHITECTURE.md) for the design and transaction
-boundaries, and [Demo Workflows](docs/DEMO_WORKFLOWS.md) for guided review
-paths.
+boundaries, [Database Schema and Product Import](docs/DATABASE_SCHEMA_AND_PRODUCT_IMPORT.md)
+for product/variant import handoff notes, and [Demo Workflows](docs/DEMO_WORKFLOWS.md)
+for guided review paths.
 
 Release history is maintained in the [Changelog](CHANGELOG.md). Security
 reports should follow the [Security Policy](SECURITY.md).

@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\Purchase;
 use App\Models\SupplierPayment;
 use App\Models\Tenant;
@@ -40,5 +42,37 @@ class DemoSeederIntegrityTest extends TestCase
                 $this->assertSame($payment->tenant_id, $payment->supplier->tenant_id);
                 $this->assertSame($payment->tenant_id, $payment->purchase->tenant_id);
             });
+    }
+
+    public function test_demo_catalog_includes_business_ready_products_and_unit_conversions(): void
+    {
+        $this->seed();
+
+        $tenant = Tenant::firstOrFail();
+
+        $rice = Product::withoutGlobalScopes()
+            ->where('tenant_id', $tenant->id)
+            ->where('slug', 'basmati-rice')
+            ->firstOrFail();
+
+        $this->assertSame('Basmati Rice', $rice->name);
+        $this->assertFalse($rice->has_variants);
+
+        $riceVariant = ProductVariant::withoutGlobalScopes()
+            ->with(['unit', 'purchaseUnit'])
+            ->where('product_id', $rice->id)
+            ->firstOrFail();
+
+        $this->assertSame('Kilogram', $riceVariant->unit->name);
+        $this->assertSame('Bag', $riceVariant->purchaseUnit->name);
+        $this->assertSame('50.000', (string) $riceVariant->purchase_unit_factor);
+
+        $softDrink = Product::withoutGlobalScopes()
+            ->where('tenant_id', $tenant->id)
+            ->where('slug', 'soft-drink-500ml')
+            ->firstOrFail();
+
+        $this->assertTrue($softDrink->has_variants);
+        $this->assertSame(3, $softDrink->variants()->count());
     }
 }

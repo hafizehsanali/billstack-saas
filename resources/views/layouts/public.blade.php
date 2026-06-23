@@ -13,7 +13,6 @@
     <div class="container-xl public-header-inner">
         <a href="{{ url('/') }}" class="public-brand" aria-label="{{ platform_name() }} home">
             <img class="brand-logo" src="{{ platform_logo_asset() }}" alt="{{ platform_name() }} logo">
-            <span>{{ platform_name() }}</span>
         </a>
 
         <nav class="public-nav d-none d-md-flex" aria-label="Public navigation">
@@ -45,7 +44,6 @@
         <div>
             <a href="{{ url('/') }}" class="public-brand">
                 <img class="brand-logo" src="{{ platform_logo_asset() }}" alt="{{ platform_name() }} logo">
-                <span>{{ platform_name() }}</span>
             </a>
             <p>{{ platform_tagline() }}.</p>
             <small>&copy; {{ now()->year }} {{ platform_company_name() }}. All rights reserved.</small>

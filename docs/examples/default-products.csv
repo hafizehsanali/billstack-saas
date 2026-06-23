@@ -1,0 +1,22 @@
+Product Name,Product Group SKU,Variant Name,Attribute 1,Option 1,Attribute 2,Option 2,Attribute 3,Option 3,Parent Category,Category,Subcategory,Brand,SKU,Barcode,Description,Customer Unit,Supplier Unit,Customer Units in One Supplier Unit,Purchase Price,Selling Price,Regular Price,Opening Supplier Quantity,Additional Customer-Unit Stock,Low Stock Alert,Status
+Basmati Rice,,Default,,,,,,,Groceries,Rice & Grains,,Zephrant Essentials,RICE-BAS-001,890100000001,Premium rice sold by kilogram,Kilogram,Bag,50,12000,280,300,3,10,20,Active
+Sugar,,Default,,,,,,,Groceries,Rice & Grains,,Zephrant Essentials,SUGAR-001,890100000002,Loose sugar sold by kilogram,Kilogram,Bag,50,7000,165,175,2,25,25,Active
+Cooking Oil,,1 Litre Bottle,,,,,,,Groceries,Oil & Ghee,,Pure Harvest,OIL-1L-001,890100000003,One litre oil bottle,Bottle,Carton,12,6000,560,585,4,0,12,Active
+Eggs,,Default,,,,,,,Fresh Items,Dairy & Eggs,,Daily Farm,EGGS-001,890100000004,Eggs sold by piece,Piece,Tray,30,900,38,40,6,0,30,Active
+Detergent Powder,,1KG Pack,,,,,,,Household,Cleaning,,CleanPro,DETERGENT-1KG,890100000005,Detergent powder retail pack,Piece,Carton,12,4800,465,500,3,0,10,Active
+Paracetamol Strip,,Default,,,,,,,Pharmacy,Pain Relief,,MediCare,MED-PARA-STRIP,890100000006,Paracetamol medicine strip,Strip,Box,25,1250,70,75,3,0,15,Active
+Soft Drink,DRINK-500,500ml Cola,Flavor,Cola,,,,,Beverages,Cold Drinks,,RefreshCo,DRINK-COLA-500,890100000101,Cold drink cola bottle,Bottle,Carton,24,2160,110,120,3,0,24,Active
+Soft Drink,DRINK-500,500ml Orange,Flavor,Orange,,,,,Beverages,Cold Drinks,,RefreshCo,DRINK-ORANGE-500,890100000102,Cold drink orange bottle,Bottle,Carton,24,2160,110,120,2,0,24,Active
+Soft Drink,DRINK-500,500ml Lemon,Flavor,Lemon,,,,,Beverages,Cold Drinks,,RefreshCo,DRINK-LEMON-500,890100000103,Cold drink lemon bottle,Bottle,Carton,24,2160,110,120,2,0,24,Active
+Tea Pack,TEA,250g,Pack Size,250g,,,,,Groceries,Tea & Coffee,,Morning Leaf,TEA-250G,890100000201,Tea retail pack,Pack,Carton,24,8400,420,450,2,0,12,Active
+Tea Pack,TEA,500g,Pack Size,500g,,,,,Groceries,Tea & Coffee,,Morning Leaf,TEA-500G,890100000202,Tea retail pack,Pack,Carton,12,7800,760,800,2,0,8,Active
+Toothpaste,TOOTHPASTE,100g,Pack Size,100g,,,,,Personal Care,Oral Care,,SmileCare,TOOTHPASTE-100G,890100000301,Toothpaste retail tube,Piece,Carton,48,5760,150,165,2,0,24,Active
+Toothpaste,TOOTHPASTE,200g,Pack Size,200g,,,,,Personal Care,Oral Care,,SmileCare,TOOTHPASTE-200G,890100000302,Toothpaste retail tube,Piece,Carton,24,6000,300,320,2,0,12,Active
+Wheat Flour,,Default,,,,,,,Groceries,Flour & Baking,,Zephrant Essentials,FLOUR-WHEAT-001,890100000401,Wheat flour sold by kilogram,Kilogram,Bag,20,2600,155,165,4,5,15,Active
+Red Lentils,,Default,,,,,,,Groceries,Pulses,,Zephrant Essentials,LENTIL-RED-001,890100000402,Red lentils sold by kilogram,Kilogram,Bag,25,6000,290,310,2,10,10,Active
+Milk Pack,,1 Litre Pack,,,,,,,Fresh Items,Dairy & Eggs,,Daily Farm,MILK-1L-001,890100000403,Milk one litre pack,Pack,Carton,12,2640,250,265,3,0,12,Active
+Shampoo,SHAMPOO,100ml,Pack Size,100g,,,,,Personal Care,Hair Care,,SmileCare,SHAMPOO-100ML,890100000404,Small shampoo bottle,Bottle,Carton,24,3600,180,200,2,0,12,Active
+Shampoo,SHAMPOO,200ml,Pack Size,200g,,,,,Personal Care,Hair Care,,SmileCare,SHAMPOO-200ML,890100000405,Medium shampoo bottle,Bottle,Carton,12,3300,320,350,2,0,8,Active
+Hardware Nails,,1KG Pack,,,,,,,Hardware,Fasteners,,Zephrant Essentials,NAILS-1KG,890100000406,Common hardware nails,Kilogram,Bag,25,5000,240,260,1,5,5,Active
+Paint Brush,BRUSH,2 Inch,Size,Small,,,,,Hardware,Paint Tools,,Zephrant Essentials,BRUSH-2IN,890100000407,Two inch paint brush,Piece,Box,12,720,90,100,3,0,12,Active
+Paint Brush,BRUSH,4 Inch,Size,Large,,,,,Hardware,Paint Tools,,Zephrant Essentials,BRUSH-4IN,890100000408,Four inch paint brush,Piece,Box,12,1200,150,165,2,0,8,Active
