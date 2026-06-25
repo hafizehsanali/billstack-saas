@@ -3,7 +3,9 @@
 namespace App\Services;
 
 use App\Models\Product;
+use App\Models\ProductBatch;
 use App\Models\ProductVariant;
+use App\Models\StockMovement;
 use App\Models\Unit;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -30,6 +32,14 @@ class ProductCatalogService
                 'has_variants' => count($data['variants'] ?? []) > 1,
                 'is_active' => $data['is_active'] ?? true,
                 'is_online_enabled' => $data['is_online_enabled'] ?? false,
+                'product_sale_mode' => $data['product_sale_mode'] ?? Product::SALE_MODE_PACKED,
+                'allow_loose_sale' => $data['allow_loose_sale'] ?? false,
+                'base_stock_unit_id' => $data['base_stock_unit_id'] ?? null,
+                'default_purchase_unit_id' => $data['default_purchase_unit_id'] ?? null,
+                'default_purchase_unit_factor' => $data['default_purchase_unit_factor'] ?? null,
+                'track_expiry' => $data['track_expiry'] ?? false,
+                'track_batch' => $data['track_batch'] ?? false,
+                'track_serial' => $data['track_serial'] ?? false,
             ]);
 
             $this->syncVariants($product, $data);
@@ -50,6 +60,14 @@ class ProductCatalogService
                 'description' => $data['description'] ?? null,
                 'is_active' => $data['is_active'] ?? true,
                 'is_online_enabled' => $data['is_online_enabled'] ?? false,
+                'product_sale_mode' => $data['product_sale_mode'] ?? $product->product_sale_mode ?? Product::SALE_MODE_PACKED,
+                'allow_loose_sale' => $data['allow_loose_sale'] ?? false,
+                'base_stock_unit_id' => $data['base_stock_unit_id'] ?? null,
+                'default_purchase_unit_id' => $data['default_purchase_unit_id'] ?? null,
+                'default_purchase_unit_factor' => $data['default_purchase_unit_factor'] ?? null,
+                'track_expiry' => $data['track_expiry'] ?? false,
+                'track_batch' => $data['track_batch'] ?? false,
+                'track_serial' => $data['track_serial'] ?? false,
             ]);
 
             $this->syncVariants($product, $data);
@@ -92,6 +110,12 @@ class ProductCatalogService
         string $direction,
         ?float $purchasePrice = null
     ): ProductVariant {
+        $variant->loadMissing('product');
+
+        if (! $variant->product->tracksStock() || ! $variant->track_stock) {
+            return $variant;
+        }
+
         if ($direction === 'out' && $variant->stock_quantity < $quantity) {
             throw ValidationException::withMessages([
                 'stock' => $variant->display_name.' does not have enough stock.',
@@ -135,6 +159,7 @@ class ProductCatalogService
             'purchase_unit_id' => $unitId,
             'purchase_unit_factor' => 1,
             'purchase_unit_price' => $product->purchase_price,
+            'conversion_to_base_unit' => 1,
             'purchase_price' => $product->purchase_price,
             'selling_price' => $product->selling_price,
             'stock_quantity' => $product->stock_quantity,
@@ -142,6 +167,93 @@ class ProductCatalogService
             'is_default' => true,
             'is_active' => true,
         ]);
+    }
+
+    public function consumeBatches(ProductVariant $variant, float $quantity, ?string $batchNumber = null): array
+    {
+        $variant->loadMissing('product');
+
+        if (! $variant->product->track_batch) {
+            return [];
+        }
+
+        $remaining = $quantity;
+        $consumed = [];
+        $query = ProductBatch::query()
+            ->where('product_variant_id', $variant->id)
+            ->where('quantity', '>', 0)
+            ->where('is_active', true)
+            ->lockForUpdate();
+
+        if ($batchNumber) {
+            $query->where('batch_number', $batchNumber);
+        } else {
+            $query->orderByRaw('expiry_date IS NULL')
+                ->orderBy('expiry_date')
+                ->orderBy('id');
+        }
+
+        foreach ($query->get() as $batch) {
+            if ($remaining <= 0) {
+                break;
+            }
+
+            $take = min((float) $batch->quantity, $remaining);
+            $batch->decrement('quantity', $take);
+            $batch->refresh();
+
+            if ((float) $batch->quantity <= 0) {
+                $batch->update(['is_active' => false]);
+            }
+
+            $consumed[] = ['batch' => $batch, 'quantity' => $take];
+            $remaining = round($remaining - $take, 3);
+        }
+
+        if ($remaining > 0) {
+            throw ValidationException::withMessages([
+                'stock' => $batchNumber
+                    ? "Batch {$batchNumber} does not have enough stock."
+                    : $variant->display_name.' does not have enough batch stock.',
+            ]);
+        }
+
+        return $consumed;
+    }
+
+    public function restoreBatchesFromInvoiceItem(\App\Models\InvoiceItem $invoiceItem, float $quantity): array
+    {
+        $remaining = $quantity;
+        $restored = [];
+
+        $movements = StockMovement::query()
+            ->with('variant')
+            ->where('source_type', \App\Models\InvoiceItem::class)
+            ->where('source_id', $invoiceItem->id)
+            ->whereNotNull('product_batch_id')
+            ->orderBy('id')
+            ->get();
+
+        foreach ($movements as $movement) {
+            if ($remaining <= 0) {
+                break;
+            }
+
+            $batch = ProductBatch::find($movement->product_batch_id);
+            if (! $batch) {
+                continue;
+            }
+
+            $restore = min((float) $movement->quantity, $remaining);
+            $batch->increment('quantity', $restore);
+            $batch->update(['is_active' => true]);
+            $batch->refresh();
+
+            $restored[] = ['batch' => $batch, 'quantity' => $restore];
+            $remaining = round($remaining - $restore, 3);
+        }
+
+        return $restored;
     }
 
     private function syncVariants(Product $product, array $data): void
@@ -170,9 +282,10 @@ class ProductCatalogService
                     'tenant_id' => $product->tenant_id,
                     'product_id' => $product->id,
                 ]);
-            $oldStock = (int) ($variant->exists ? $variant->stock_quantity : 0);
+            $oldStock = (float) ($variant->exists ? $variant->stock_quantity : 0);
             $purchaseUnitFactor = max((float) ($row['purchase_unit_factor'] ?? 1), 0.001);
             $purchaseUnitPrice = (float) $row['purchase_price'];
+            $tracksStock = ($row['track_stock'] ?? true) && $product->tracksStock();
 
             $variant->fill([
                 'name' => $row['name'] ?: ($index === 0 ? 'Default' : 'Variant '.($index + 1)),
@@ -182,12 +295,13 @@ class ProductCatalogService
                 'purchase_unit_id' => ($row['purchase_unit_id'] ?? null) ?: ($row['unit_id'] ?? $defaultUnitId),
                 'purchase_unit_factor' => $purchaseUnitFactor,
                 'purchase_unit_price' => $purchaseUnitPrice,
+                'conversion_to_base_unit' => $row['conversion_to_base_unit'] ?? 1,
                 'purchase_price' => round($purchaseUnitPrice / $purchaseUnitFactor, 2),
                 'selling_price' => $row['selling_price'],
                 'compare_at_price' => $row['compare_at_price'] ?? null,
-                'stock_quantity' => $row['stock_quantity'],
+                'stock_quantity' => $tracksStock ? $row['stock_quantity'] : 0,
                 'low_stock_alert' => $row['low_stock_alert'],
-                'track_stock' => $row['track_stock'] ?? true,
+                'track_stock' => $tracksStock,
                 'is_default' => $index === 0,
                 'is_active' => $row['is_active'] ?? true,
             ]);
@@ -195,9 +309,9 @@ class ProductCatalogService
             $variant->attributeValues()->sync($row['attribute_value_ids'] ?? []);
             $keptIds[] = $variant->id;
 
-            $difference = (int) $variant->stock_quantity - $oldStock;
+            $difference = (float) $variant->stock_quantity - $oldStock;
 
-            if ($difference !== 0) {
+            if ($tracksStock && abs($difference) > 0.0001) {
                 $isOpeningStock = ! $variant->wasRecentlyCreated ? false : $oldStock === 0;
 
                 app(StockLedgerService::class)->record(

@@ -3,24 +3,31 @@
 @section('content')
 @php
     $isFiltered = request()->start_date || request()->end_date;
+    $hasInventory = $hasModule(\App\Models\BusinessModule::INVENTORY);
+    $hasBilling = $hasModule(\App\Models\BusinessModule::BILLING);
+    $hasCustomers = $hasModule(\App\Models\BusinessModule::CUSTOMER_LEDGER);
+    $hasLowStockAlerts = $hasModule(\App\Models\BusinessModule::LOW_STOCK_ALERTS);
+    $hasReports = $hasModule(\App\Models\BusinessModule::REPORTS);
 @endphp
 
 <div class="page-heading">
     <div>
         <h1>Business Overview</h1>
         <div class="text-muted">
-            Sales, profit, inventory health, and account activity in one view.
+            Module-aware business activity, alerts, and account health in one view.
         </div>
     </div>
     <div class="page-actions">
-        <a href="{{ route('invoices.pos') }}" class="btn btn-primary">
-            <i data-lucide="scan-barcode"></i>
-            Open POS
-        </a>
-        <a href="{{ route('invoices.create') }}" class="btn btn-outline-secondary">
-            <i data-lucide="file-plus-2"></i>
-            New Invoice
-        </a>
+        @if($hasBilling)
+            <a href="{{ route('invoices.pos') }}" class="btn btn-primary">
+                <i data-lucide="scan-barcode"></i>
+                Open POS
+            </a>
+            <a href="{{ route('invoices.create') }}" class="btn btn-outline-secondary">
+                <i data-lucide="file-plus-2"></i>
+                New Invoice
+            </a>
+        @endif
     </div>
 </div>
 
@@ -54,12 +61,12 @@
 </div>
 
 <div class="row g-3 mb-3">
-    @foreach([
+    @foreach(collect([
         ['label' => 'Sales Today', 'value' => 'Rs '.number_format($stats['today_sales'], 2), 'icon' => 'banknote', 'tone' => ''],
         ['label' => 'Sales in Selected Period', 'value' => 'Rs '.number_format($stats['monthly_sales'], 2), 'icon' => 'calendar-range', 'tone' => 'blue'],
         ['label' => 'Total Sales', 'value' => 'Rs '.number_format($stats['total_sales'], 2), 'icon' => 'trending-up', 'tone' => ''],
         ['label' => 'Net Profit', 'value' => 'Rs '.number_format($stats['net_profit'], 2), 'icon' => 'chart-no-axes-combined', 'tone' => $stats['net_profit'] < 0 ? 'danger' : ''],
-    ] as $metric)
+    ])->when(! $hasBilling, fn ($items) => $items->filter(fn ($item) => $item['label'] === 'Net Profit')) as $metric)
         <div class="col-sm-6 col-xl-3">
             <div class="card metric-card h-100">
                 <div class="card-body d-flex align-items-start justify-content-between gap-3">
@@ -82,14 +89,22 @@
 </div>
 
 <div class="row g-3">
-    @foreach([
+    @foreach(collect([
         ['label' => 'Gross Profit', 'value' => 'Rs '.number_format($stats['gross_profit'], 2), 'icon' => 'circle-dollar-sign', 'tone' => ''],
         ['label' => 'Expenses', 'value' => 'Rs '.number_format($stats['total_expenses'], 2), 'icon' => 'wallet-cards', 'tone' => 'warning'],
         ['label' => $isFiltered ? 'Products Added' : 'Total Products', 'value' => number_format($stats['total_products']), 'icon' => 'boxes', 'tone' => 'blue'],
         ['label' => 'Low Stock Items', 'value' => number_format($stats['low_stock']), 'icon' => 'triangle-alert', 'tone' => $stats['low_stock'] > 0 ? 'danger' : ''],
         ['label' => $isFiltered ? 'New Customers' : 'Total Customers', 'value' => number_format($stats['total_customers']), 'icon' => 'users', 'tone' => ''],
         ['label' => $isFiltered ? 'Invoices Created' : 'Total Invoices', 'value' => number_format($stats['total_invoices']), 'icon' => 'receipt-text', 'tone' => 'blue'],
-    ] as $metric)
+    ])->filter(function ($item) use ($hasInventory, $hasLowStockAlerts, $hasCustomers, $hasBilling) {
+        return match (true) {
+            str_contains($item['label'], 'Products') => $hasInventory,
+            $item['label'] === 'Low Stock Items' => $hasLowStockAlerts,
+            str_contains($item['label'], 'Customers') => $hasCustomers,
+            str_contains($item['label'], 'Invoices') => $hasBilling,
+            default => true,
+        };
+    }) as $metric)
         <div class="col-sm-6 col-lg-4 col-xl-2">
             <div class="card metric-card h-100">
                 <div class="card-body">
@@ -104,7 +119,7 @@
     @endforeach
 </div>
 
-{{-- Charts --}}
+@if($hasBilling && $hasReports)
 <div class="row mt-4">
 
     {{-- Sales Chart --}}
@@ -154,10 +169,11 @@
     </div>
 
 </div>
-{{-- Advanced Widgets --}}
+@endif
+
 <div class="row mt-4">
 
-    {{-- Invoice Status Chart --}}
+    @if($hasBilling && $hasReports)
     <div class="col-md-4">
         <div class="card">
             <div class="card-header">
@@ -169,8 +185,9 @@
             </div>
         </div>
     </div>
+    @endif
 
-    {{-- Top Products --}}
+    @if($hasInventory && $hasBilling)
     <div class="col-md-4">
         <div class="card">
             <div class="card-header">
@@ -212,8 +229,9 @@
             </div>
         </div>
     </div>
+    @endif
 
-    {{-- Low Stock --}}
+    @if($hasLowStockAlerts)
     <div class="col-md-4">
         <div class="card border-danger">
             <div class="card-header">
@@ -267,10 +285,11 @@
             </div>
         </div>
     </div>
+    @endif
 
 </div>
 
-{{-- Recent Invoices --}}
+@if($hasBilling)
 <div class="row mt-4">
 
     <div class="col-12">
@@ -357,11 +376,22 @@
     </div>
 
 </div>
+@endif
+
+@if(! $hasBilling && ! $hasInventory && ! $hasLowStockAlerts)
+    <div class="card mt-4">
+        <div class="card-body text-muted">
+            This workspace is using a limited module set. Platform owner can enable inventory, billing, purchases, or alerts when this business needs them.
+        </div>
+    </div>
+@endif
 {{-- ApexCharts --}}
 <script>
 
 document.addEventListener('DOMContentLoaded', function () {
 
+    const salesChartElement = document.querySelector("#salesChart");
+    if (salesChartElement) {
     let options = {
 
         chart: {
@@ -401,13 +431,15 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     let chart = new ApexCharts(
-        document.querySelector("#salesChart"),
+        salesChartElement,
         options
     );
 
     chart.render();
+    }
 
-    // Invoice status donut chart
+    const invoiceChartElement = document.querySelector("#invoiceChart");
+    if (invoiceChartElement) {
     let invoiceOptions = {
 
         chart: {
@@ -432,11 +464,12 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     let invoiceChart = new ApexCharts(
-        document.querySelector("#invoiceChart"),
+        invoiceChartElement,
         invoiceOptions
     );
 
     invoiceChart.render();
+    }
 
 });
 

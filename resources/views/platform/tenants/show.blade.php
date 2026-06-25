@@ -127,6 +127,42 @@
 
 <div class="card mb-3">
     <div class="card-header">
+        <div>
+            <h2 class="card-title mb-0">Business Setup</h2>
+            <div class="text-muted small">Business preset and enabled operational modules for this tenant.</div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
+            <div>
+                <div class="text-muted small">Business Type</div>
+                <div class="h4 mb-1">{{ $tenant->businessPreset?->name ?? 'Not selected' }}</div>
+                <div class="text-muted">{{ $tenant->businessPreset?->description ?? 'Choose a business type to load recommended modules.' }}</div>
+            </div>
+            <a href="{{ route('platform.tenants.edit', $tenant) }}" class="btn btn-outline-primary">
+                Manage Modules
+            </a>
+        </div>
+
+        <div class="row g-2">
+            @forelse($enabledModules as $module)
+                <div class="col-md-4">
+                    <div class="border rounded p-2 h-100">
+                        <div class="fw-semibold">{{ $module->name }}</div>
+                        <div class="text-muted small">{{ $module->description }}</div>
+                    </div>
+                </div>
+            @empty
+                <div class="col-12">
+                    <div class="text-muted">No modules are enabled yet.</div>
+                </div>
+            @endforelse
+        </div>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">
         <h2 class="card-title mb-0">Recent Subscription Invoices</h2>
         <a href="{{ route('platform.billing.index') }}" class="btn btn-sm btn-outline-secondary ms-auto">
             All Billing

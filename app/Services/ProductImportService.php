@@ -32,15 +32,26 @@ class ProductImportService
         'sku' => 'SKU',
         'barcode' => 'Barcode',
         'description' => 'Description',
+        'product_sale_mode' => 'Product Sale Mode',
+        'allow_loose_sale' => 'Allow Loose Sale',
         'customer_unit' => 'Customer Unit',
         'supplier_unit' => 'Supplier Unit',
+        'base_stock_unit' => 'Base Stock Unit',
         'units_per_supplier' => 'Customer Units in One Supplier Unit',
+        'variant_conversion_to_base_unit' => 'Variant Conversion To Base Unit',
         'purchase_price' => 'Purchase Price',
         'selling_price' => 'Selling Price',
         'regular_price' => 'Regular Price',
         'opening_stock' => 'Opening Supplier Quantity',
         'additional_customer_stock' => 'Additional Customer-Unit Stock',
         'low_stock_alert' => 'Low Stock Alert',
+        'track_batch' => 'Track Batch',
+        'track_serial' => 'Track Serial',
+        'track_expiry' => 'Track Expiry',
+        'batch_number' => 'Batch Number',
+        'expiry_date' => 'Expiry Date',
+        'manufacturing_date' => 'Manufacturing Date',
+        'serial_number' => 'Serial Number',
         'status' => 'Status',
     ];
 
@@ -111,8 +122,11 @@ class ProductImportService
             'sku' => ['sku', 'productsku', 'itemcode', 'stockcode'],
             'barcode' => ['barcode', 'upc', 'ean'],
             'description' => ['description', 'details'],
+            'product_sale_mode' => ['productsalemode', 'salemode', 'productmode', 'type'],
+            'allow_loose_sale' => ['allowloosesale', 'loosesale'],
             'customer_unit' => ['customerunit', 'saleunit', 'sellingunit', 'unit'],
             'supplier_unit' => ['supplierunit', 'purchaseunit', 'buyingunit'],
+            'base_stock_unit' => ['basestockunit', 'baseunit', 'stockunit'],
             'units_per_supplier' => [
                 'customerunitsinonesupplierunit',
                 'unitspersupplierunit',
@@ -120,6 +134,7 @@ class ProductImportService
                 'conversion',
                 'packsize',
             ],
+            'variant_conversion_to_base_unit' => ['variantconversiontobaseunit', 'conversiontobaseunit', 'variantbaseconversion'],
             'purchase_price' => ['purchaseprice', 'costprice', 'cost'],
             'selling_price' => ['sellingprice', 'saleprice', 'price'],
             'regular_price' => ['regularprice', 'originalprice', 'compareatprice'],
@@ -131,6 +146,13 @@ class ProductImportService
                 'loosecustomerstock',
             ],
             'low_stock_alert' => ['lowstockalert', 'reorderlevel', 'minimumstock'],
+            'track_batch' => ['trackbatch', 'batchtracked'],
+            'track_serial' => ['trackserial', 'serialtracked', 'serialnumbertracking'],
+            'track_expiry' => ['trackexpiry', 'expirytracked', 'expirytracking'],
+            'batch_number' => ['batchnumber', 'lotnumber'],
+            'expiry_date' => ['expirydate', 'expiredate'],
+            'manufacturing_date' => ['manufacturingdate', 'mfgdate'],
+            'serial_number' => ['serialnumber', 'serial'],
             'status' => ['status', 'active'],
         ];
 
@@ -172,10 +194,15 @@ class ProductImportService
             'additional_customer_stock',
             'low_stock_alert',
             'units_per_supplier',
+            'variant_conversion_to_base_unit',
         ] as $field) {
             if (($row[$field] ?? '') !== '' && (! is_numeric($row[$field]) || (float) $row[$field] < 0)) {
                 throw new \RuntimeException(self::FIELDS[$field]." must be a non-negative number on line {$line}.");
             }
+        }
+
+        if (($row['product_sale_mode'] ?? '') !== '' && ! in_array($this->saleMode($row['product_sale_mode']), Product::SALE_MODES, true)) {
+            throw new \RuntimeException(self::FIELDS['product_sale_mode']." is invalid on line {$line}.");
         }
 
         if (Product::where('sku', $row['sku'])->exists() || ProductVariant::where('sku', $row['sku'])->exists()) {
@@ -245,10 +272,6 @@ class ProductImportService
                 $additionalCustomerStock = (float) ($row['additional_customer_stock'] ?: 0);
                 $customerStock = ($supplierStock * $factor) + $additionalCustomerStock;
 
-                if (floor($customerStock) !== $customerStock) {
-                    throw new \RuntimeException('Converted opening stock must result in a whole customer-unit quantity.');
-                }
-
                 $attributeValueIds = $this->attributeValueIds($row, $createMissing, $tenantId);
                 $variantName = $row['variant_name']
                     ?: $this->variantNameFromAttributes($row)
@@ -261,6 +284,7 @@ class ProductImportService
                     'unit_id' => $customerUnit->id,
                     'purchase_unit_id' => $supplierUnit->id,
                     'purchase_unit_factor' => $factor,
+                    'conversion_to_base_unit' => (float) ($row['variant_conversion_to_base_unit'] ?: 1),
                     'purchase_price' => (float) $row['purchase_price'],
                     'selling_price' => (float) $row['selling_price'],
                     'compare_at_price' => $row['regular_price'] !== '' ? (float) $row['regular_price'] : null,
@@ -277,6 +301,18 @@ class ProductImportService
                 'brand_id' => $brand?->id,
                 'name' => $productRow['name'],
                 'description' => $productRow['description'],
+                'product_sale_mode' => $this->saleMode($productRow['product_sale_mode'] ?: (count($rows) > 1 ? 'packed' : 'packed')),
+                'allow_loose_sale' => $this->truthy($productRow['allow_loose_sale'] ?? false),
+                'base_stock_unit_id' => ($productRow['base_stock_unit'] ?? '') !== ''
+                    ? $this->unit($productRow['base_stock_unit'], $createMissing, $tenantId)->id
+                    : null,
+                'default_purchase_unit_id' => ($productRow['supplier_unit'] ?? '') !== ''
+                    ? $this->unit($productRow['supplier_unit'], $createMissing, $tenantId)->id
+                    : null,
+                'default_purchase_unit_factor' => (float) ($productRow['units_per_supplier'] ?: 1),
+                'track_batch' => $this->truthy($productRow['track_batch'] ?? false),
+                'track_serial' => $this->truthy($productRow['track_serial'] ?? false),
+                'track_expiry' => $this->truthy($productRow['track_expiry'] ?? false),
                 'sku' => $variants[0]['sku'],
                 'barcode' => $variants[0]['barcode'],
                 'purchase_price' => $variants[0]['purchase_price'],
@@ -408,6 +444,28 @@ class ProductImportService
     private function normalize(string $value): string
     {
         return preg_replace('/[^a-z0-9]+/', '', Str::lower(trim($value))) ?? '';
+    }
+
+    private function saleMode(string $value): string
+    {
+        $normalized = Str::of($value)
+            ->lower()
+            ->replace(['-', ' '], '_')
+            ->toString();
+
+        return match ($normalized) {
+            'loose' => Product::SALE_MODE_LOOSE,
+            'hybrid' => Product::SALE_MODE_HYBRID,
+            'service' => Product::SALE_MODE_SERVICE,
+            'serialized', 'serialised' => Product::SALE_MODE_SERIALIZED,
+            'batch', 'batch_tracked', 'batchtracked', 'expiry', 'expiry_tracked' => Product::SALE_MODE_BATCH_TRACKED,
+            default => Product::SALE_MODE_PACKED,
+        };
+    }
+
+    private function truthy(mixed $value): bool
+    {
+        return in_array(Str::lower(trim((string) $value)), ['1', 'yes', 'y', 'true', 'active', 'enabled'], true);
     }
 
     private function errorMessage(Throwable $exception): string

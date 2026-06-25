@@ -15,43 +15,122 @@ use App\Models\StockMovement;
 use App\Models\Unit;
 use App\Services\StockLedgerService;
 use App\Services\ProductCatalogService;
+use App\Services\TenantModuleService;
 use App\Services\TenantUsageLimitService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $categories = Category::with('parent')->orderBy('name')->get();
+        $brands = Brand::orderBy('name')->get();
+        $filters = $request->only([
+            'search',
+            'category_id',
+            'brand_id',
+            'stock_status',
+            'product_type',
+            'active_status',
+        ]);
+
         $products = Product::with(['category', 'brand', 'variants.unit', 'variants.attributeValues.attribute'])
+            ->withCount([
+                'invoiceItems',
+                'purchaseItems',
+                'salesReturnItems',
+                'purchaseReturnItems',
+                'stockMovements',
+                'channelListings',
+            ])
+            ->when($request->filled('search'), function ($query) use ($request): void {
+                $search = $request->string('search')->toString();
+
+                $query->where(function ($query) use ($search): void {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('sku', 'like', "%{$search}%")
+                        ->orWhere('barcode', 'like', "%{$search}%")
+                        ->orWhereHas('brand', fn ($brands) => $brands->where('name', 'like', "%{$search}%"))
+                        ->orWhereHas('category', fn ($categories) => $categories->where('name', 'like', "%{$search}%"));
+                });
+            })
+            ->when($request->filled('category_id'), function ($query) use ($categories, $request): void {
+                $query->whereIn(
+                    'category_id',
+                    $this->categoryFilterIds($categories, (int) $request->input('category_id'))
+                );
+            })
+            ->when($request->filled('brand_id'), fn ($query) => $query->where('brand_id', $request->input('brand_id')))
+            ->when($request->input('stock_status') === 'in_stock', fn ($query) => $query->whereColumn('stock_quantity', '>', 'low_stock_alert'))
+            ->when($request->input('stock_status') === 'low_stock', fn ($query) => $query
+                ->where('stock_quantity', '>', 0)
+                ->whereColumn('stock_quantity', '<=', 'low_stock_alert'))
+            ->when($request->input('stock_status') === 'out_of_stock', fn ($query) => $query->where('stock_quantity', '<=', 0))
+            ->when($request->input('product_type') === 'simple', fn ($query) => $query->where('has_variants', false))
+            ->when($request->input('product_type') === 'variants', fn ($query) => $query->where('has_variants', true))
+            ->when($request->input('active_status') === 'active', fn ($query) => $query->where('is_active', true))
+            ->when($request->input('active_status') === 'inactive', fn ($query) => $query->where('is_active', false))
             ->latest()
             ->get();
 
-        return view('products.index', compact('products'));
+        return view('products.index', compact('products', 'categories', 'brands', 'filters'));
     }
 
-    public function create()
+    private function categoryFilterIds($categories, int $categoryId): array
+    {
+        $ids = [$categoryId];
+
+        foreach ($categories->where('parent_id', $categoryId) as $child) {
+            $ids = array_merge($ids, $this->categoryFilterIds($categories, $child->id));
+        }
+
+        return array_values(array_unique($ids));
+    }
+
+    public function create(TenantModuleService $modules)
     {
         $categories = Category::all();
         $brands = Brand::orderBy('name')->get();
         $attributes = ProductAttribute::with('values')->orderBy('name')->get();
         $units = Unit::where('is_active', true)->orderBy('name')->get();
+        $tenant = auth()->user()->tenant;
+        $productModeOptions = $modules->productModeOptions($tenant);
+        $enabledModuleKeys = $modules->enabledModuleKeys($tenant);
 
-        return view('products.create', compact('categories', 'brands', 'attributes', 'units'));
+        return view('products.create', compact(
+            'categories',
+            'brands',
+            'attributes',
+            'units',
+            'productModeOptions',
+            'enabledModuleKeys'
+        ));
     }
 
-    public function edit(Product $product)
+    public function edit(Product $product, TenantModuleService $modules)
     {
         $product->load(['variants.attributeValues', 'images']);
         $categories = Category::all();
         $brands = Brand::orderBy('name')->get();
         $attributes = ProductAttribute::with('values')->orderBy('name')->get();
         $units = Unit::where('is_active', true)->orderBy('name')->get();
+        $tenant = auth()->user()->tenant;
+        $productModeOptions = $modules->productModeOptions($tenant);
+        $enabledModuleKeys = $modules->enabledModuleKeys($tenant);
+
+        if (! array_key_exists($product->product_sale_mode, $productModeOptions)) {
+            $productModeOptions[$product->product_sale_mode] = str($product->product_sale_mode)->replace('_', ' ')->headline()->toString();
+        }
 
         return view('products.edit', compact(
             'product',
             'categories',
             'brands',
             'attributes',
-            'units'
+            'units',
+            'productModeOptions',
+            'enabledModuleKeys'
         ));
     }
 
@@ -174,5 +253,29 @@ class ProductController extends Controller
                 'success',
                 'Product updated successfully.'
             );
+    }
+
+    public function destroy(Product $product)
+    {
+        abort_if(
+            $product->tenant_id !== auth()->user()->tenant_id,
+            403
+        );
+
+        if (! $product->canBeDeleted()) {
+            return back()->withErrors([
+                'product' => 'Product cannot be deleted because invoice, purchase, return, stock, or online listing history exists.',
+            ]);
+        }
+
+        DB::transaction(function () use ($product): void {
+            $product->variants()->delete();
+            $product->images()->delete();
+            $product->delete();
+        });
+
+        return redirect()
+            ->route('products.index')
+            ->with('success', 'Product deleted successfully.');
     }
 }

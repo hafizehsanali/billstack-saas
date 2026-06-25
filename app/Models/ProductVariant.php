@@ -23,6 +23,7 @@ class ProductVariant extends Model
         'purchase_unit_id',
         'purchase_unit_factor',
         'purchase_unit_price',
+        'conversion_to_base_unit',
         'purchase_price',
         'selling_price',
         'compare_at_price',
@@ -41,7 +42,15 @@ class ProductVariant extends Model
             'is_active' => 'boolean',
             'purchase_unit_factor' => 'decimal:3',
             'purchase_unit_price' => 'decimal:2',
+            'conversion_to_base_unit' => 'float',
         ];
+    }
+
+    public function getStockQuantityAttribute(mixed $value): int|float
+    {
+        $number = (float) $value;
+
+        return floor($number) === $number ? (int) $number : $number;
     }
 
     public function product(): BelongsTo
@@ -68,6 +77,16 @@ class ProductVariant extends Model
     public function stockMovements(): HasMany
     {
         return $this->hasMany(StockMovement::class);
+    }
+
+    public function batches(): HasMany
+    {
+        return $this->hasMany(ProductBatch::class, 'product_variant_id');
+    }
+
+    public function serialNumbers(): HasMany
+    {
+        return $this->hasMany(ProductSerialNumber::class, 'product_variant_id');
     }
 
     public function getDisplayNameAttribute(): string

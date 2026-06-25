@@ -69,12 +69,44 @@
 
             <div class="card-body">
                 <h2 class="mb-2">{{ $tenant->name }}</h2>
+                <div class="mb-3">
+                    <span class="badge bg-success text-white">
+                        {{ $tenant->businessPreset?->name ?? 'Business type not selected' }}
+                    </span>
+                    <div class="text-muted small mt-2">
+                        Business type and enabled modules are managed by the platform owner.
+                    </div>
+                </div>
 
                 <div class="text-muted">
                     {{ $tenant->email ?? 'Email not set' }}<br>
                     {{ $tenant->phone ?? 'Phone not set' }}<br>
                     {{ $tenant->address ?? 'Address not set' }}
                 </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">
+                    Enabled Modules
+                </h3>
+            </div>
+
+            <div class="card-body">
+                @forelse($enabledModules as $module)
+                    <div class="d-flex align-items-start gap-2 py-2 border-bottom">
+                        <i data-lucide="check-circle-2" class="text-success flex-shrink-0 mt-1"></i>
+                        <div>
+                            <div class="fw-semibold">{{ $module->name }}</div>
+                            <div class="text-muted small">{{ $module->description }}</div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="text-muted">
+                        No modules are enabled yet. Contact the platform owner to assign a business type.
+                    </div>
+                @endforelse
             </div>
         </div>
     </div>

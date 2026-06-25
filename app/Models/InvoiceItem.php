@@ -23,6 +23,7 @@ class InvoiceItem extends Model
     {
         return [
             'price' => 'decimal:2',
+            'quantity' => 'float',
             'regular_price' => 'decimal:2',
             'item_savings' => 'decimal:2',
             'total' => 'decimal:2',
@@ -49,12 +50,12 @@ class InvoiceItem extends Model
         return $this->hasMany(SalesReturnItem::class);
     }
 
-    public function returnedQuantity(): int
+    public function returnedQuantity(): float
     {
-        return (int) $this->returnItems()->sum('quantity');
+        return (float) $this->returnItems()->sum('quantity');
     }
 
-    public function returnableQuantity(): int
+    public function returnableQuantity(): float
     {
         return max($this->quantity - $this->returnedQuantity(), 0);
     }

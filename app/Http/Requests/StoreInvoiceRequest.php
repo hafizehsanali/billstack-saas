@@ -63,14 +63,25 @@ class StoreInvoiceRequest extends FormRequest
 
             'products.*.quantity' => [
                 'required',
-                'integer',
-                'min:1'
+                'numeric',
+                'min:0.001'
             ],
 
             'products.*.price' => [
                 'required',
                 'numeric',
                 'min:0'
+            ],
+
+            'products.*.batch_number' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'products.*.serial_numbers' => [
+                'nullable',
+                'string',
             ],
 
             'tax' => [

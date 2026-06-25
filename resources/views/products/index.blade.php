@@ -3,6 +3,13 @@
 @section('content')
 
 @php
+    $selectedCategory = (int) ($filters['category_id'] ?? 0);
+    $selectedBrand = (int) ($filters['brand_id'] ?? 0);
+    $categoryLabel = function ($category) use (&$categoryLabel) {
+        return $category->parent
+            ? $categoryLabel($category->parent).' / '.$category->name
+            : $category->name;
+    };
     $totalProducts = $products->count();
     $outOfStockCount = $products->where('stock_quantity', '<=', 0)->count();
     $lowStockCount = $products
@@ -11,19 +18,42 @@
     $stockValue = $products->sum(fn ($product) => $product->stock_quantity * $product->purchase_price);
 @endphp
 
-<div class="page-heading">
+<div class="page-heading products-page-heading">
     <div>
         <h3 class="mb-1">Products</h3>
         <div class="text-muted">
-            Inventory list with stock health, pricing, and movement history.
+            Filter products by category, brand, stock condition, and product type.
         </div>
     </div>
 
-    <div class="d-flex flex-wrap gap-2">
+    <div class="product-header-actions">
+        <div class="product-header-actions-primary">
+            <a href="{{ route('products.create') }}"
+               class="btn btn-primary">
+                <i data-lucide="package-plus"></i>
+                Add Product
+            </a>
+            <a href="{{ route('products.import') }}" class="btn btn-outline-primary">
+                <i data-lucide="file-up"></i>
+                Import Products
+            </a>
+        </div>
+
+        <div class="product-header-actions-secondary">
+            <a href="{{ route('brands.index') }}" class="btn btn-outline-secondary">
+                <i data-lucide="badge-check"></i>
+                Brands
+            </a>
+            <a href="{{ route('product-attributes.index') }}" class="btn btn-outline-secondary">
+                <i data-lucide="list-filter"></i>
+                Attributes
+            </a>
+        </div>
+
         @feature('pro.barcode')
-            <span class="btn btn-outline-primary disabled">
+            <span class="btn btn-outline-success disabled">
                 <i data-lucide="scan-line"></i>
-                Barcode Scanner Enabled
+                Scanner Enabled
             </span>
         @else
             <a href="{{ route('features.unavailable', ['feature' => 'pro.barcode']) }}"
@@ -32,20 +62,92 @@
                 Barcode Scanner
             </a>
         @endfeature
-
-        <a href="{{ route('products.create') }}"
-           class="btn btn-primary">
-            <i data-lucide="package-plus"></i>
-            Add Product
-        </a>
-        <a href="{{ route('products.import') }}" class="btn btn-outline-primary">
-            <i data-lucide="file-up"></i>
-            Import Products
-        </a>
-        <a href="{{ route('brands.index') }}" class="btn btn-outline-secondary"><i data-lucide="badge-check"></i> Brands</a>
-        <a href="{{ route('product-attributes.index') }}" class="btn btn-outline-secondary"><i data-lucide="list-filter"></i> Attributes</a>
     </div>
 </div>
+
+<form method="GET" action="{{ route('products.index') }}" class="card product-filter-card mb-3">
+    <div class="card-body">
+        <div class="product-filter-grid">
+            <div class="product-filter-search">
+                <label class="form-label" for="product-search">Search</label>
+                <div class="input-icon">
+                    <span class="input-icon-addon">
+                        <i data-lucide="search"></i>
+                    </span>
+                    <input id="product-search"
+                           type="search"
+                           name="search"
+                           value="{{ $filters['search'] ?? '' }}"
+                           class="form-control"
+                           placeholder="Name, SKU, barcode, brand, category">
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label" for="product-category-filter">Category</label>
+                <select id="product-category-filter" name="category_id" class="form-select">
+                    <option value="">All categories</option>
+                    @foreach($categories as $category)
+                        <option value="{{ $category->id }}" @selected($selectedCategory === $category->id)>
+                            {{ $categoryLabel($category) }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" for="product-brand-filter">Brand</label>
+                <select id="product-brand-filter" name="brand_id" class="form-select">
+                    <option value="">All brands</option>
+                    @foreach($brands as $brand)
+                        <option value="{{ $brand->id }}" @selected($selectedBrand === $brand->id)>
+                            {{ $brand->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" for="product-stock-filter">Stock</label>
+                <select id="product-stock-filter" name="stock_status" class="form-select">
+                    <option value="">All stock</option>
+                    <option value="in_stock" @selected(($filters['stock_status'] ?? '') === 'in_stock')>In stock</option>
+                    <option value="low_stock" @selected(($filters['stock_status'] ?? '') === 'low_stock')>Low stock</option>
+                    <option value="out_of_stock" @selected(($filters['stock_status'] ?? '') === 'out_of_stock')>Out of stock</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" for="product-type-filter">Product Type</label>
+                <select id="product-type-filter" name="product_type" class="form-select">
+                    <option value="">All types</option>
+                    <option value="simple" @selected(($filters['product_type'] ?? '') === 'simple')>Simple products</option>
+                    <option value="variants" @selected(($filters['product_type'] ?? '') === 'variants')>Products with variants</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" for="product-active-filter">Active Status</label>
+                <select id="product-active-filter" name="active_status" class="form-select">
+                    <option value="">All statuses</option>
+                    <option value="active" @selected(($filters['active_status'] ?? '') === 'active')>Active only</option>
+                    <option value="inactive" @selected(($filters['active_status'] ?? '') === 'inactive')>Inactive only</option>
+                </select>
+            </div>
+
+            <div class="product-filter-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i data-lucide="filter"></i>
+                    Apply Filters
+                </button>
+                <a href="{{ route('products.index') }}" class="btn btn-outline-secondary">
+                    <i data-lucide="rotate-ccw"></i>
+                    Reset
+                </a>
+            </div>
+        </div>
+    </div>
+</form>
 
 <div class="row row-cards mb-3">
     <div class="col-md-3">
@@ -163,17 +265,34 @@
                         </td>
 
                         <td class="text-end">
-                            <a href="{{ route('products.stock-ledger', $product) }}"
-                               class="btn btn-sm btn-outline-primary">
-                                <i data-lucide="history"></i>
-                                Stock Ledger
-                            </a>
+                            <div class="product-table-actions">
+                                <a href="{{ route('products.stock-ledger', $product) }}"
+                                   class="btn btn-sm btn-outline-primary text-nowrap">
+                                    <i data-lucide="history"></i>
+                                    Stock Ledger
+                                </a>
 
-                            <a href="{{ route('products.edit', $product) }}"
-                               class="btn btn-sm btn-outline-secondary">
-                                <i data-lucide="pencil"></i>
-                                Edit
-                            </a>
+                                <a href="{{ route('products.edit', $product) }}"
+                                   class="btn btn-sm btn-outline-secondary text-nowrap">
+                                    <i data-lucide="pencil"></i>
+                                    Edit
+                                </a>
+
+                                @if($product->canBeDeleted())
+                                    <form action="{{ route('products.destroy', $product) }}"
+                                          method="POST"
+                                          class="m-0"
+                                          onsubmit="return confirm('Delete this product?')">
+                                        @csrf
+                                        @method('DELETE')
+
+                                        <button class="btn btn-sm btn-outline-danger text-nowrap">
+                                            <i data-lucide="trash-2"></i>
+                                            Delete
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                     @if($product->has_variants)

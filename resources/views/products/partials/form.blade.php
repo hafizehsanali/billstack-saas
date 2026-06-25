@@ -12,6 +12,7 @@
                 'unit_id' => $variant->unit_id,
                 'purchase_unit_id' => $variant->purchase_unit_id,
                 'purchase_unit_factor' => $variant->purchase_unit_factor,
+                'conversion_to_base_unit' => $variant->conversion_to_base_unit,
                 'purchase_price' => $variant->purchase_unit_price ?? $variant->purchase_price,
                 'selling_price' => $variant->selling_price,
                 'compare_at_price' => $variant->compare_at_price,
@@ -28,6 +29,7 @@
                 'unit_id' => $units->first()?->id,
                 'purchase_unit_id' => $units->first()?->id,
                 'purchase_unit_factor' => 1,
+                'conversion_to_base_unit' => 1,
                 'purchase_price' => old('purchase_price', 0),
                 'selling_price' => old('selling_price', 0),
                 'compare_at_price' => null,
@@ -44,6 +46,19 @@
     $selectedCategory = $categories->firstWhere('id', $selectedCategoryId);
     $selectedBrandId = old('brand_id', $product->brand_id ?? null);
     $selectedBrand = $brands->firstWhere('id', $selectedBrandId);
+    $selectedSaleMode = old('product_sale_mode', $product->product_sale_mode ?? \App\Models\Product::SALE_MODE_PACKED);
+    $productModeOptions = $productModeOptions ?? [
+        \App\Models\Product::SALE_MODE_LOOSE => 'Loose item',
+        \App\Models\Product::SALE_MODE_PACKED => 'Packed item',
+        \App\Models\Product::SALE_MODE_SERVICE => 'Service',
+    ];
+    $enabledModuleKeys = $enabledModuleKeys ?? [];
+    $canUseBatchExpiry = in_array(\App\Models\BusinessModule::BATCH_EXPIRY, $enabledModuleKeys, true)
+        || ($editing && (($product->track_batch ?? false) || ($product->track_expiry ?? false)));
+    $canUseSerialTracking = in_array(\App\Models\BusinessModule::SERIAL_WARRANTY, $enabledModuleKeys, true)
+        || ($editing && ($product->track_serial ?? false));
+    $selectedBaseStockUnitId = old('base_stock_unit_id', $product->base_stock_unit_id ?? null);
+    $selectedDefaultPurchaseUnitId = old('default_purchase_unit_id', $product->default_purchase_unit_id ?? null);
     $catalogAttributes = $attributes->map(function ($attribute) {
         return [
             'id' => $attribute->id,
@@ -224,6 +239,92 @@
                               rows="4"
                               class="form-control"
                               placeholder="Product details visible to your team and future sales channels">{{ old('description', $product->description ?? '') }}</textarea>
+                </div>
+
+                <div class="product-field">
+                    <label class="form-label">Product Sale Mode <span class="text-danger">*</span></label>
+                    <select name="product_sale_mode" class="form-select" data-product-sale-mode required>
+                        @foreach($productModeOptions as $mode => $label)
+                            <option value="{{ $mode }}" @selected($selectedSaleMode === $mode)>
+                                {{ $label }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <small class="form-hint" data-sale-mode-help>
+                        Choose how this product is sold and tracked across purchases, invoices, and stock.
+                    </small>
+                </div>
+
+                <div class="product-field">
+                    <label class="form-label">Base Stock Unit</label>
+                    <select name="base_stock_unit_id" class="form-select">
+                        <option value="">Use variant sale unit</option>
+                        @foreach($units as $unit)
+                            <option value="{{ $unit->id }}" @selected((string) $selectedBaseStockUnitId === (string) $unit->id)>
+                                {{ $unit->name }} ({{ $unit->symbol }})
+                            </option>
+                        @endforeach
+                    </select>
+                    <small class="form-hint">Useful for loose and hybrid products, for example KG for almonds.</small>
+                </div>
+
+                <div class="product-field">
+                    <label class="form-label">Default Supplier Unit</label>
+                    <select name="default_purchase_unit_id" class="form-select">
+                        <option value="">Use variant supplier unit</option>
+                        @foreach($units as $unit)
+                            <option value="{{ $unit->id }}" @selected((string) $selectedDefaultPurchaseUnitId === (string) $unit->id)>
+                                {{ $unit->name }} ({{ $unit->symbol }})
+                            </option>
+                        @endforeach
+                    </select>
+                    <small class="form-hint">Example: Bag, Carton, Box, Tray.</small>
+                </div>
+
+                <div class="product-field">
+                    <label class="form-label">Default Units Per Supplier Unit</label>
+                    <input type="number"
+                           name="default_purchase_unit_factor"
+                           class="form-control"
+                           min="0.001"
+                           step="0.001"
+                           value="{{ old('default_purchase_unit_factor', $product->default_purchase_unit_factor ?? '') }}"
+                           placeholder="Example: 50">
+                </div>
+
+                <div class="product-field product-field-wide product-mode-options">
+                    <label class="product-feature-toggle">
+                        <input type="checkbox" name="allow_loose_sale" value="1" @checked(old('allow_loose_sale', $product->allow_loose_sale ?? false))>
+                        <span>
+                            <strong>Allow loose sale</strong>
+                            <small>Use this when customers can buy partial quantity, for example 0.250 KG.</small>
+                        </span>
+                    </label>
+                    @if($canUseBatchExpiry)
+                        <label class="product-feature-toggle">
+                            <input type="checkbox" name="track_batch" value="1" @checked(old('track_batch', $product->track_batch ?? false))>
+                            <span>
+                                <strong>Track batch number</strong>
+                                <small>For products where each purchase lot should be traceable.</small>
+                            </span>
+                        </label>
+                        <label class="product-feature-toggle">
+                            <input type="checkbox" name="track_expiry" value="1" @checked(old('track_expiry', $product->track_expiry ?? false))>
+                            <span>
+                                <strong>Track expiry date</strong>
+                                <small>For medicine, dairy, cosmetics, baby formula, and food items.</small>
+                            </span>
+                        </label>
+                    @endif
+                    @if($canUseSerialTracking)
+                        <label class="product-feature-toggle">
+                            <input type="checkbox" name="track_serial" value="1" @checked(old('track_serial', $product->track_serial ?? false))>
+                            <span>
+                                <strong>Track serial numbers</strong>
+                                <small>For mobiles, electronics, warranty, and unique-unit products.</small>
+                            </span>
+                        </label>
+                    @endif
                 </div>
 
             </div>
@@ -470,8 +571,8 @@
 
 <template id="variant-template">
     <article class="variant-editor">
-        <input type="hidden" data-field="id">
-        <input type="hidden" data-field="track_stock" value="1">
+                <input type="hidden" data-field="id">
+                <input type="hidden" data-field="track_stock" value="1">
 
         <div class="variant-editor-header">
             <button type="button"
@@ -560,6 +661,17 @@
                     <span class="input-group-text" data-conversion-customer-unit>Customer Unit</span>
                 </div>
                 <small class="form-hint" data-conversion-help>Enter how many customer units are inside one supplier unit.</small>
+            </div>
+            <div class="product-field">
+                <label class="form-label">Variant Conversion to Base Unit</label>
+                <input type="number"
+                       data-field="conversion_to_base_unit"
+                       class="form-control"
+                       min="0.000001"
+                       step="0.000001"
+                       value="1"
+                       placeholder="Example: 0.25">
+                <small class="form-hint">For hybrid products, example: 250g pack = 0.25 KG.</small>
             </div>
             <div class="product-unit-same-message" data-same-unit-message hidden>
                 <i data-lucide="circle-check"></i>

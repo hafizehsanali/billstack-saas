@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\BusinessPreset;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\User;
+use Database\Seeders\BusinessPresetSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Database\Seeders\SaasPlanSeeder;
 use Database\Seeders\TenantTeamSeeder;
@@ -175,10 +177,13 @@ class TenantTeamManagementTest extends TestCase
     public function test_tenant_team_seeder_creates_repeatable_demo_staff_accounts(): void
     {
         $this->seed(RolePermissionSeeder::class);
+        $this->seed(BusinessPresetSeeder::class);
+        $generalStore = BusinessPreset::where('slug', BusinessPreset::GENERAL_STORE)->firstOrFail();
 
         Tenant::create([
             'name' => 'Northstar General Store',
             'slug' => 'demo-store-1',
+            'business_preset_id' => $generalStore->id,
         ]);
 
         $this->seed(TenantTeamSeeder::class);
@@ -227,11 +232,14 @@ class TenantTeamManagementTest extends TestCase
         int $userLimit = 2
     ): User {
         $this->seed(RolePermissionSeeder::class);
+        $this->seed(BusinessPresetSeeder::class);
         $this->seed(SaasPlanSeeder::class);
+        $generalStore = BusinessPreset::where('slug', BusinessPreset::GENERAL_STORE)->firstOrFail();
 
         $tenant = Tenant::create([
             'name' => $storeName,
             'slug' => str($storeName)->slug().'-'.fake()->unique()->numberBetween(100, 999),
+            'business_preset_id' => $generalStore->id,
         ]);
 
         $plan = SubscriptionPlan::where('slug', 'starter')->firstOrFail();

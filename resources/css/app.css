@@ -188,6 +188,54 @@ a:hover {
     max-width: 760px;
 }
 
+.products-page-heading {
+    align-items: center;
+}
+
+.product-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    max-width: 760px;
+}
+
+.product-header-actions-primary,
+.product-header-actions-secondary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.product-filter-card {
+    border-color: rgba(31, 41, 55, 0.09);
+}
+
+.product-filter-grid {
+    display: grid;
+    grid-template-columns: minmax(240px, 1.4fr) repeat(5, minmax(150px, 1fr));
+    gap: 0.85rem;
+    align-items: end;
+}
+
+.product-filter-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    grid-column: 1 / -1;
+}
+
+.product-filter-actions .btn {
+    min-width: 130px;
+}
+
+.product-table-actions {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    gap: 0.35rem;
+}
+
 .metric-card {
     position: relative;
     overflow: hidden;
@@ -4014,6 +4062,23 @@ select[data-unit-select] option[value="__add_unit__"] {
 }
 
 @media (max-width: 991.98px) {
+    .products-page-heading {
+        align-items: flex-start;
+    }
+
+    .product-header-actions {
+        justify-content: flex-start;
+        max-width: none;
+    }
+
+    .product-filter-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .product-filter-search {
+        grid-column: 1 / -1;
+    }
+
     .product-form-layout {
         grid-template-columns: 1fr;
     }
@@ -4050,6 +4115,34 @@ select[data-unit-select] option[value="__add_unit__"] {
 }
 
 @media (max-width: 767.98px) {
+    .product-header-actions,
+    .product-header-actions-primary,
+    .product-header-actions-secondary {
+        width: 100%;
+    }
+
+    .product-header-actions .btn {
+        flex: 1 1 calc(50% - 0.5rem);
+        min-width: 150px;
+    }
+
+    .product-filter-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .product-filter-search,
+    .product-filter-actions {
+        grid-column: auto;
+    }
+
+    .product-filter-actions {
+        flex-direction: column;
+    }
+
+    .product-filter-actions .btn {
+        width: 100%;
+    }
+
     .product-editor {
         margin-top: 0;
     }

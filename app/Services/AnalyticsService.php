@@ -175,6 +175,7 @@ class AnalyticsService
                 '<=',
                 'low_stock_alert'
             )
+            ->where('tenant_id', auth()->user()->tenant_id)
             ->latest()
             ->take(5)
             ->get();

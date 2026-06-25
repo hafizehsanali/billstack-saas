@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\AnalyticsService;
 use App\Services\DashboardService;
+use App\Services\TenantModuleService;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -11,8 +12,13 @@ class DashboardController extends Controller
     public function index(
         Request $request,
         DashboardService $dashboardService,
-        AnalyticsService $analyticsService
+        AnalyticsService $analyticsService,
+        TenantModuleService $modules
     ) {
+        $tenant = $request->user()->tenant;
+        $enabledModuleKeys = $modules->enabledModuleKeys($tenant);
+        $hasModule = fn (string $module): bool => in_array($module, $enabledModuleKeys, true);
+
         $stats = $dashboardService->stats($request);
 
         $chartData = $analyticsService->monthlyChartData($request);
@@ -27,7 +33,9 @@ class DashboardController extends Controller
             'invoiceChart',
             'topProducts',
             'recentInvoices',
-            'lowStockProducts'
+            'lowStockProducts',
+            'enabledModuleKeys',
+            'hasModule'
         ));
     }
 }

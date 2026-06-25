@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\ProductVariant;
+use App\Models\ProductBatch;
+use App\Models\ProductSerialNumber;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
 use Carbon\Carbon;
@@ -78,7 +80,7 @@ class PurchaseService
                     true
                 );
                 $unitFactor = max((float) $variant->purchase_unit_factor, 0.001);
-                $baseQuantity = (int) $item['quantity'] * $unitFactor;
+                $baseQuantity = (float) $item['quantity'] * $unitFactor;
                 $baseUnitCost = (float) $item['purchase_price'] / $unitFactor;
                 $lineTotal = $item['quantity'] * $item['purchase_price'];
 
@@ -93,18 +95,24 @@ class PurchaseService
                     'line_total' => $lineTotal,
                 ]);
 
-                $catalog->adjustStock($variant, $baseQuantity, 'in', $baseUnitCost);
-                $variant->update(['purchase_unit_price' => $item['purchase_price']]);
+                if ($variant->product->tracksStock() && $variant->track_stock) {
+                    $catalog->adjustStock($variant, $baseQuantity, 'in', $baseUnitCost);
+                    $variant->update(['purchase_unit_price' => $item['purchase_price']]);
+                    $trackingBatch = $this->recordBatchAndSerials($variant, $purchaseItem, $item, $baseQuantity);
 
-                $stockLedger->record($variant, 'purchase', $baseQuantity, [
-                    'direction' => 'in',
-                    'unit_cost' => $baseUnitCost,
-                    'stock_after' => $variant->stock_quantity,
-                    'source_type' => PurchaseItem::class,
-                    'source_id' => $purchaseItem->id,
-                    'reference_no' => $purchase->purchase_no,
-                    'movement_date' => $purchase->purchase_date,
-                ]);
+                    $stockLedger->record($variant, 'purchase', $baseQuantity, [
+                        'direction' => 'in',
+                        'unit_cost' => $baseUnitCost,
+                        'stock_after' => $variant->stock_quantity,
+                        'source_type' => PurchaseItem::class,
+                        'source_id' => $purchaseItem->id,
+                        'reference_no' => $purchase->purchase_no,
+                        'product_batch_id' => $trackingBatch?->id,
+                        'batch_number' => $trackingBatch?->batch_number,
+                        'expiry_date' => $trackingBatch?->expiry_date,
+                        'movement_date' => $purchase->purchase_date,
+                    ]);
+                }
             }
 
             if ($paidAmount > 0) {
@@ -140,18 +148,26 @@ class PurchaseService
             foreach ($purchase->items as $oldItem) {
                 $variant = $oldItem->variant
                     ?? $catalog->resolveVariant($oldItem->product_id, null, true);
-                $catalog->adjustStock($variant, $oldItem->base_quantity ?: $oldItem->quantity, 'out');
+                if ($variant->product->tracksStock() && $variant->track_stock) {
+                    $batchMovements = $catalog->consumeBatches($variant, $oldItem->base_quantity ?: $oldItem->quantity);
+                    $catalog->adjustStock($variant, $oldItem->base_quantity ?: $oldItem->quantity, 'out');
 
-                $stockLedger->record($variant, 'purchase_reversal', $oldItem->base_quantity ?: $oldItem->quantity, [
-                    'direction' => 'out',
-                    'unit_cost' => $oldItem->purchase_price / max((int) $oldItem->unit_factor, 1),
-                    'stock_after' => $variant->stock_quantity,
-                    'source_type' => PurchaseItem::class,
-                    'source_id' => $oldItem->id,
-                    'reference_no' => $purchase->purchase_no,
-                    'movement_date' => now()->toDateString(),
-                    'notes' => 'Purchase updated: old item reversed.',
-                ]);
+                    foreach ($batchMovements ?: [['batch' => null, 'quantity' => $oldItem->base_quantity ?: $oldItem->quantity]] as $batchMovement) {
+                        $stockLedger->record($variant, 'purchase_reversal', $batchMovement['quantity'], [
+                            'direction' => 'out',
+                            'unit_cost' => $oldItem->purchase_price / max((float) $oldItem->unit_factor, 0.001),
+                            'stock_after' => $variant->stock_quantity,
+                            'source_type' => PurchaseItem::class,
+                            'source_id' => $oldItem->id,
+                            'reference_no' => $purchase->purchase_no,
+                            'product_batch_id' => $batchMovement['batch']?->id,
+                            'batch_number' => $batchMovement['batch']?->batch_number,
+                            'expiry_date' => $batchMovement['batch']?->expiry_date,
+                            'movement_date' => now()->toDateString(),
+                            'notes' => 'Purchase updated: old item reversed.',
+                        ]);
+                    }
+                }
             }
 
             $purchase->items()->delete();
@@ -195,7 +211,7 @@ class PurchaseService
                     true
                 );
                 $unitFactor = max((float) $variant->purchase_unit_factor, 0.001);
-                $baseQuantity = (int) $item['quantity'] * $unitFactor;
+                $baseQuantity = (float) $item['quantity'] * $unitFactor;
                 $baseUnitCost = (float) $item['purchase_price'] / $unitFactor;
                 $lineTotal = $item['quantity'] * $item['purchase_price'];
 
@@ -211,19 +227,25 @@ class PurchaseService
                     'line_total' => $lineTotal,
                 ]);
 
-                $catalog->adjustStock($variant, $baseQuantity, 'in', $baseUnitCost);
-                $variant->update(['purchase_unit_price' => $item['purchase_price']]);
+                if ($variant->product->tracksStock() && $variant->track_stock) {
+                    $catalog->adjustStock($variant, $baseQuantity, 'in', $baseUnitCost);
+                    $variant->update(['purchase_unit_price' => $item['purchase_price']]);
+                    $trackingBatch = $this->recordBatchAndSerials($variant, $purchaseItem, $item, $baseQuantity);
 
-                $stockLedger->record($variant, 'purchase', $baseQuantity, [
-                    'direction' => 'in',
-                    'unit_cost' => $baseUnitCost,
-                    'stock_after' => $variant->stock_quantity,
-                    'source_type' => PurchaseItem::class,
-                    'source_id' => $purchaseItem->id,
-                    'reference_no' => $purchase->purchase_no,
-                    'movement_date' => $purchase->purchase_date,
-                    'notes' => 'Purchase updated: new item added.',
-                ]);
+                    $stockLedger->record($variant, 'purchase', $baseQuantity, [
+                        'direction' => 'in',
+                        'unit_cost' => $baseUnitCost,
+                        'stock_after' => $variant->stock_quantity,
+                        'source_type' => PurchaseItem::class,
+                        'source_id' => $purchaseItem->id,
+                        'reference_no' => $purchase->purchase_no,
+                        'product_batch_id' => $trackingBatch?->id,
+                        'batch_number' => $trackingBatch?->batch_number,
+                        'expiry_date' => $trackingBatch?->expiry_date,
+                        'movement_date' => $purchase->purchase_date,
+                        'notes' => 'Purchase updated: new item added.',
+                    ]);
+                }
             }
         });
     }
@@ -250,28 +272,36 @@ class PurchaseService
                 $variant = $item->variant
                     ?? $catalog->resolveVariant($item->product_id, null, true);
 
-                if (
+                if ($variant->product->tracksStock() && $variant->track_stock && (
                     $variant->stock_quantity
                     < ($item->base_quantity ?: $item->quantity)
-                ) {
+                )) {
 
                     throw new \Exception(
                         'Cannot cancel purchase because stock was already sold.'
                     );
                 }
 
-                $catalog->adjustStock($variant, $item->base_quantity ?: $item->quantity, 'out');
+                if ($variant->product->tracksStock() && $variant->track_stock) {
+                    $batchMovements = $catalog->consumeBatches($variant, $item->base_quantity ?: $item->quantity);
+                    $catalog->adjustStock($variant, $item->base_quantity ?: $item->quantity, 'out');
 
-                $stockLedger->record($variant, 'purchase_cancel', $item->base_quantity ?: $item->quantity, [
-                    'direction' => 'out',
-                    'unit_cost' => $item->purchase_price / max((int) $item->unit_factor, 1),
-                    'stock_after' => $variant->stock_quantity,
-                    'source_type' => PurchaseItem::class,
-                    'source_id' => $item->id,
-                    'reference_no' => $purchase->purchase_no,
-                    'movement_date' => now()->toDateString(),
-                    'notes' => 'Purchase cancelled.',
-                ]);
+                    foreach ($batchMovements ?: [['batch' => null, 'quantity' => $item->base_quantity ?: $item->quantity]] as $batchMovement) {
+                        $stockLedger->record($variant, 'purchase_cancel', $batchMovement['quantity'], [
+                            'direction' => 'out',
+                            'unit_cost' => $item->purchase_price / max((float) $item->unit_factor, 0.001),
+                            'stock_after' => $variant->stock_quantity,
+                            'source_type' => PurchaseItem::class,
+                            'source_id' => $item->id,
+                            'reference_no' => $purchase->purchase_no,
+                            'product_batch_id' => $batchMovement['batch']?->id,
+                            'batch_number' => $batchMovement['batch']?->batch_number,
+                            'expiry_date' => $batchMovement['batch']?->expiry_date,
+                            'movement_date' => now()->toDateString(),
+                            'notes' => 'Purchase cancelled.',
+                        ]);
+                    }
+                }
             }
 
             $purchase->update([
@@ -279,5 +309,73 @@ class PurchaseService
                 'status' => 'cancelled',
             ]);
         });
+    }
+
+    private function recordBatchAndSerials(ProductVariant $variant, PurchaseItem $purchaseItem, array $item, float $baseQuantity): ?ProductBatch
+    {
+        $product = $variant->product;
+
+        $trackingBatch = null;
+
+        if ($product->track_batch && ! empty($item['batch_number'])) {
+            $batch = ProductBatch::where([
+                'tenant_id' => auth()->user()->tenant_id,
+                'product_variant_id' => $variant->id,
+                'batch_number' => $item['batch_number'],
+            ])->first();
+
+            if ($batch) {
+                $batch->increment('quantity', $baseQuantity);
+                $batch->update([
+                    'manufacturing_date' => $item['manufacturing_date'] ?? $batch->manufacturing_date,
+                    'expiry_date' => $item['expiry_date'] ?? $batch->expiry_date,
+                    'is_active' => true,
+                ]);
+            } else {
+                $batch = ProductBatch::create([
+                    'tenant_id' => auth()->user()->tenant_id,
+                    'product_id' => $product->id,
+                    'product_variant_id' => $variant->id,
+                    'batch_number' => $item['batch_number'],
+                    'manufacturing_date' => $item['manufacturing_date'] ?? null,
+                    'expiry_date' => $item['expiry_date'] ?? null,
+                    'quantity' => $baseQuantity,
+                    'is_active' => true,
+                ]);
+            }
+
+            $trackingBatch = $batch->fresh();
+        }
+
+        if ($product->track_serial) {
+            foreach ($this->serialNumbers($item['serial_numbers'] ?? '') as $serialNumber) {
+                ProductSerialNumber::updateOrCreate(
+                    [
+                        'tenant_id' => auth()->user()->tenant_id,
+                        'serial_number' => $serialNumber,
+                    ],
+                    [
+                        'product_id' => $product->id,
+                        'product_variant_id' => $variant->id,
+                        'status' => ProductSerialNumber::STATUS_AVAILABLE,
+                        'purchase_item_id' => $purchaseItem->id,
+                    ]
+                );
+            }
+        }
+
+        return $trackingBatch;
+    }
+
+    private function serialNumbers(string|array|null $value): array
+    {
+        $numbers = is_array($value) ? $value : preg_split('/[\r\n,]+/', (string) $value);
+
+        return collect($numbers)
+            ->map(fn ($number) => trim((string) $number))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
     }
 }

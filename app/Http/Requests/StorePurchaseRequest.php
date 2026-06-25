@@ -59,9 +59,13 @@ class StorePurchaseRequest extends FormRequest
                 Rule::exists('units', 'id')
                     ->where('tenant_id', auth()->user()->tenant_id),
             ],
-            'products.*.unit_factor' => ['nullable', 'integer', 'min:1'],
-            'products.*.quantity' => ['required','integer','min:1',],
+            'products.*.unit_factor' => ['nullable', 'numeric', 'min:0.001'],
+            'products.*.quantity' => ['required','numeric','min:0.001',],
             'products.*.purchase_price' => ['required','numeric','min:0'],
+            'products.*.batch_number' => ['nullable', 'string', 'max:255'],
+            'products.*.expiry_date' => ['nullable', 'date'],
+            'products.*.manufacturing_date' => ['nullable', 'date'],
+            'products.*.serial_numbers' => ['nullable', 'string'],
         ];
     }
 }

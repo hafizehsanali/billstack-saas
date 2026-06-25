@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Platform;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Platform\UpdateTenantSubscriptionRequest;
+use App\Models\BusinessModule;
+use App\Models\BusinessPreset;
 use App\Models\PlatformSubscriptionInvoice;
 use App\Models\SubscriptionPaymentSubmission;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Services\TenantUsageLimitService;
 use App\Services\PlatformActivityService;
+use App\Services\TenantModuleService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -19,7 +22,7 @@ class TenantController extends Controller
     public function index(Request $request, TenantUsageLimitService $usageLimits): View
     {
         $tenants = Tenant::query()
-            ->with(['currentSubscription.plan', 'activeSubscription.plan'])
+            ->with(['businessPreset', 'currentSubscription.plan', 'activeSubscription.plan'])
             ->withCount(['users'])
             ->when($request->filled('search'), function ($query) use ($request): void {
                 $search = $request->string('search')->toString();
@@ -48,23 +51,39 @@ class TenantController extends Controller
             'tenants' => $tenants,
             'usage' => $usage,
             'plans' => SubscriptionPlan::where('is_active', true)->orderBy('name')->get(),
+            'businessPresets' => BusinessPreset::where('is_active', true)->orderBy('sort_order')->get(),
         ]);
     }
 
     public function edit(Tenant $tenant): View
     {
         return view('platform.tenants.edit', [
-            'tenant' => $tenant->load(['currentSubscription.plan']),
+            'tenant' => $tenant->load(['businessPreset.modules', 'businessModuleOverrides.module', 'currentSubscription.plan']),
             'plans' => SubscriptionPlan::where('is_active', true)
                 ->orderBy('monthly_price_cents')
+                ->orderBy('name')
+                ->get(),
+            'businessPresets' => BusinessPreset::where('is_active', true)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get(),
+            'businessModules' => BusinessModule::where('is_active', true)
+                ->orderBy('category')
+                ->orderBy('sort_order')
                 ->orderBy('name')
                 ->get(),
         ]);
     }
 
-    public function show(Tenant $tenant, TenantUsageLimitService $usageLimits): View
+    public function show(
+        Tenant $tenant,
+        TenantUsageLimitService $usageLimits,
+        TenantModuleService $modules
+    ): View
     {
         $tenant->load([
+            'businessPreset.modules',
+            'businessModuleOverrides.module',
             'currentSubscription.plan',
             'activeSubscription.plan',
             'users',
@@ -79,6 +98,7 @@ class TenantController extends Controller
         return view('platform.tenants.show', [
             'tenant' => $tenant,
             'usage' => $usageLimits->summary($tenant),
+            'enabledModules' => $modules->enabledModules($tenant),
             'billingSummary' => $billingSummary,
             'invoices' => PlatformSubscriptionInvoice::with('paymentSubmission')
                 ->where('tenant_id', $tenant->id)
@@ -103,6 +123,11 @@ class TenantController extends Controller
         $subscription = $tenant->currentSubscription;
         $previousPlan = $subscription?->plan?->name ?? 'Not assigned';
         $previousStatus = $subscription?->status ?? 'pending';
+        $previousPreset = $tenant->businessPreset?->name ?? 'Not selected';
+
+        $tenant->update([
+            'business_preset_id' => $data['business_preset_id'] ?? null,
+        ]);
 
         if ($data['status'] === 'active') {
             if ($subscription) {
@@ -127,12 +152,25 @@ class TenantController extends Controller
             ]);
         }
 
+        $enabledModuleIds = collect($data['enabled_module_ids'] ?? [])->map(fn ($id) => (int) $id);
+        BusinessModule::where('is_active', true)->get()->each(function (BusinessModule $module) use ($tenant, $enabledModuleIds): void {
+            $tenant->businessModuleOverrides()->updateOrCreate(
+                ['business_module_id' => $module->id],
+                [
+                    'is_enabled' => $enabledModuleIds->contains($module->id),
+                    'source' => 'platform',
+                ]
+            );
+        });
+
         $updatedSubscription = $tenant->fresh()->currentSubscription;
+        $updatedPreset = $tenant->fresh()->businessPreset?->name ?? 'Not selected';
         $activity->record(
             'tenant.subscription_updated',
             "Changed subscription from {$previousPlan} ({$previousStatus}) to "
                 .($updatedSubscription?->plan?->name ?? 'Not assigned')
-                .' ('.($updatedSubscription?->status ?? 'pending').').',
+                .' ('.($updatedSubscription?->status ?? 'pending').'). '
+                ."Business type: {$previousPreset} to {$updatedPreset}.",
             $updatedSubscription,
             $tenant
         );

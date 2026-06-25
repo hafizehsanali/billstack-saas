@@ -51,6 +51,18 @@
             </div>
         </div>
     </div>
+
+    <div class="col-md-3">
+        <div class="card border-warning">
+            <div class="card-body">
+                <small class="text-muted">Expiry Alerts</small>
+                <h2 class="mb-0 text-warning">{{ $summary['expiry'] }}</h2>
+                @if($summary['expired'] > 0)
+                    <small class="text-danger">{{ $summary['expired'] }} expired</small>
+                @endif
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="card mb-3">
@@ -113,6 +125,66 @@
                     <tr>
                         <td colspan="7" class="text-center text-muted py-4">
                             No active alerts.
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">
+        <h3 class="card-title mb-0">
+            Expiry Alerts
+        </h3>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-vcenter card-table">
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Product</th>
+                    <th>Batch</th>
+                    <th class="text-end">Quantity</th>
+                    <th>Expiry Date</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @forelse($expiryBatches as $batch)
+                    @php
+                        $isExpired = $batch->expiry_date?->isPast();
+                    @endphp
+                    <tr>
+                        <td>
+                            @if($isExpired)
+                                <span class="badge bg-danger">Expired</span>
+                            @else
+                                <span class="badge bg-warning">Near Expiry</span>
+                            @endif
+                        </td>
+                        <td>{{ $batch->product?->name ?? '-' }}</td>
+                        <td>{{ $batch->batch_number }}</td>
+                        <td class="text-end fw-bold">
+                            {{ number_format($batch->quantity, 3) }} {{ $batch->variant?->unit?->symbol }}
+                        </td>
+                        <td>{{ $batch->expiry_date?->format('d M Y') ?? '-' }}</td>
+                        <td class="text-end">
+                            @if($batch->product)
+                                <a href="{{ route('products.stock-ledger', $batch->product) }}"
+                                   class="btn btn-sm btn-outline-primary">
+                                    Stock Ledger
+                                </a>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            No expired or near-expiry batches.
                         </td>
                     </tr>
                 @endforelse

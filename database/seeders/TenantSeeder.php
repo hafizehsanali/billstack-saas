@@ -3,25 +3,30 @@
 namespace Database\Seeders;
 
 use App\Models\Tenant;
+use App\Models\BusinessPreset;
 use Illuminate\Database\Seeder;
 
 class TenantSeeder extends Seeder
 {
     public function run(): void
     {
-        Tenant::create([
+        $generalStore = BusinessPreset::where('slug', BusinessPreset::GENERAL_STORE)->value('id');
+        $hardware = BusinessPreset::where('slug', BusinessPreset::HARDWARE)->value('id');
+        $pharmacy = BusinessPreset::where('slug', BusinessPreset::PHARMACY)->value('id');
+
+        Tenant::updateOrCreate(['slug' => 'demo-store-1'], [
             'name' => 'Zephrant General Store Demo',
-            'slug' => 'demo-store-1',
+            'business_preset_id' => $generalStore,
         ]);
 
-        Tenant::create([
+        Tenant::updateOrCreate(['slug' => 'demo-store-2'], [
             'name' => 'Summit Hardware',
-            'slug' => 'demo-store-2',
+            'business_preset_id' => $hardware,
         ]);
 
-        Tenant::create([
+        Tenant::updateOrCreate(['slug' => 'demo-store-3'], [
             'name' => 'Greenline Pharmacy',
-            'slug' => 'demo-store-3',
+            'business_preset_id' => $pharmacy,
         ]);
     }
 }

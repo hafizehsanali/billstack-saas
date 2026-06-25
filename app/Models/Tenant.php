@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -13,10 +14,16 @@ class Tenant extends Model
     protected $fillable = [
         'name',
         'slug',
+        'business_preset_id',
         'email',
         'phone',
         'address',
     ];
+
+    public function businessPreset(): BelongsTo
+    {
+        return $this->belongsTo(BusinessPreset::class);
+    }
 
     public function users(): HasMany
     {
@@ -46,6 +53,11 @@ class Tenant extends Model
     public function subscriptions(): HasMany
     {
         return $this->hasMany(TenantSubscription::class);
+    }
+
+    public function businessModuleOverrides(): HasMany
+    {
+        return $this->hasMany(TenantBusinessModule::class);
     }
 
     public function platformInvoices(): HasMany

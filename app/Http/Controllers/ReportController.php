@@ -6,6 +6,7 @@ use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Product;
+use App\Models\ProductBatch;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -73,6 +74,24 @@ class ReportController extends Controller
         return view(
             'reports.low-stock',
             compact('products', 'outOfStockCount')
+        );
+    }
+
+    public function expiringStock(Request $request)
+    {
+        $days = max((int) $request->input('days', 30), 1);
+        $batches = ProductBatch::with(['product.category', 'variant.unit'])
+            ->where('quantity', '>', 0)
+            ->whereNotNull('expiry_date')
+            ->whereDate('expiry_date', '<=', now()->addDays($days)->toDateString())
+            ->orderBy('expiry_date')
+            ->orderBy('batch_number')
+            ->get();
+        $expiredCount = $batches->filter(fn (ProductBatch $batch) => $batch->expiry_date?->isPast())->count();
+
+        return view(
+            'reports.expiring-stock',
+            compact('batches', 'days', 'expiredCount')
         );
     }
 

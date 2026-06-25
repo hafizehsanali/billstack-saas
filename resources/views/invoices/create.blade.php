@@ -303,6 +303,20 @@
                             </option>
                         @endforeach
                     </select>
+                    <div class="row g-2 mt-2">
+                        <div class="col-md-6">
+                            <input type="text"
+                                   name="products[${rowIndex}][batch_number]"
+                                   class="form-control form-control-sm"
+                                   placeholder="Batch number">
+                        </div>
+                        <div class="col-md-6">
+                            <textarea name="products[${rowIndex}][serial_numbers]"
+                                      class="form-control form-control-sm"
+                                      rows="1"
+                                      placeholder="Serial numbers"></textarea>
+                        </div>
+                    </div>
                 </td>
 
                 <td>
@@ -315,7 +329,8 @@
                     <input type="number"
                            name="products[${rowIndex}][quantity]"
                            class="form-control quantity"
-                           min="1"
+                           min="0.001"
+                           step="0.001"
                            value="${quantity}"
                            onkeyup="calculateTotals()"
                            onchange="calculateTotals()"

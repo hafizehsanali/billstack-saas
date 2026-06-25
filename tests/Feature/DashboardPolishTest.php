@@ -2,12 +2,15 @@
 
 namespace Tests\Feature;
 
+use App\Models\BusinessPreset;
+use App\Models\BusinessModule;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Product;
 use App\Models\Tenant;
 use App\Models\User;
+use Database\Seeders\BusinessPresetSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -17,9 +20,13 @@ class DashboardPolishTest extends TestCase
 
     public function test_dashboard_uses_clear_business_labels_and_links_recent_invoices(): void
     {
+        $this->seed(BusinessPresetSeeder::class);
+        $generalStore = BusinessPreset::where('slug', BusinessPreset::GENERAL_STORE)->firstOrFail();
+
         $tenant = Tenant::create([
             'name' => 'Demo Store',
             'slug' => uniqid('demo-store-'),
+            'business_preset_id' => $generalStore->id,
         ]);
 
         $user = User::factory()->create([
@@ -98,5 +105,52 @@ class DashboardPolishTest extends TestCase
             ->assertDontSee('Add Supplier')
             ->assertDontSee('Create Expense')
             ->assertSee(route('invoices.show', $invoice), false);
+    }
+
+    public function test_dashboard_respects_enabled_business_modules(): void
+    {
+        $this->seed(BusinessPresetSeeder::class);
+        $services = BusinessPreset::where('slug', BusinessPreset::SERVICES)->firstOrFail();
+        $tenant = Tenant::create([
+            'name' => 'Services Studio',
+            'slug' => uniqid('services-studio-'),
+            'business_preset_id' => $services->id,
+        ]);
+        $user = User::factory()->create(['tenant_id' => $tenant->id]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Net Profit')
+            ->assertSee('Expenses')
+            ->assertSee('Open POS')
+            ->assertSee('Sales Today')
+            ->assertDontSee('Total Products')
+            ->assertDontSee('Low Stock Items')
+            ->assertSee('Recent Invoices');
+    }
+
+    public function test_dashboard_hides_billing_widgets_when_billing_module_is_disabled(): void
+    {
+        $this->seed(BusinessPresetSeeder::class);
+        $services = BusinessPreset::where('slug', BusinessPreset::SERVICES)->firstOrFail();
+        $billing = BusinessModule::where('key', BusinessModule::BILLING)->firstOrFail();
+        $tenant = Tenant::create([
+            'name' => 'Limited Services Studio',
+            'slug' => uniqid('limited-services-studio-'),
+            'business_preset_id' => $services->id,
+        ]);
+        $tenant->businessModuleOverrides()->create([
+            'business_module_id' => $billing->id,
+            'is_enabled' => false,
+        ]);
+        $user = User::factory()->create(['tenant_id' => $tenant->id]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertDontSee('Open POS')
+            ->assertDontSee('Sales Today')
+            ->assertDontSee('Recent Invoices');
     }
 }

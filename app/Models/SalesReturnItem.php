@@ -17,6 +17,15 @@ class SalesReturnItem extends Model
         'total',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'quantity' => 'float',
+            'price' => 'decimal:2',
+            'total' => 'decimal:2',
+        ];
+    }
+
     public function salesReturn(): BelongsTo
     {
         return $this->belongsTo(SalesReturn::class);

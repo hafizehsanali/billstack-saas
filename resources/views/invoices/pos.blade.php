@@ -303,7 +303,7 @@
         if (existingRow) {
             const quantityInput = existingRow.querySelector('.quantity');
             quantityInput.value = Math.min(
-                parseInt(quantityInput.value || 0) + 1,
+                Number(quantityInput.value || 0) + 1,
                 product.stock
             );
             calculateTotals();
@@ -321,13 +321,22 @@
                     <strong>${escapeHtml(product.name)}</strong>
                     <input type="hidden" name="products[${rowIndex}][product_id]" value="${product.product_id}">
                     <input type="hidden" name="products[${rowIndex}][product_variant_id]" value="${product.id}">
+                    <input type="text"
+                           name="products[${rowIndex}][batch_number]"
+                           class="form-control form-control-sm mt-2"
+                           placeholder="Batch number">
+                    <textarea name="products[${rowIndex}][serial_numbers]"
+                              class="form-control form-control-sm mt-2"
+                              rows="1"
+                              placeholder="Serial numbers"></textarea>
                 </td>
                 <td class="text-end">${product.stock}</td>
                 <td>
                     <input type="number"
                            name="products[${rowIndex}][quantity]"
                            class="form-control quantity"
-                           min="1"
+                           min="0.001"
+                           step="0.001"
                            max="${product.stock}"
                            value="${Math.min(quantity, product.stock)}"
                            oninput="calculateTotals()"
@@ -381,8 +390,8 @@
         document.querySelectorAll('#posItems tr[data-product-id]').forEach((row) => {
             const quantityInput = row.querySelector('.quantity');
             const priceInput = row.querySelector('.price');
-            const maxStock = parseInt(quantityInput.getAttribute('max')) || 0;
-            let quantity = parseInt(quantityInput.value) || 0;
+            const maxStock = Number(quantityInput.getAttribute('max')) || 0;
+            let quantity = Number(quantityInput.value) || 0;
             const price = parseFloat(priceInput.value) || 0;
 
             if (maxStock > 0 && quantity > maxStock) {

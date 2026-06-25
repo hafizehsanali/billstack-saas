@@ -6,35 +6,21 @@ use App\Models\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class StockMovement extends Model
+class ProductSerialNumber extends Model
 {
     use BelongsToTenant;
+
+    public const STATUS_AVAILABLE = 'available';
+    public const STATUS_SOLD = 'sold';
 
     protected $fillable = [
         'tenant_id',
         'product_id',
         'product_variant_id',
-        'product_batch_id',
-        'product_serial_number_id',
-        'type',
-        'direction',
-        'quantity',
-        'unit_cost',
-        'unit_price',
-        'stock_after',
-        'source_type',
-        'source_id',
-        'reference_no',
-        'batch_number',
-        'expiry_date',
-        'movement_date',
-        'notes',
-    ];
-
-    protected $casts = [
-        'movement_date' => 'date',
-        'expiry_date' => 'date',
-        'quantity' => 'float',
+        'serial_number',
+        'status',
+        'purchase_item_id',
+        'invoice_item_id',
     ];
 
     public function product(): BelongsTo

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Invoice;
 use App\Models\Product;
+use App\Models\ProductBatch;
 use App\Models\Purchase;
 use Illuminate\Support\Collection;
 
@@ -12,11 +13,13 @@ class AlertService
     public function summary(): array
     {
         $lowStockProducts = $this->lowStockProducts();
+        $expiryBatches = $this->expiryBatches();
         $customerPaymentDues = $this->customerPaymentDues();
         $supplierPaymentDues = $this->supplierPaymentDues();
 
         return [
             'total' => $lowStockProducts->count()
+                + $expiryBatches->count()
                 + $customerPaymentDues->count()
                 + $supplierPaymentDues->count(),
             'out_of_stock' => $lowStockProducts
@@ -27,6 +30,10 @@ class AlertService
                 ->count(),
             'customer_payment_due' => $customerPaymentDues->count(),
             'supplier_payment_due' => $supplierPaymentDues->count(),
+            'expiry' => $expiryBatches->count(),
+            'expired' => $expiryBatches
+                ->filter(fn (ProductBatch $batch) => $batch->expiry_date?->isPast())
+                ->count(),
         ];
     }
 
@@ -36,6 +43,17 @@ class AlertService
             ->whereColumn('stock_quantity', '<=', 'low_stock_alert')
             ->orderBy('stock_quantity')
             ->orderBy('name')
+            ->get();
+    }
+
+    public function expiryBatches(int $days = 30): Collection
+    {
+        return ProductBatch::with(['product', 'variant.unit'])
+            ->where('quantity', '>', 0)
+            ->whereNotNull('expiry_date')
+            ->whereDate('expiry_date', '<=', now()->addDays($days)->toDateString())
+            ->orderBy('expiry_date')
+            ->orderBy('batch_number')
             ->get();
     }
 

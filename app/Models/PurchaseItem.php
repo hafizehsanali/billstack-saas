@@ -18,6 +18,17 @@ class PurchaseItem extends Model
         'line_total',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'quantity' => 'float',
+            'base_quantity' => 'float',
+            'unit_factor' => 'float',
+            'purchase_price' => 'decimal:2',
+            'line_total' => 'decimal:2',
+        ];
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Relationships
@@ -49,12 +60,12 @@ class PurchaseItem extends Model
         return $this->hasMany(PurchaseReturnItem::class);
     }
 
-    public function returnedQuantity(): int
+    public function returnedQuantity(): float
     {
-        return (int) $this->returnItems()->sum('quantity');
+        return (float) $this->returnItems()->sum('quantity');
     }
 
-    public function returnableQuantity(): int
+    public function returnableQuantity(): float
     {
         return max($this->quantity - $this->returnedQuantity(), 0);
     }

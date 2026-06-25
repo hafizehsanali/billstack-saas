@@ -40,6 +40,7 @@ use App\Http\Controllers\SupplierPaymentController;
 use App\Http\Controllers\TeamMemberController;
 use App\Http\Controllers\TenantBillingController;
 use App\Http\Controllers\UnitController;
+use App\Models\BusinessModule;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -93,7 +94,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/settings/business', [SettingsController::class, 'updateBusiness'])
             ->middleware('permission:settings.manage')
             ->name('settings.business.update');
-        Route::middleware('permission:team.manage')->group(function () {
+        Route::middleware(['module:'.BusinessModule::TEAM_MANAGEMENT, 'permission:team.manage'])->group(function () {
             Route::get('/team', [TeamMemberController::class, 'index'])->name('team.index');
             Route::get('/team/create', [TeamMemberController::class, 'create'])->name('team.create');
             Route::post('/team', [TeamMemberController::class, 'store'])->name('team.store');
@@ -105,18 +106,19 @@ Route::middleware('auth')->group(function () {
                 ->name('team.resend-invitation');
         });
 
-        Route::middleware('permission:products.view')->group(function () {
+        Route::middleware(['module:'.BusinessModule::INVENTORY, 'permission:products.view'])->group(function () {
             Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
             Route::get('/brands', [BrandController::class, 'index'])->name('brands.index');
-            Route::get('/product-attributes', [ProductAttributeController::class, 'index'])->name('product-attributes.index');
             Route::get('/products', [ProductController::class, 'index'])->name('products.index');
             Route::get('/products/{product}/stock-ledger', [ProductController::class, 'stockLedger'])->name('products.stock-ledger');
         });
-        Route::middleware('permission:products.create')->group(function () {
+        Route::get('/product-attributes', [ProductAttributeController::class, 'index'])
+            ->middleware(['module:'.BusinessModule::PRODUCT_VARIANTS, 'permission:products.view'])
+            ->name('product-attributes.index');
+        Route::middleware(['module:'.BusinessModule::INVENTORY, 'permission:products.create'])->group(function () {
             Route::get('/categories/create', [CategoryController::class, 'create'])->name('categories.create');
             Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
             Route::post('/brands', [BrandController::class, 'store'])->name('brands.store');
-            Route::post('/product-attributes', [ProductAttributeController::class, 'store'])->name('product-attributes.store');
             Route::post('/units', [UnitController::class, 'store'])->name('units.store');
             Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
             Route::get('/products/import', [ProductImportController::class, 'create'])->name('products.import');
@@ -126,20 +128,28 @@ Route::middleware('auth')->group(function () {
             Route::get('/products/import/errors/{token}', [ProductImportController::class, 'errors'])->name('products.import.errors');
             Route::post('/products', [ProductController::class, 'store'])->name('products.store');
         });
-        Route::middleware('permission:products.edit')->group(function () {
+        Route::post('/product-attributes', [ProductAttributeController::class, 'store'])
+            ->middleware(['module:'.BusinessModule::PRODUCT_VARIANTS, 'permission:products.create'])
+            ->name('product-attributes.store');
+        Route::middleware(['module:'.BusinessModule::INVENTORY, 'permission:products.edit'])->group(function () {
             Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
             Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
             Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
             Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
+            Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
             Route::put('/brands/{brand}', [BrandController::class, 'update'])->name('brands.update');
             Route::put('/units/{unit}', [UnitController::class, 'update'])->name('units.update');
             Route::delete('/units/{unit}', [UnitController::class, 'destroy'])->name('units.destroy');
             Route::delete('/brands/{brand}', [BrandController::class, 'destroy'])->name('brands.destroy');
-            Route::put('/product-attributes/{productAttribute}', [ProductAttributeController::class, 'update'])->name('product-attributes.update');
-            Route::delete('/product-attributes/{productAttribute}', [ProductAttributeController::class, 'destroy'])->name('product-attributes.destroy');
         });
+        Route::put('/product-attributes/{productAttribute}', [ProductAttributeController::class, 'update'])
+            ->middleware(['module:'.BusinessModule::PRODUCT_VARIANTS, 'permission:products.edit'])
+            ->name('product-attributes.update');
+        Route::delete('/product-attributes/{productAttribute}', [ProductAttributeController::class, 'destroy'])
+            ->middleware(['module:'.BusinessModule::PRODUCT_VARIANTS, 'permission:products.edit'])
+            ->name('product-attributes.destroy');
 
-        Route::middleware('permission:customers.view')->group(function () {
+        Route::middleware(['module:'.BusinessModule::CUSTOMER_LEDGER, 'permission:customers.view'])->group(function () {
             Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
             Route::get('/customers/{customer}/statement', [CustomerController::class, 'statement'])->name('customers.statement');
             Route::get('/customers/{customer}/account', [CustomerAccountController::class, 'show'])->name('customer.account');
@@ -160,29 +170,29 @@ Route::middleware('auth')->group(function () {
             ->name('customer-payments.store');
 
         Route::get('/pos', [InvoiceController::class, 'pos'])
-            ->middleware('permission:sales.create')
+            ->middleware(['module:'.BusinessModule::BILLING, 'permission:sales.create'])
             ->name('invoices.pos');
         Route::middleware(['feature:pro.barcode', 'permission:sales.create'])->group(function () {
             Route::get('/barcode', [BarcodeController::class, 'index'])->name('barcode.index');
             Route::post('/barcode/lookup', [BarcodeController::class, 'lookup'])->name('barcode.lookup');
         });
-        Route::middleware('permission:sales.view')->group(function () {
+        Route::middleware(['module:'.BusinessModule::BILLING, 'permission:sales.view'])->group(function () {
             Route::get('/invoices', [InvoiceController::class, 'index'])->name('invoices.index');
             Route::get('/invoices/{invoice}', [InvoiceController::class, 'show'])->whereNumber('invoice')->name('invoices.show');
             Route::get('/invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');
         });
-        Route::middleware('permission:sales.create')->group(function () {
+        Route::middleware(['module:'.BusinessModule::BILLING, 'permission:sales.create'])->group(function () {
             Route::get('/invoices/create', [InvoiceController::class, 'create'])->name('invoices.create');
             Route::post('/invoices', [InvoiceController::class, 'store'])->name('invoices.store');
         });
         Route::patch('/invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])
-            ->middleware('permission:sales.cancel')
+            ->middleware(['module:'.BusinessModule::BILLING, 'permission:sales.cancel'])
             ->name('invoices.cancel');
         Route::post('/invoices/{invoice}/returns', [SalesReturnController::class, 'store'])
-            ->middleware('permission:sales.cancel')
+            ->middleware(['module:'.BusinessModule::RETURNS, 'permission:sales.cancel'])
             ->name('sales-returns.store');
         Route::post('/invoices/{invoice}/payments', [PaymentController::class, 'store'])
-            ->middleware('permission:payments.create')
+            ->middleware(['module:'.BusinessModule::BILLING, 'permission:payments.create'])
             ->name('payments.store');
 
         Route::middleware('permission:expenses.view')->group(function () {
@@ -200,7 +210,7 @@ Route::middleware('auth')->group(function () {
             ->middleware('permission:expenses.delete')
             ->name('expenses.destroy');
 
-        Route::middleware('permission:suppliers.view')->group(function () {
+        Route::middleware(['module:'.BusinessModule::SUPPLIER_LEDGER, 'permission:suppliers.view'])->group(function () {
             Route::get('/suppliers', [SupplierController::class, 'index'])->name('suppliers.index');
             Route::get('/suppliers/{supplier}', [SupplierController::class, 'show'])->whereNumber('supplier')->name('suppliers.show');
             Route::get('/suppliers/{supplier}/account', [SupplierAccountController::class, 'show'])->name('supplier.account');
@@ -227,32 +237,39 @@ Route::middleware('auth')->group(function () {
             ->middleware('permission:payments.create')
             ->name('supplier-payments.destroy');
 
-        Route::middleware('permission:purchases.view')->group(function () {
+        Route::middleware(['module:'.BusinessModule::PURCHASES, 'permission:purchases.view'])->group(function () {
             Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index');
             Route::get('/purchases/{purchase}', [PurchaseController::class, 'show'])->whereNumber('purchase')->name('purchases.show');
             Route::get('/purchases/{purchase}/print', [PurchaseController::class, 'print'])->name('purchases.print');
             Route::get('/purchases/{purchase}/pdf', [PurchaseController::class, 'pdf'])->name('purchases.pdf');
         });
-        Route::middleware('permission:purchases.create')->group(function () {
+        Route::middleware(['module:'.BusinessModule::PURCHASES, 'permission:purchases.create'])->group(function () {
             Route::get('/purchases/create', [PurchaseController::class, 'create'])->name('purchases.create');
             Route::post('/purchases', [PurchaseController::class, 'store'])->name('purchases.store');
         });
-        Route::middleware('permission:purchases.edit')->group(function () {
+        Route::middleware(['module:'.BusinessModule::PURCHASES, 'permission:purchases.edit'])->group(function () {
             Route::get('/purchases/{purchase}/edit', [PurchaseController::class, 'edit'])->name('purchases.edit');
             Route::put('/purchases/{purchase}', [PurchaseController::class, 'update'])->name('purchases.update');
         });
         Route::post('/purchases/{purchase}/returns', [PurchaseReturnController::class, 'store'])
-            ->middleware('permission:purchases.cancel')
+            ->middleware(['module:'.BusinessModule::RETURNS, 'permission:purchases.cancel'])
             ->name('purchase-returns.store');
         Route::post('/purchases/{purchase}/cancel', [PurchaseController::class, 'cancel'])
-            ->middleware('permission:purchases.cancel')
+            ->middleware(['module:'.BusinessModule::PURCHASES, 'permission:purchases.cancel'])
             ->name('purchases.cancel');
 
-        Route::prefix('reports')->middleware('permission:reports.view')->group(function () {
+        Route::prefix('reports')->middleware(['module:'.BusinessModule::REPORTS, 'permission:reports.view'])->group(function () {
             Route::get('/daily-sales', [ReportController::class, 'dailySales'])->name('reports.daily-sales');
             Route::get('/monthly-sales', [ReportController::class, 'monthlySales'])->name('reports.monthly-sales');
-            Route::get('/stock', [ReportController::class, 'stock'])->name('reports.stock');
-            Route::get('/low-stock', [ReportController::class, 'lowStock'])->name('reports.low-stock');
+            Route::get('/stock', [ReportController::class, 'stock'])
+                ->middleware('module:'.BusinessModule::INVENTORY)
+                ->name('reports.stock');
+            Route::get('/low-stock', [ReportController::class, 'lowStock'])
+                ->middleware('module:'.BusinessModule::LOW_STOCK_ALERTS)
+                ->name('reports.low-stock');
+            Route::get('/expiring-stock', [ReportController::class, 'expiringStock'])
+                ->middleware('module:'.BusinessModule::BATCH_EXPIRY)
+                ->name('reports.expiring-stock');
             Route::get('/profit-loss', [ReportController::class, 'profitLoss'])->name('reports.profit-loss');
         });
     });

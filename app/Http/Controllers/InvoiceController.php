@@ -8,6 +8,7 @@ use App\Models\CustomerPayment;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Product;
+use App\Models\ProductSerialNumber;
 use App\Services\ProductCatalogService;
 use App\Services\StockLedgerService;
 use App\Services\TenantUsageLimitService;
@@ -84,8 +85,20 @@ class InvoiceController extends Controller
                     isset($item['product_variant_id']) ? (int) $item['product_variant_id'] : null,
                     true
                 );
-                $quantity = (int) $item['quantity'];
+                $quantity = (float) $item['quantity'];
                 $price = (float) $item['price'];
+
+                if (! $variant->product->allowsDecimalQuantity() && floor($quantity) !== $quantity) {
+                    throw ValidationException::withMessages([
+                        'products' => $variant->display_name.' must be sold in whole quantities.',
+                    ]);
+                }
+
+                if ($variant->product->track_serial && count($this->serialNumbers($item['serial_numbers'] ?? '')) !== (int) $quantity) {
+                    throw ValidationException::withMessages([
+                        'products' => $variant->display_name.' requires one available serial number for each sold unit.',
+                    ]);
+                }
 
                 $variants->put($variant->id, $variant);
                 $requestedQuantities[$variant->id] =
@@ -97,7 +110,7 @@ class InvoiceController extends Controller
             foreach ($requestedQuantities as $variantId => $quantity) {
                 $variant = $variants->get($variantId);
 
-                if ($quantity > $variant->stock_quantity) {
+                if ($variant->product->tracksStock() && $variant->track_stock && $quantity > $variant->stock_quantity) {
                     throw ValidationException::withMessages([
                         'stock' => $variant->display_name.' does not have enough stock.',
                     ]);
@@ -148,7 +161,7 @@ class InvoiceController extends Controller
                     true
                 );
                 $product = $variant->product;
-                $quantity = (int) $item['quantity'];
+                $quantity = (float) $item['quantity'];
                 $price = (float) $item['price'];
                 $lineTotal = $quantity * $price;
                 $regularPrice = (float) ($variant->compare_at_price ?? 0);
@@ -168,18 +181,52 @@ class InvoiceController extends Controller
                     'total' => $lineTotal,
                 ]);
 
-                $catalog->adjustStock($variant, $quantity, 'out');
+                if ($product->tracksStock() && $variant->track_stock) {
+                    $batchMovements = $catalog->consumeBatches(
+                        $variant,
+                        $quantity,
+                        $item['batch_number'] ?? null
+                    );
+                    $catalog->adjustStock($variant, $quantity, 'out');
 
-                $stockLedger->record($variant, 'sale', $quantity, [
-                    'direction' => 'out',
-                    'unit_cost' => $product->purchase_price,
-                    'unit_price' => $price,
-                    'stock_after' => $variant->stock_quantity,
-                    'source_type' => InvoiceItem::class,
-                    'source_id' => $invoiceItem->id,
-                    'reference_no' => $invoice->invoice_no,
-                    'movement_date' => $invoice->sale_date,
-                ]);
+                    if ($batchMovements === []) {
+                        $stockLedger->record($variant, 'sale', $quantity, [
+                            'direction' => 'out',
+                            'unit_cost' => $product->purchase_price,
+                            'unit_price' => $price,
+                            'stock_after' => $variant->stock_quantity,
+                            'source_type' => InvoiceItem::class,
+                            'source_id' => $invoiceItem->id,
+                            'reference_no' => $invoice->invoice_no,
+                            'movement_date' => $invoice->sale_date,
+                        ]);
+                    } else {
+                        foreach ($batchMovements as $batchMovement) {
+                            $stockLedger->record($variant, 'sale', $batchMovement['quantity'], [
+                                'direction' => 'out',
+                                'unit_cost' => $product->purchase_price,
+                                'unit_price' => $price,
+                                'stock_after' => $variant->stock_quantity,
+                                'source_type' => InvoiceItem::class,
+                                'source_id' => $invoiceItem->id,
+                                'reference_no' => $invoice->invoice_no,
+                                'product_batch_id' => $batchMovement['batch']->id,
+                                'batch_number' => $batchMovement['batch']->batch_number,
+                                'expiry_date' => $batchMovement['batch']->expiry_date,
+                                'movement_date' => $invoice->sale_date,
+                            ]);
+                        }
+                    }
+                }
+
+                if ($product->track_serial) {
+                    $this->markSerialNumbersSold(
+                        $product,
+                        $variant,
+                        $invoiceItem,
+                        $this->serialNumbers($item['serial_numbers'] ?? '')
+                    );
+                }
             }
 
             if ($paidAmount > 0) {
@@ -251,19 +298,69 @@ class InvoiceController extends Controller
                 $catalog = app(ProductCatalogService::class);
                 $variant = $item->variant
                     ?? $catalog->resolveVariant($item->product_id, null, true);
-                $catalog->adjustStock($variant, $item->quantity, 'in');
 
-                $stockLedger->record($variant, 'sale_cancel', $item->quantity, [
-                    'direction' => 'in',
-                    'unit_cost' => $item->product->purchase_price,
-                    'unit_price' => $item->price,
-                    'stock_after' => $variant->stock_quantity,
-                    'source_type' => InvoiceItem::class,
-                    'source_id' => $item->id,
-                    'reference_no' => $lockedInvoice->invoice_no,
-                    'movement_date' => now()->toDateString(),
-                    'notes' => 'Invoice cancelled.',
-                ]);
+                if (! $item->product_variant_id) {
+                    $item->product->update([
+                        'stock_quantity' => (float) $item->product->stock_quantity + (float) $item->quantity,
+                    ]);
+
+                    $stockLedger->record($item->product, 'sale_cancel', $item->quantity, [
+                        'direction' => 'in',
+                        'unit_cost' => $item->product->purchase_price,
+                        'unit_price' => $item->price,
+                        'stock_after' => $item->product->stock_quantity,
+                        'source_type' => InvoiceItem::class,
+                        'source_id' => $item->id,
+                        'reference_no' => $lockedInvoice->invoice_no,
+                        'movement_date' => now()->toDateString(),
+                        'notes' => 'Invoice cancelled.',
+                    ]);
+
+                    continue;
+                }
+
+                if ($variant->product->tracksStock() && $variant->track_stock) {
+                    $batchMovements = $catalog->restoreBatchesFromInvoiceItem($item, (float) $item->quantity);
+                    $catalog->adjustStock($variant, $item->quantity, 'in');
+
+                    if ($batchMovements === []) {
+                        $stockLedger->record($variant, 'sale_cancel', $item->quantity, [
+                            'direction' => 'in',
+                            'unit_cost' => $item->product->purchase_price,
+                            'unit_price' => $item->price,
+                            'stock_after' => $variant->stock_quantity,
+                            'source_type' => InvoiceItem::class,
+                            'source_id' => $item->id,
+                            'reference_no' => $lockedInvoice->invoice_no,
+                            'movement_date' => now()->toDateString(),
+                            'notes' => 'Invoice cancelled.',
+                        ]);
+                    } else {
+                        foreach ($batchMovements as $batchMovement) {
+                            $stockLedger->record($variant, 'sale_cancel', $batchMovement['quantity'], [
+                                'direction' => 'in',
+                                'unit_cost' => $item->product->purchase_price,
+                                'unit_price' => $item->price,
+                                'stock_after' => $variant->stock_quantity,
+                                'source_type' => InvoiceItem::class,
+                                'source_id' => $item->id,
+                                'reference_no' => $lockedInvoice->invoice_no,
+                                'product_batch_id' => $batchMovement['batch']->id,
+                                'batch_number' => $batchMovement['batch']->batch_number,
+                                'expiry_date' => $batchMovement['batch']->expiry_date,
+                                'movement_date' => now()->toDateString(),
+                                'notes' => 'Invoice cancelled.',
+                            ]);
+                        }
+                    }
+
+                    $item->product->refresh();
+                    $item->product->syncFromVariants();
+                }
+
+                if ($variant->product->track_serial) {
+                    $this->releaseSerialNumbers($item, (float) $item->quantity);
+                }
             }
 
             $lockedInvoice->update([
@@ -301,5 +398,57 @@ class InvoiceController extends Controller
         return $pdf->download(
             $invoice->invoice_no.'.pdf'
         );
+    }
+
+    private function serialNumbers(string|array|null $value): array
+    {
+        $numbers = is_array($value) ? $value : preg_split('/[\r\n,]+/', (string) $value);
+
+        return collect($numbers)
+            ->map(fn ($number) => trim((string) $number))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function markSerialNumbersSold(Product $product, $variant, InvoiceItem $invoiceItem, array $serialNumbers): void
+    {
+        foreach ($serialNumbers as $serialNumber) {
+            $serial = ProductSerialNumber::query()
+                ->where('tenant_id', auth()->user()->tenant_id)
+                ->where('product_id', $product->id)
+                ->where('product_variant_id', $variant->id)
+                ->where('serial_number', $serialNumber)
+                ->where('status', ProductSerialNumber::STATUS_AVAILABLE)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $serial) {
+                throw ValidationException::withMessages([
+                    'products' => "Serial number {$serialNumber} is not available.",
+                ]);
+            }
+
+            $serial->update([
+                'status' => ProductSerialNumber::STATUS_SOLD,
+                'invoice_item_id' => $invoiceItem->id,
+            ]);
+        }
+    }
+
+    private function releaseSerialNumbers(InvoiceItem $invoiceItem, float $quantity): void
+    {
+        ProductSerialNumber::query()
+            ->where('invoice_item_id', $invoiceItem->id)
+            ->where('status', ProductSerialNumber::STATUS_SOLD)
+            ->limit((int) $quantity)
+            ->get()
+            ->each(function (ProductSerialNumber $serial): void {
+                $serial->update([
+                    'status' => ProductSerialNumber::STATUS_AVAILABLE,
+                    'invoice_item_id' => null,
+                ]);
+            });
     }
 }

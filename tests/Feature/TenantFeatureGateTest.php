@@ -3,12 +3,14 @@
 namespace Tests\Feature;
 
 use App\Models\Category;
+use App\Models\BusinessPreset;
 use App\Models\PlanFeature;
 use App\Models\Product;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\TenantFeatureService;
+use Database\Seeders\BusinessPresetSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
@@ -61,7 +63,7 @@ class TenantFeatureGateTest extends TestCase
         $this->actingAs($user)
             ->get(route('products.index'))
             ->assertOk()
-            ->assertSee('Barcode Scanner Enabled');
+            ->assertSee('Scanner Enabled');
     }
 
     public function test_product_index_links_missing_scanner_feature_to_upgrade_notice(): void
@@ -103,10 +105,13 @@ class TenantFeatureGateTest extends TestCase
     private function tenantWithPlan(bool $hasBarcode): array
     {
         $this->seed(RolePermissionSeeder::class);
+        $this->seed(BusinessPresetSeeder::class);
+        $generalStore = BusinessPreset::where('slug', BusinessPreset::GENERAL_STORE)->firstOrFail();
 
         $tenant = Tenant::create([
             'name' => fake()->company(),
             'slug' => fake()->unique()->slug(),
+            'business_preset_id' => $generalStore->id,
         ]);
 
         $barcode = PlanFeature::create([

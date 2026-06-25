@@ -1,0 +1,238 @@
+﻿Parent Category,Category,Status
+Grocery,Rice,Active
+Grocery,Flour & Grains,Active
+Grocery,Pulses,Active
+Grocery,Sugar & Sweeteners,Active
+Grocery,Salt,Active
+Grocery,Spices,Active
+Grocery,Recipe Mixes & Masalas,Active
+Grocery,Cooking Oil,Active
+Grocery,Ghee,Active
+Grocery,Dry Fruits & Nuts,Active
+Grocery,Seeds,Active
+Grocery,Pickles & Chutneys,Active
+Grocery,Sauces & Condiments,Active
+Grocery,Baking Ingredients,Active
+Grocery,Desserts & Mixes,Active
+Grocery,Instant Foods,Active
+Grocery,Canned & Packed Foods,Active
+Grocery,Breakfast Foods & Cereals,Active
+Grocery,Traditional Foods,Active
+Grocery,Honey & Spreads,Active
+Grocery,Vinegar & Cooking Essences,Active
+Grocery,Jams & Marmalades,Active
+Grocery,Peanut Butter & Chocolate Spreads,Active
+Grocery,Soup & Stock Cubes,Active
+Grocery,Pasta & Noodles,Active
+Grocery,Vermicelli & Sawaiyan,Active
+Grocery,Imported Grocery,Active
+Grocery,Organic & Health Foods,Active
+Grocery,Dates & Ramadan Specials,Active
+Grocery,Tea Whiteners & Creamers,Active
+Beverages,Tea,Active
+Beverages,Green Tea,Active
+Beverages,Herbal Tea,Active
+Beverages,Coffee,Active
+Beverages,Instant Coffee,Active
+Beverages,Tea Whiteners & Creamers,Active
+Beverages,Hot Chocolate,Active
+Beverages,Carbonated Soft Drinks,Active
+Beverages,Energy Drinks,Active
+Beverages,Sports Drinks,Active
+Beverages,Flavored Water,Active
+Beverages,Mineral Water,Active
+Beverages,Sparkling Water,Active
+Beverages,Fruit Juices,Active
+Beverages,Nectars,Active
+Beverages,Juice Drinks,Active
+Beverages,Kids Drinks,Active
+Beverages,Tetra Pack Drinks,Active
+Beverages,Syrups & Squashes,Active
+Beverages,Sharbat,Active
+Beverages,Rooh Afza Type Drinks,Active
+Beverages,Sattu Drinks,Active
+Beverages,Milk Drinks,Active
+Beverages,Flavored Milk,Active
+Beverages,Lassi,Active
+Beverages,Yogurt Drinks,Active
+Beverages,Milkshakes,Active
+Beverages,Malt Drinks,Active
+Beverages,Protein Drinks,Active
+Beverages,Energy Nutrition Drinks,Active
+Beverages,Imported Beverages,Active
+Beverages,Kombucha,Active
+Beverages,Coconut Water,Active
+Beverages,Ready To Drink Tea,Active
+Beverages,Ready To Drink Coffee,Active
+Beverages,Drink Powders,Active
+Beverages,Instant Beverage Mixes,Active
+Beverages,ORS & Rehydration Drinks,Active
+Beverages,Glucose Drinks,Active
+Beverages,Flavored Powder Drinks,Active
+Snacks & Confectionery,Potato Chips,Active
+Snacks & Confectionery,Corn Snacks,Active
+Snacks & Confectionery,Extruded Snacks,Active
+Snacks & Confectionery,Nimco,Active
+Snacks & Confectionery,Popcorn,Active
+Snacks & Confectionery,Crackers,Active
+Snacks & Confectionery,Salted Snacks,Active
+Snacks & Confectionery,Biscuits,Active
+Snacks & Confectionery,Cookies,Active
+Snacks & Confectionery,Wafers,Active
+Snacks & Confectionery,Cakes,Active
+Snacks & Confectionery,Rusks,Active
+Snacks & Confectionery,Chocolates,Active
+Snacks & Confectionery,Candy,Active
+Snacks & Confectionery,Toffees,Active
+Snacks & Confectionery,Chewing Gum,Active
+Snacks & Confectionery,Jelly Candy,Active
+Snacks & Confectionery,Lollipops,Active
+Snacks & Confectionery,Mints,Active
+Snacks & Confectionery,Imported Confectionery,Active
+Snacks & Confectionery,Gift Packs,Active
+Snacks & Confectionery,Seasonal Confectionery,Active
+Dairy & Chilled,UHT Milk,Active
+Dairy & Chilled,Fresh Milk,Active
+Dairy & Chilled,Powder Milk,Active
+Dairy & Chilled,Yogurt,Active
+Dairy & Chilled,Flavored Yogurt,Active
+Dairy & Chilled,Cheese,Active
+Dairy & Chilled,Butter,Active
+Dairy & Chilled,Margarine,Active
+Dairy & Chilled,Cream,Active
+Dairy & Chilled,Desserts,Active
+Dairy & Chilled,Chilled Juices,Active
+Dairy & Chilled,Chilled Beverages,Active
+Dairy & Chilled,Eggs,Active
+Dairy & Chilled,Dairy Alternatives,Active
+Frozen Foods,Frozen Chicken,Active
+Frozen Foods,Frozen Beef,Active
+Frozen Foods,Frozen Seafood,Active
+Frozen Foods,Nuggets,Active
+Frozen Foods,Samosa,Active
+Frozen Foods,Spring Rolls,Active
+Frozen Foods,Kebabs,Active
+Frozen Foods,Frozen Paratha,Active
+Frozen Foods,Frozen Bread,Active
+Frozen Foods,Frozen Vegetables,Active
+Frozen Foods,Frozen Fruits,Active
+Frozen Foods,Ice Cream,Active
+Frozen Foods,Kulfa,Active
+Frozen Foods,Frozen Desserts,Active
+Bakery,Bread,Active
+Bakery,Buns,Active
+Bakery,Cakes,Active
+Bakery,Cupcakes,Active
+Bakery,Pastries,Active
+Bakery,Donuts,Active
+Bakery,Cookies,Active
+Bakery,Rusks,Active
+Bakery,Bakery Snacks,Active
+Bakery,Bakery Desserts,Active
+Bakery,Specialty Bakery,Active
+Personal Care,Bath Soap,Active
+Personal Care,Body Wash,Active
+Personal Care,Shampoo,Active
+Personal Care,Conditioner,Active
+Personal Care,Hair Oil,Active
+Personal Care,Hair Color,Active
+Personal Care,Hair Styling,Active
+Personal Care,Toothpaste,Active
+Personal Care,Toothbrush,Active
+Personal Care,Mouthwash,Active
+Personal Care,Face Wash,Active
+Personal Care,Skin Care,Active
+Personal Care,Lotion,Active
+Personal Care,Shaving,Active
+Personal Care,Deodorants,Active
+Personal Care,Perfumes,Active
+Personal Care,Feminine Care,Active
+Personal Care,Men's Grooming,Active
+Personal Care,Health & Hygiene,Active
+Baby Care,Diapers,Active
+Baby Care,Baby Wipes,Active
+Baby Care,Baby Feeding,Active
+Baby Care,Baby Bottles,Active
+Baby Care,Baby Food,Active
+Baby Care,Formula Milk,Active
+Baby Care,Baby Shampoo,Active
+Baby Care,Baby Soap,Active
+Baby Care,Baby Lotion,Active
+Baby Care,Baby Powder,Active
+Baby Care,Baby Accessories,Active
+Baby Care,Baby Health,Active
+Home Care,Laundry Detergent,Active
+Home Care,Laundry Soap,Active
+Home Care,Fabric Softener,Active
+Home Care,Dishwashing,Active
+Home Care,Floor Cleaner,Active
+Home Care,Toilet Cleaner,Active
+Home Care,Glass Cleaner,Active
+Home Care,Kitchen Cleaner,Active
+Home Care,Disinfectants,Active
+Home Care,Air Fresheners,Active
+Home Care,Insect Control,Active
+Home Care,Cleaning Chemicals,Active
+Household,Tissue Paper,Active
+Household,Toilet Rolls,Active
+Household,Kitchen Rolls,Active
+Household,Garbage Bags,Active
+Household,Aluminum Foil,Active
+Household,Cling Film,Active
+Household,Food Storage,Active
+Household,Plastic Products,Active
+Household,Disposable Products,Active
+Household,Cleaning Tools,Active
+Household,Kitchen Tools,Active
+Household,Household Accessories,Active
+Pet Care,Cat Food,Active
+Pet Care,Dog Food,Active
+Pet Care,Bird Feed,Active
+Pet Care,Fish Feed,Active
+Pet Care,Pet Treats,Active
+Pet Care,Pet Hygiene,Active
+Pet Care,Pet Accessories,Active
+Stationery & Office Supplies,Pens,Active
+Stationery & Office Supplies,Pencils,Active
+Stationery & Office Supplies,Markers,Active
+Stationery & Office Supplies,Notebooks,Active
+Stationery & Office Supplies,Registers,Active
+Stationery & Office Supplies,Paper Products,Active
+Stationery & Office Supplies,School Supplies,Active
+Stationery & Office Supplies,Office Supplies,Active
+Stationery & Office Supplies,Art Supplies,Active
+Stationery & Office Supplies,Filing & Storage,Active
+Electronics & Mobile Accessories,Chargers,Active
+Electronics & Mobile Accessories,Data Cables,Active
+Electronics & Mobile Accessories,Earphones,Active
+Electronics & Mobile Accessories,Headphones,Active
+Electronics & Mobile Accessories,Power Banks,Active
+Electronics & Mobile Accessories,Batteries,Active
+Electronics & Mobile Accessories,LED Bulbs,Active
+Electronics & Mobile Accessories,Extension Boards,Active
+Electronics & Mobile Accessories,Mobile Accessories,Active
+Electronics & Mobile Accessories,Small Electronics,Active
+Electronics & Mobile Accessories,Computer Accessories,Active
+Tobacco & Smoking Accessories,Cigarettes,Active
+Tobacco & Smoking Accessories,Cigars,Active
+Tobacco & Smoking Accessories,Smokeless Tobacco,Active
+Tobacco & Smoking Accessories,Lighters,Active
+Tobacco & Smoking Accessories,Matches,Active
+Tobacco & Smoking Accessories,Smoking Accessories,Active
+Seasonal & Promotional,Ramadan,Active
+Seasonal & Promotional,Eid,Active
+Seasonal & Promotional,Winter Specials,Active
+Seasonal & Promotional,Summer Specials,Active
+Seasonal & Promotional,School Season,Active
+Seasonal & Promotional,Gift Packs,Active
+Seasonal & Promotional,Promotional Bundles,Active
+General Merchandise,Toys,Active
+General Merchandise,Gifts,Active
+General Merchandise,Travel Accessories,Active
+General Merchandise,Religious Items,Active
+General Merchandise,Kitchenware,Active
+General Merchandise,Plastic Ware,Active
+General Merchandise,Utility Items,Active
+General Merchandise,Hardware Essentials,Active
+General Merchandise,Sewing Accessories,Active
+General Merchandise,Miscellaneous,Active

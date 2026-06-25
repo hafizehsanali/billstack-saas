@@ -6,6 +6,7 @@ use App\Models\Invoice;
 use App\Services\ProductCatalogService;
 use App\Models\SalesReturn;
 use App\Models\SalesReturnItem;
+use App\Models\ProductSerialNumber;
 use App\Services\StockLedgerService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,7 +27,7 @@ class SalesReturnController extends Controller
             'return_date' => ['required', 'date'],
             'notes' => ['nullable', 'string'],
             'items' => ['required', 'array'],
-            'items.*.quantity' => ['nullable', 'integer', 'min:0'],
+            'items.*.quantity' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         DB::transaction(function () use ($invoice, $validated) {
@@ -36,7 +37,7 @@ class SalesReturnController extends Controller
             $selectedItems = collect($validated['items'])
                 ->map(fn ($item, $invoiceItemId) => [
                     'invoice_item_id' => (int) $invoiceItemId,
-                    'quantity' => (int) ($item['quantity'] ?? 0),
+                    'quantity' => (float) ($item['quantity'] ?? 0),
                 ])
                 ->filter(fn ($item) => $item['quantity'] > 0)
                 ->values();
@@ -96,19 +97,71 @@ class SalesReturnController extends Controller
                 $variant = $invoiceItem->variant
                     ?? $catalog->resolveVariant($invoiceItem->product_id, null, true);
 
-                if ($variant) {
-                    $catalog->adjustStock($variant, $item['quantity'], 'in');
+                if (! $invoiceItem->product_variant_id && $invoiceItem->product) {
+                    $invoiceItem->product->update([
+                        'stock_quantity' => (float) $invoiceItem->product->stock_quantity + (float) $item['quantity'],
+                    ]);
 
-                    $stockLedger->record($variant, 'sales_return', $item['quantity'], [
+                    $stockLedger->record($invoiceItem->product, 'sales_return', $item['quantity'], [
                         'direction' => 'in',
-                        'unit_cost' => $variant->purchase_price,
+                        'unit_cost' => $invoiceItem->product->purchase_price,
                         'unit_price' => $invoiceItem->price,
-                        'stock_after' => $variant->stock_quantity,
+                        'stock_after' => $invoiceItem->product->stock_quantity,
                         'source_type' => SalesReturnItem::class,
                         'source_id' => $returnItem->id,
                         'reference_no' => $salesReturn->return_no,
                         'movement_date' => $salesReturn->return_date,
                     ]);
+
+                    continue;
+                }
+
+                if ($variant && $variant->product->tracksStock() && $variant->track_stock) {
+                    $batchMovements = $catalog->restoreBatchesFromInvoiceItem($invoiceItem, $item['quantity']);
+                    $catalog->adjustStock($variant, $item['quantity'], 'in');
+
+                    if ($batchMovements === []) {
+                        $stockLedger->record($variant, 'sales_return', $item['quantity'], [
+                            'direction' => 'in',
+                            'unit_cost' => $variant->purchase_price,
+                            'unit_price' => $invoiceItem->price,
+                            'stock_after' => $variant->stock_quantity,
+                            'source_type' => SalesReturnItem::class,
+                            'source_id' => $returnItem->id,
+                            'reference_no' => $salesReturn->return_no,
+                            'movement_date' => $salesReturn->return_date,
+                        ]);
+                    } else {
+                        foreach ($batchMovements as $batchMovement) {
+                            $stockLedger->record($variant, 'sales_return', $batchMovement['quantity'], [
+                                'direction' => 'in',
+                                'unit_cost' => $variant->purchase_price,
+                                'unit_price' => $invoiceItem->price,
+                                'stock_after' => $variant->stock_quantity,
+                                'source_type' => SalesReturnItem::class,
+                                'source_id' => $returnItem->id,
+                                'reference_no' => $salesReturn->return_no,
+                                'product_batch_id' => $batchMovement['batch']->id,
+                                'batch_number' => $batchMovement['batch']->batch_number,
+                                'expiry_date' => $batchMovement['batch']->expiry_date,
+                                'movement_date' => $salesReturn->return_date,
+                            ]);
+                        }
+                    }
+                }
+
+                if ($variant?->product?->track_serial) {
+                    ProductSerialNumber::query()
+                        ->where('invoice_item_id', $invoiceItem->id)
+                        ->where('status', ProductSerialNumber::STATUS_SOLD)
+                        ->limit((int) $item['quantity'])
+                        ->get()
+                        ->each(function (ProductSerialNumber $serial): void {
+                            $serial->update([
+                                'status' => ProductSerialNumber::STATUS_AVAILABLE,
+                                'invoice_item_id' => null,
+                            ]);
+                        });
                 }
             }
 

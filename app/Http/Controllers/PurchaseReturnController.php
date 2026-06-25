@@ -27,7 +27,7 @@ class PurchaseReturnController extends Controller
             'return_date' => ['required', 'date'],
             'notes' => ['nullable', 'string'],
             'items' => ['required', 'array'],
-            'items.*.quantity' => ['nullable', 'integer', 'min:0'],
+            'items.*.quantity' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         DB::transaction(function () use ($purchase, $validated) {
@@ -37,7 +37,7 @@ class PurchaseReturnController extends Controller
             $selectedItems = collect($validated['items'])
                 ->map(fn ($item, $purchaseItemId) => [
                     'purchase_item_id' => (int) $purchaseItemId,
-                    'quantity' => (int) ($item['quantity'] ?? 0),
+                    'quantity' => (float) ($item['quantity'] ?? 0),
                 ])
                 ->filter(fn ($item) => $item['quantity'] > 0)
                 ->values();
@@ -69,9 +69,9 @@ class PurchaseReturnController extends Controller
                 $catalog = app(ProductCatalogService::class);
                 $variant = $purchaseItem->variant
                     ?? $catalog->resolveVariant($purchaseItem->product_id, null, true);
-                $baseReturnQuantity = $item['quantity'] * max((int) $purchaseItem->unit_factor, 1);
+                $baseReturnQuantity = $item['quantity'] * max((float) $purchaseItem->unit_factor, 0.001);
 
-                if ($variant->stock_quantity < $baseReturnQuantity) {
+                if ($variant->product->tracksStock() && $variant->track_stock && $variant->stock_quantity < $baseReturnQuantity) {
                     throw ValidationException::withMessages([
                         'items' => $purchaseItem->product?->name.' does not have enough stock to return.',
                     ]);
@@ -107,19 +107,28 @@ class PurchaseReturnController extends Controller
                 $catalog = app(ProductCatalogService::class);
                 $variant = $purchaseItem->variant
                     ?? $catalog->resolveVariant($purchaseItem->product_id, null, true);
-                $baseReturnQuantity = $item['quantity'] * max((int) $purchaseItem->unit_factor, 1);
-                $baseUnitCost = $purchaseItem->purchase_price / max((int) $purchaseItem->unit_factor, 1);
-                $catalog->adjustStock($variant, $baseReturnQuantity, 'out');
+                $baseReturnQuantity = $item['quantity'] * max((float) $purchaseItem->unit_factor, 0.001);
+                $baseUnitCost = $purchaseItem->purchase_price / max((float) $purchaseItem->unit_factor, 0.001);
 
-                $stockLedger->record($variant, 'purchase_return', $baseReturnQuantity, [
-                    'direction' => 'out',
-                    'unit_cost' => $baseUnitCost,
-                    'stock_after' => $variant->stock_quantity,
-                    'source_type' => PurchaseReturnItem::class,
-                    'source_id' => $returnItem->id,
-                    'reference_no' => $purchaseReturn->return_no,
-                    'movement_date' => $purchaseReturn->return_date,
-                ]);
+                if ($variant->product->tracksStock() && $variant->track_stock) {
+                    $batchMovements = $catalog->consumeBatches($variant, $baseReturnQuantity);
+                    $catalog->adjustStock($variant, $baseReturnQuantity, 'out');
+
+                    foreach ($batchMovements ?: [['batch' => null, 'quantity' => $baseReturnQuantity]] as $batchMovement) {
+                        $stockLedger->record($variant, 'purchase_return', $batchMovement['quantity'], [
+                            'direction' => 'out',
+                            'unit_cost' => $baseUnitCost,
+                            'stock_after' => $variant->stock_quantity,
+                            'source_type' => PurchaseReturnItem::class,
+                            'source_id' => $returnItem->id,
+                            'reference_no' => $purchaseReturn->return_no,
+                            'product_batch_id' => $batchMovement['batch']?->id,
+                            'batch_number' => $batchMovement['batch']?->batch_number,
+                            'expiry_date' => $batchMovement['batch']?->expiry_date,
+                            'movement_date' => $purchaseReturn->return_date,
+                        ]);
+                    }
+                }
             }
 
             $this->refreshPurchaseTotals($purchase, $totalAmount);
