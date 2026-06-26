@@ -146,6 +146,25 @@
                             </div>
 
                             <div class="col-12">
+                                <label for="business_preset_id" class="form-label">Business Type <span class="text-danger">*</span></label>
+                                <select id="business_preset_id"
+                                        name="business_preset_id"
+                                        class="form-select @error('business_preset_id') is-invalid @enderror"
+                                        required>
+                                    <option value="">Select your business type</option>
+                                    @foreach($businessPresets as $preset)
+                                        <option value="{{ $preset->id }}"
+                                                {{ old('business_preset_id') == $preset->id ? 'selected' : '' }}>
+                                            {{ $preset->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('business_preset_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-12">
                                 <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
                                 <input id="email"
                                        type="email"

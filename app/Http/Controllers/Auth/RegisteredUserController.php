@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\PlatformSetting;
 use App\Models\SubscriptionPlan;
+use App\Models\BusinessPreset;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -43,7 +44,11 @@ class RegisteredUserController extends Controller
             : 'monthly';
         $selectedPromo = Str::upper($request->string('promo')->toString());
 
-        return view('auth.register', compact('selectedPlan', 'selectedCycle', 'selectedPromo'));
+        $businessPresets = BusinessPreset::where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
+
+        return view('auth.register', compact('selectedPlan', 'selectedCycle', 'selectedPromo', 'businessPresets'));
     }
 
     /**
@@ -58,6 +63,11 @@ class RegisteredUserController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'business_name' => ['required', 'string', 'max:255'],
+            'business_preset_id' => [
+                'required',
+                'integer',
+                Rule::exists('business_presets', 'id')->where('is_active', true),
+            ],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'terms' => ['accepted'],
@@ -71,9 +81,12 @@ class RegisteredUserController extends Controller
             'billing_cycle' => ['nullable', Rule::in(['monthly', 'annual'])],
             'promo_code' => ['nullable', 'string', 'max:50', 'alpha_dash'],
         ]);
+        $businessPreset = BusinessPreset::findOrFail($request->business_preset_id);
+        
         $tenant = Tenant::create([
             'name' => $request->business_name,
             'slug' => Str::slug($request->business_name . '-' . uniqid()),
+            'business_preset_id' => $businessPreset->id,
         ]);
         $user = User::create([
             'tenant_id' => $tenant->id,

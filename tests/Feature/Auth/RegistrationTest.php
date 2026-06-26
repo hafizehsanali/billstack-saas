@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Models\BusinessPreset;
 use App\Models\User;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -25,10 +26,18 @@ class RegistrationTest extends TestCase
     public function test_new_users_can_register(): void
     {
         Notification::fake();
+        
+        $businessPreset = BusinessPreset::create([
+            'name' => 'General Store',
+            'slug' => 'general-store',
+            'description' => 'Test preset',
+            'is_active' => true,
+        ]);
 
         $response = $this->post('/register', [
             'name' => 'Test User',
             'business_name' => 'Test Store',
+            'business_preset_id' => $businessPreset->id,
             'email' => 'test@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
@@ -46,9 +55,17 @@ class RegistrationTest extends TestCase
 
     public function test_registration_requires_policy_agreement(): void
     {
+        $businessPreset = BusinessPreset::create([
+            'name' => 'General Store',
+            'slug' => 'general-store',
+            'description' => 'Test preset',
+            'is_active' => true,
+        ]);
+
         $this->post('/register', [
             'name' => 'Test User',
             'business_name' => 'Test Store',
+            'business_preset_id' => $businessPreset->id,
             'email' => 'terms@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',

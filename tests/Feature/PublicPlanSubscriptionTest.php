@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\BusinessPreset;
 use App\Models\PlanFeature;
 use App\Models\PlatformOffer;
 use App\Models\SubscriptionPlan;
@@ -175,9 +176,17 @@ class PublicPlanSubscriptionTest extends TestCase
 
     private function registrationData(SubscriptionPlan $plan): array
     {
+        $businessPreset = BusinessPreset::create([
+            'name' => 'General Store',
+            'slug' => 'general-store',
+            'description' => 'Test preset',
+            'is_active' => true,
+        ]);
+
         return [
             'name' => 'Public Test Owner',
             'business_name' => 'Public Test Store',
+            'business_preset_id' => $businessPreset->id,
             'email' => 'public-owner@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',

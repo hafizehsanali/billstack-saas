@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\BusinessPreset;
 use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Invoice;
@@ -26,9 +27,17 @@ class PlatformAdminFoundationTest extends TestCase
         $this->seed(RolePermissionSeeder::class);
         $this->seed(SaasPlanSeeder::class);
 
+        $businessPreset = BusinessPreset::create([
+            'name' => 'General Store',
+            'slug' => 'general-store',
+            'description' => 'Test preset',
+            'is_active' => true,
+        ]);
+
         $this->post('/register', [
             'name' => 'Store Owner',
             'business_name' => 'New Store',
+            'business_preset_id' => $businessPreset->id,
             'email' => 'owner@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
